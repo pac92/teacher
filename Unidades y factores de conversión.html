@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magnitudes, unidades y factores de conversión</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        .section h2 {
+            color: #667eea;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .section h3 {
+            color: #764ba2;
+            font-size: 1.3em;
+            margin: 25px 0 15px 0;
+        }
+        
+        .definition {
+            background: #f8f9ff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .definition strong {
+            color: #667eea;
+            font-size: 1.1em;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:hover {
+            background: #f8f9ff;
+        }
+        
+        .note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .note strong {
+            color: #856404;
+        }
+        
+        .exercise {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .exercise:hover {
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+            border-color: #667eea;
+        }
+        
+        .exercise-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+        }
+        
+        .exercise-header:hover {
+            background: linear-gradient(135deg, #5568d3 0%, #653a8b 100%);
+        }
+        
+        .exercise-title {
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+        
+        .toggle-icon {
+            font-size: 1.5em;
+            transition: transform 0.3s ease;
+        }
+        
+        .exercise.active .toggle-icon {
+            transform: rotate(180deg);
+        }
+        
+        .exercise-solution {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            padding: 0 20px;
+        }
+        
+        .exercise.active .exercise-solution {
+            max-height: 2000px;
+            padding: 20px;
+        }
+        
+        .step {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9ff;
+            border-radius: 8px;
+            border-left: 3px solid #667eea;
+        }
+        
+        .step strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 10px;
+        }
+        
+        .math-expression {
+            font-size: 1.2em;
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            text-align: center;
+        }
+        
+        .result {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-weight: 600;
+            color: #155724;
+        }
+        
+        ul {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+        
+        li {
+            margin: 8px 0;
+        }
+        
+        .equivalences {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 3px solid #0066cc;
+            margin: 20px 0;
+        }
+        
+        .equivalences strong {
+            color: #0066cc;
+        }
+        
+        .quiz-section {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .quiz-section h3 {
+            color: white;
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 1.6em;
+        }
+        
+        .quiz-item {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        
+        .quiz-question {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .quiz-options {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .quiz-button {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px 20px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .quiz-button:hover:not(:disabled) {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+        }
+        
+        .quiz-button:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        
+        .quiz-button.correct {
+            background: #28a745;
+            border-color: #28a745;
+            color: white;
+        }
+        
+        .quiz-button.incorrect {
+            background: #dc3545;
+            border-color: #dc3545;
+            color: white;
+        }
+        
+        .quiz-feedback {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            display: none;
+        }
+        
+        .correct-feedback {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+        
+        .incorrect-feedback {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📏 Magnitudes, unidades y factores de conversión</h1>
+        </header>
+        
+        <div class="content">
+            <div class="section">
+                <h2>Definiciones</h2>
+                
+                <div class="definition">
+                    <strong>Magnitud</strong><br>
+                    Propiedad de la materia que podemos medir. Por ejemplo, la temperatura de un cuerpo, su masa, el volumen que ocupa...
+                    <br><br>
+                    <strong>Tipos de magnitudes:</strong>
+                    <ul>
+                        <li><strong>Magnitudes fundamentales.</strong> Solo dependen de sí mismas. Son 7: longitud, masa, tiempo, temperatura, cantidad de sustancia, intensidad de corriente e intensidad luminosa.</li>
+                        <li><strong>Magnitudes derivadas.</strong> Se obtienen combinando las magnitudes fundamentales. Hay muchísimas, por ejemplo la velocidad o la densidad.</li>
+                    </ul>
+                </div>
+                
+                <div class="definition">
+                    <strong>Unidad</strong><br>
+                    Cantidad de una magnitud que utilizamos como referencia para medir. Por ejemplo, son unidades de masa el kilogramo, la arroba, la fanega...
+                    <br><br>
+                    Las unidades son valores que usamos como referencia (¡este concepto es importante en física!). Eso quiere decir que nos hemos puesto de acuerdo todos para utilizar esos valores.
+                    <br><br>
+                    Sin embargo, las magnitudes se pueden expresar con más de una unidad. Por ejemplo, para expresar la masa lo más habitual es usar kilogramos, pero también podemos usar la arroba, la fanega... O podemos trabajar con múltiplos y submúltiplos de una unidad (gramos, miligramos, hectogramos...). Existen equivalencias que nos permiten intercambiar unas unidades por otras. Por ejemplo, una tonelada equivale a mil kilos.
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Magnitudes fundamentales del Sistema Internacional (SI)</h2>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Magnitud fundamental</th>
+                            <th>Símbolo</th>
+                            <th>Unidad</th>
+                            <th>Símbolo unidad</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Longitud</td>
+                            <td>L</td>
+                            <td>Metro</td>
+                            <td>m</td>
+                        </tr>
+                        <tr>
+                            <td>Masa</td>
+                            <td>M</td>
+                            <td>Kilogramo</td>
+                            <td>kg</td>
+                        </tr>
+                        <tr>
+                            <td>Tiempo</td>
+                            <td>T</td>
+                            <td>Segundo</td>
+                            <td>s</td>
+                        </tr>
+                        <tr>
+                            <td>Temperatura</td>
+                            <td>Θ</td>
+                            <td>Grado Kelvin</td>
+                            <td>K</td>
+                        </tr>
+                        <tr>
+                            <td>Cantidad de materia</td>
+                            <td>N</td>
+                            <td>Mol</td>
+                            <td>mol</td>
+                        </tr>
+                        <tr>
+                            <td>Intensidad de corriente</td>
+                            <td>I</td>
+                            <td>Amperio</td>
+                            <td>A</td>
+                        </tr>
+                        <tr>
+                            <td>Intensidad luminosa</td>
+                            <td>J</td>
+                            <td>Candela</td>
+                            <td>cd</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="section">
+                <h2>🎯 Ejercicios Resueltos</h2>
+                
+                <div class="quiz-section">
+                    <h3>🧪 Test: ¿Magnitud o Unidad?</h3>
+                    <p style="color: white; text-align: center; margin-bottom: 20px;">Identifica si cada término es una magnitud o una unidad</p>
+                    
+                    <div class="quiz-item">
+                        <div class="quiz-question">1. Masa</div>
+                        <div class="quiz-options">
+                            <button class="quiz-button" onclick="checkAnswer(this, true, 'Magnitud')">Magnitud</button>
+                            <button class="quiz-button" onclick="checkAnswer(this, false, 'Magnitud')">Unidad</button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+                    
+                    <div class="quiz-item">
+                        <div class="quiz-question">2. Kilogramo</div>
+                        <div class="quiz-options">
+                            <button class="quiz-button" onclick="checkAnswer(this, false, 'Unidad')">Magnitud</button>
+                            <button class="quiz-button" onclick="checkAnswer(this, true, 'Unidad')">Unidad</button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+                    
+                    <div class="quiz-item">
+                        <div class="quiz-question">3. Densidad</div>
+                        <div class="quiz-options">
+                            <button class="quiz-button" onclick="checkAnswer(this, true, 'Magnitud')">Magnitud</button>
+                            <button class="quiz-button" onclick="checkAnswer(this, false, 'Magnitud')">Unidad</button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+                    
+                    <div class="quiz-item">
+                        <div class="quiz-question">4. Metro</div>
+                        <div class="quiz-options">
+                            <button class="quiz-button" onclick="checkAnswer(this, false, 'Unidad')">Magnitud</button>
+                            <button class="quiz-button" onclick="checkAnswer(this, true, 'Unidad')">Unidad</button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+                    
+                    <div class="quiz-item">
+                        <div class="quiz-question">5. Velocidad</div>
+                        <div class="quiz-options">
+                            <button class="quiz-button" onclick="checkAnswer(this, true, 'Magnitud')">Magnitud</button>
+                            <button class="quiz-button" onclick="checkAnswer(this, false, 'Magnitud')">Unidad</button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+                    
+                    <div class="quiz-item">
+                        <div class="quiz-question">6. Segundo</div>
+                        <div class="quiz-options">
+                            <button class="quiz-button" onclick="checkAnswer(this, false, 'Unidad')">Magnitud</button>
+                            <button class="quiz-button" onclick="checkAnswer(this, true, 'Unidad')">Unidad</button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+                    
+                    <div class="quiz-item">
+                        <div class="quiz-question">7. Temperatura</div>
+                        <div class="quiz-options">
+                            <button class="quiz-button" onclick="checkAnswer(this, true, 'Magnitud')">Magnitud</button>
+                            <button class="quiz-button" onclick="checkAnswer(this, false, 'Magnitud')">Unidad</button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+                    
+                    <div class="quiz-item">
+                        <div class="quiz-question">8. Arroba</div>
+                        <div class="quiz-options">
+                            <button class="quiz-button" onclick="checkAnswer(this, false, 'Unidad')">Magnitud</button>
+                            <button class="quiz-button" onclick="checkAnswer(this, true, 'Unidad')">Unidad</button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+                    
+                    <div class="quiz-item">
+                        <div class="quiz-question">9. Longitud</div>
+                        <div class="quiz-options">
+                            <button class="quiz-button" onclick="checkAnswer(this, true, 'Magnitud')">Magnitud</button>
+                            <button class="quiz-button" onclick="checkAnswer(this, false, 'Magnitud')">Unidad</button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+                    
+                    <div class="quiz-item">
+                        <div class="quiz-question">10. Kelvin</div>
+                        <div class="quiz-options">
+                            <button class="quiz-button" onclick="checkAnswer(this, false, 'Unidad')">Magnitud</button>
+                            <button class="quiz-button" onclick="checkAnswer(this, true, 'Unidad')">Unidad</button>
+                        </div>
+                        <div class="quiz-feedback"></div>
+                    </div>
+                </div>
+                
+                <div class="note">
+                    <strong>¡Recuerda!</strong> Dar siempre la unidad junto con el resultado. Sin su unidad, el sentido del resultado se pierde. Haz clic en cada ejercicio para ver su solución paso a paso.
+                </div>
+                
+                <!-- Ejercicio 1 -->
+                <div class="exercise" onclick="toggleExercise(this)">
+                    <div class="exercise-header">
+                        <div class="exercise-title">Ejercicio 1: Convierte 2500 metros a kilómetros</div>
+                        <div class="toggle-icon">▼</div>
+                    </div>
+                    <div class="exercise-solution">
+                        <div class="step">
+                            <strong>Paso 1.</strong> Multiplicamos el valor por una fracción:
+                            <div class="math-expression">
+                                \(2500 \, \text{m} \times \dfrac{\square}{\square}\)
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <strong>Paso 2.</strong> Colocamos las unidades de manera que podamos anular los metros:
+                            <div class="math-expression">
+                                \(2500 \, \text{m} \times \dfrac{\square \, \text{km}}{\square \, \text{m}}\)
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <strong>Paso 3.</strong> Colocamos un 1 en la unidad más "grande" (kilómetros):
+                            <div class="math-expression">
+                                \(2500 \, \text{m} \times \dfrac{1 \, \text{km}}{\square \, \text{m}}\)
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <strong>Paso 4.</strong> Utilizamos la equivalencia (1 km = 1000 m):
+                            <div class="math-expression">
+                                \(2500 \, \text{m} \times \dfrac{1 \, \text{km}}{1000 \, \text{m}}\)
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <strong>Operamos:</strong>
+                            <div class="math-expression">
+                                \(\dfrac{2500 \times 1}{1000} = \dfrac{2500}{1000} = 2{,}5 \, \text{km}\)
+                            </div>
+                        </div>
+                        
+                        <div class="result">
+                            ✓ Resultado: 2,5 km
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Ejercicio 2 -->
+                <div class="exercise" onclick="toggleExercise(this)">
+                    <div class="exercise-header">
+                        <div class="exercise-title">Ejercicio 2: Expresa 180 minutos en horas</div>
+                        <div class="toggle-icon">▼</div>
+                    </div>
+                    <div class="exercise-solution">
+                        <div class="step">
+                            <strong>Paso 1.</strong> Multiplicamos el valor por una fracción:
+                            <div class="math-expression">
+                                \(180 \, \text{min} \times \dfrac{\square}{\square}\)
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <strong>Paso 2.</strong> Colocamos las unidades de manera que podamos anular los minutos:
+                            <div class="math-expression">
+                                \(180 \, \text{min} \times \dfrac{\square \, \text{h}}{\square \, \text{min}}\)
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <strong>Paso 3.</strong> Colocamos un 1 en la unidad más "grande" (horas):
+                            <div class="math-expression">
+                                \(180 \, \text{min} \times \dfrac{1 \, \text{h}}{\square \, \text{min}}\)
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <strong>Paso 4.</strong> Utilizamos la equivalencia (1 h = 60 min):
+                            <div class="math-expression">
+                                \(180 \, \text{min} \times \dfrac{1 \, \text{h}}{60 \, \text{min}}\)
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <strong>Operamos:</strong>
+                            <div class="math-expression">
+                                \(\dfrac{180 \times 1}{60} = \dfrac{180}{60} = 3 \, \text{h}\)
+                            </div>
+                        </div>
+                        
+                        <div class="result">
+                            ✓ Resultado: 3 h
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Ejercicio 3 -->
+                <div class="exercise" onclick="toggleExercise(this)">
+                    <div class="exercise-header">
+                        <div class="exercise-title">Ejercicio 3: Pasa 3500 gramos a kilogramos</div>
+                        <div class="toggle-icon">▼</div>
+                    </div>
+                    <div class="exercise-solution">
+                        <div class="step">
+                            <strong>Paso 1.</strong> Multiplicamos el valor por una fracción:
+                            <div class="math-expression">
+                                \(3500 \, \text{g} \times \dfrac{\square}{\square}\)
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <strong>Paso 2.</strong> Colocamos las unidades de manera que podamos anular los gramos:
+                            <div class="math-expression">
+                                \(3500 \, \text{g} \times \dfrac{\square \, \text{kg}}{\square \, \text{g}}\)
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <strong>Paso 3.</strong> Colocamos un 1 en la unidad más "grande" (kilogramos):
+                            <div class="math-expression">
+                                \(3500 \, \text{g} \times \dfrac{1 \, \text{kg}}{\square \, \text{g}}\)
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <strong>Paso 4.</strong> Utilizamos la equivalencia (1 kg = 1000 g):
+                            <div class="math-expression">
+                                \(3500 \, \text{g} \times \dfrac{1 \, \text{kg}}{1000 \, \text{g}}\)
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <strong>Operamos:</strong>
+                            <div class="math-expression">
+                                \(\dfrac{3500 \times 1}{1000} = \dfrac{3500}{1000} = 3{,}5 \, \text{kg}\)
+                            </div>
+                        </div>
+                        
+                        <div class="result">
+                            ✓ Resultado: 3,5 kg
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Ejercicio 4 -->
+                <div class="exercise" onclick="toggleExercise(this)">
+                    <div class="exercise-header">
+                        <div class="exercise-title">Ejercicio 4: Convierte 90 km/h a m/s</div>
+                        <div class="toggle-icon">▼</div>
+                    </div>
+                    <div class="exercise-solution">
+                        <div class="step">
+                            <strong>Paso 1.</strong> Multiplicamos el valor por dos fracciones:
+                            <div class="math-expression">
+                                \(90 \, \dfrac{\text{km}}{\text{h}} \times \dfrac{\square}{\square} \times \dfrac{\square}{\square}\)
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <strong>Paso 2.</strong> Colocamos las unidades del primer cambio (km a m) y del segundo cambio (h a s) de manera que las podamos anular:
+                            <div class="math-expression">
+                                \(90 \, \dfrac{\text{km}}{\text{h}} \times \dfrac{\square \, \text{m}}{\square \, \text{km}} \times \dfrac{\square \, \text{h}}{\square \, \text{s}}\)
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <strong>Paso 3.</strong> Colocamos un 1 en las unidades más "grandes":
+                            <div class="math-expression">
+                                \(90 \, \dfrac{\text{km}}{\text{h}} \times \dfrac{\square \, \text{m}}{1 \, \text{km}} \times \dfrac{1 \, \text{h}}{\square \, \text{s}}\)
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <strong>Paso 4.</strong> Utilizamos las equivalencias (1 km = 1000 m, 1 h = 3600 s):
+                            <div class="math-expression">
+                                \(90 \, \dfrac{\text{km}}{\text{h}} \times \dfrac{1000 \, \text{m}}{1 \, \text{km}} \times \dfrac{1 \, \text{h}}{3600 \, \text{s}}\)
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <strong>Operamos:</strong>
+                            <div class="math-expression">
+                                \(\dfrac{90 \times 1000 \times 1}{1 \times 3600} = \dfrac{90000}{3600} = 25 \, \dfrac{\text{m}}{\text{s}}\)
+                            </div>
+                        </div>
+                        
+                        <div class="result">
+                            ✓ Resultado: 25 m/s
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Ejercicio 5 -->
+                <div class="exercise" onclick="toggleExercise(this)">
+                    <div class="exercise-header">
+                        <div class="exercise-title">Ejercicio 5: Expresa 2500 kg/m³ en g/cm³</div>
+                        <div class="toggle-icon">▼</div>
+                    </div>
+                    <div class="exercise-solution">
+                        <div class="step">
+                            <strong>Paso 1.</strong> Multiplicamos el valor por dos fracciones:
+                            <div class="math-expression">
+                                \(2500 \, \dfrac{\text{kg}}{\text{m}^3} \times \dfrac{\square}{\square} \times \dfrac{\square}{\square}\)
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <strong>Paso 2.</strong> Colocamos las unidades del primer cambio (kg a g) y del segundo cambio (m³ a cm³) de manera que las podamos anular:
+                            <div class="math-expression">
+                                \(2500 \, \dfrac{\text{kg}}{\text{m}^3} \times \dfrac{\square \, \text{g}}{\square \, \text{kg}} \times \dfrac{\square \, \text{m}^3}{\square \, \text{cm}^3}\)
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <strong>Paso 3.</strong> Colocamos un 1 en las unidades más "grandes":
+                            <div class="math-expression">
+                                \(2500 \, \dfrac{\text{kg}}{\text{m}^3} \times \dfrac{\square \, \text{g}}{1 \, \text{kg}} \times \dfrac{1 \, \text{m}^3}{\square \, \text{cm}^3}\)
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <strong>Paso 4.</strong> Utilizamos las equivalencias (1 kg = 1000 g, 1 m³ = 1 000 000 cm³):
+                            <div class="math-expression">
+                                \(2500 \, \dfrac{\text{kg}}{\text{m}^3} \times \dfrac{1000 \, \text{g}}{1 \, \text{kg}} \times \dfrac{1 \, \text{m}^3}{1000000 \, \text{cm}^3}\)
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <strong>Operamos:</strong>
+                            <div class="math-expression">
+                                \(\dfrac{2500 \times 1000 \times 1}{1 \times 1000000} = \dfrac{2500000}{1000000} = 2{,}5 \, \dfrac{\text{g}}{\text{cm}^3}\)
+                            </div>
+                        </div>
+                        
+                        <div class="result">
+                            ✓ Resultado: 2,5 g/cm³
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Ejercicio 6 -->
+                <div class="exercise" onclick="toggleExercise(this)">
+                    <div class="exercise-header">
+                        <div class="exercise-title">Ejercicio 6: Convierte 0,750 kg a gramos</div>
+                        <div class="toggle-icon">▼</div>
+                    </div>
+                    <div class="exercise-solution">
+                        <div class="step">
+                            <strong>Paso 1.</strong> Multiplicamos el valor por una fracción:
+                            <div class="math-expression">
+                                \(0{,}750 \, \text{kg} \times \dfrac{\square}{\square}\)
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <strong>Paso 2.</strong> Colocamos las unidades de manera que podamos anular los kilogramos:
+                            <div class="math-expression">
+                                \(0{,}750 \, \text{kg} \times \dfrac{\square \, \text{g}}{\square \, \text{kg}}\)
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <strong>Paso 3.</strong> Colocamos un 1 en la unidad más "grande" (kilogramos):
+                            <div class="math-expression">
+                                \(0{,}750 \, \text{kg} \times \dfrac{\square \, \text{g}}{1 \, \text{kg}}\)
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <strong>Paso 4.</strong> Utilizamos la equivalencia (1 kg = 1000 g):
+                            <div class="math-expression">
+                                \(0{,}750 \, \text{kg} \times \dfrac{1000 \, \text{g}}{1 \, \text{kg}}\)
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <strong>Operamos:</strong>
+                            <div class="math-expression">
+                                \(\dfrac{0{,}750 \times 1000}{1} = 750 \, \text{g}\)
+                            </div>
+                        </div>
+                        
+                        <div class="result">
+                            ✓ Resultado: 750 g
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Ejercicio 7 -->
+                <div class="exercise" onclick="toggleExercise(this)">
+                    <div class="exercise-header">
+                        <div class="exercise-title">Ejercicio 7: Expresa 4500 miligramos en gramos</div>
+                        <div class="toggle-icon">▼</div>
+                    </div>
+                    <div class="exercise-solution">
+                        <div class="step">
+                            <strong>Paso 1.</strong> Multiplicamos el valor por una fracción:
+                            <div class="math-expression">
+                                \(4500 \, \text{mg} \times \dfrac{\square}{\square}\)
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <strong>Paso 2.</strong> Colocamos las unidades de manera que podamos anular los miligramos:
+                            <div class="math-expression">
+                                \(4500 \, \text{mg} \times \dfrac{\square \, \text{g}}{\square \, \text{mg}}\)
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <strong>Paso 3.</strong> Colocamos un 1 en la unidad más "grande" (gramos):
+                            <div class="math-expression">
+                                \(4500 \, \text{mg} \times \dfrac{1 \, \text{g}}{\square \, \text{mg}}\)
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <strong>Paso 4.</strong> Utilizamos la equivalencia (1 g = 1000 mg):
+                            <div class="math-expression">
+                                \(4500 \, \text{mg} \times \dfrac{1 \, \text{g}}{1000 \, \text{mg}}\)
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <strong>Operamos:</strong>
+                            <div class="math-expression">
+                                \(\dfrac{4500 \times 1}{1000} = \dfrac{4500}{1000} = 4{,}5 \, \text{g}\)
+                            </div>
+                        </div>
+                        
+                        <div class="result">
+                            ✓ Resultado: 4,5 g
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Ejercicio 8 -->
+                <div class="exercise" onclick="toggleExercise(this)">
+                    <div class="exercise-header">
+                        <div class="exercise-title">Ejercicio 8: Pasa 15 g/L a mg/mL</div>
+                        <div class="toggle-icon">▼</div>
+                    </div>
+                    <div class="exercise-solution">
+                        <div class="step">
+                            <strong>Paso 1.</strong> Multiplicamos el valor por dos fracciones:
+                            <div class="math-expression">
+                                \(15 \, \dfrac{\text{g}}{\text{L}} \times \dfrac{\square}{\square} \times \dfrac{\square}{\square}\)
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <strong>Paso 2.</strong> Colocamos las unidades del primer cambio (g a mg) y del segundo cambio (L a mL) de manera que las podamos anular:
+                            <div class="math-expression">
+                                \(15 \, \dfrac{\text{g}}{\text{L}} \times \dfrac{\square \, \text{mg}}{\square \, \text{g}} \times \dfrac{\square \, \text{L}}{\square \, \text{mL}}\)
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <strong>Paso 3.</strong> Colocamos un 1 en las unidades más "grandes":
+                            <div class="math-expression">
+                                \(15 \, \dfrac{\text{g}}{\text{L}} \times \dfrac{\square \, \text{mg}}{1 \, \text{g}} \times \dfrac{1 \, \text{L}}{\square \, \text{mL}}\)
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <strong>Paso 4.</strong> Utilizamos las equivalencias (1 g = 1000 mg, 1 L = 1000 mL):
+                            <div class="math-expression">
+                                \(15 \, \dfrac{\text{g}}{\text{L}} \times \dfrac{1000 \, \text{mg}}{1 \, \text{g}} \times \dfrac{1 \, \text{L}}{1000 \, \text{mL}}\)
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <strong>Operamos:</strong>
+                            <div class="math-expression">
+                                \(\dfrac{15 \times 1000 \times 1}{1 \times 1000} = \dfrac{15000}{1000} = 15 \, \dfrac{\text{mg}}{\text{mL}}\)
+                            </div>
+                        </div>
+                        
+                        <div class="result">
+                            ✓ Resultado: 15 mg/mL
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Ejercicio 9 -->
+                <div class="exercise" onclick="toggleExercise(this)">
+                    <div class="exercise-header">
+                        <div class="exercise-title">Ejercicio 9: Convierte 0,8 kg/L a g/cm³</div>
+                        <div class="toggle-icon">▼</div>
+                    </div>
+                    <div class="exercise-solution">
+                        <div class="step">
+                            <strong>Paso 1.</strong> Multiplicamos el valor por dos fracciones:
+                            <div class="math-expression">
+                                \(0{,}8 \, \dfrac{\text{kg}}{\text{L}} \times \dfrac{\square}{\square} \times \dfrac{\square}{\square}\)
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <strong>Paso 2.</strong> Colocamos las unidades del primer cambio (kg a g) y del segundo cambio (L a cm³) de manera que las podamos anular:
+                            <div class="math-expression">
+                                \(0{,}8 \, \dfrac{\text{kg}}{\text{L}} \times \dfrac{\square \, \text{g}}{\square \, \text{kg}} \times \dfrac{\square \, \text{L}}{\square \, \text{cm}^3}\)
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <strong>Paso 3.</strong> Colocamos un 1 en las unidades más "grandes":
+                            <div class="math-expression">
+                                \(0{,}8 \, \dfrac{\text{kg}}{\text{L}} \times \dfrac{\square \, \text{g}}{1 \, \text{kg}} \times \dfrac{1 \, \text{L}}{\square \, \text{cm}^3}\)
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <strong>Paso 4.</strong> Utilizamos las equivalencias (1 kg = 1000 g, 1 L = 1000 cm³):
+                            <div class="math-expression">
+                                \(0{,}8 \, \dfrac{\text{kg}}{\text{L}} \times \dfrac{1000 \, \text{g}}{1 \, \text{kg}} \times \dfrac{1 \, \text{L}}{1000 \, \text{cm}^3}\)
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <strong>Operamos:</strong>
+                            <div class="math-expression">
+                                \(\dfrac{0{,}8 \times 1000 \times 1}{1 \times 1000} = \dfrac{800}{1000} = 0{,}8 \, \dfrac{\text{g}}{\text{cm}^3}\)
+                            </div>
+                        </div>
+                        
+                        <div class="result">
+                            ✓ Resultado: 0,8 g/cm³
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Ejercicio 10 -->
+                <div class="exercise" onclick="toggleExercise(this)">
+                    <div class="exercise-header">
+                        <div class="exercise-title">Ejercicio 10: Expresa 25000 cm² en m²</div>
+                        <div class="toggle-icon">▼</div>
+                    </div>
+                    <div class="exercise-solution">
+                        <div class="step">
+                            <strong>Paso 1.</strong> Multiplicamos el valor por una fracción:
+                            <div class="math-expression">
+                                \(25000 \, \text{cm}^2 \times \dfrac{\square}{\square}\)
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <strong>Paso 2.</strong> Colocamos las unidades de manera que podamos anular los cm²:
+                            <div class="math-expression">
+                                \(25000 \, \text{cm}^2 \times \dfrac{\square \, \text{m}^2}{\square \, \text{cm}^2}\)
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <strong>Paso 3.</strong> Colocamos un 1 en la unidad más "grande" (m²):
+                            <div class="math-expression">
+                                \(25000 \, \text{cm}^2 \times \dfrac{1 \, \text{m}^2}{\square \, \text{cm}^2}\)
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <strong>Paso 4.</strong> Utilizamos la equivalencia (1 m² = 10 000 cm²):
+                            <div class="math-expression">
+                                \(25000 \, \text{cm}^2 \times \dfrac{1 \, \text{m}^2}{10000 \, \text{cm}^2}\)
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <strong>Operamos:</strong>
+                            <div class="math-expression">
+                                \(\dfrac{25000 \times 1}{10000} = \dfrac{25000}{10000} = 2{,}5 \, \text{m}^2\)
+                            </div>
+                        </div>
+                        
+                        <div class="result">
+                            ✓ Resultado: 2,5 m²
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function toggleExercise(element) {
+            element.classList.toggle('active');
+        }
+        
+        function checkAnswer(button, isCorrect, correctAnswer) {
+            const quizItem = button.closest('.quiz-item');
+            const buttons = quizItem.querySelectorAll('.quiz-button');
+            const feedback = quizItem.querySelector('.quiz-feedback');
+            
+            // Deshabilitar todos los botones
+            buttons.forEach(btn => btn.disabled = true);
+            
+            // Marcar respuesta correcta e incorrecta
+            buttons.forEach(btn => {
+                if (btn.textContent.trim() === correctAnswer) {
+                    btn.classList.add('correct');
+                } else if (btn === button && !isCorrect) {
+                    btn.classList.add('incorrect');
+                }
+            });
+            
+            // Mostrar feedback
+            if (isCorrect) {
+                feedback.innerHTML = '✓ ¡Correcto!';
+                feedback.className = 'quiz-feedback correct-feedback';
+            } else {
+                feedback.innerHTML = '✗ Incorrecto. La respuesta correcta es: ' + correctAnswer;
+                feedback.className = 'quiz-feedback incorrect-feedback';
+            }
+            feedback.style.display = 'block';
+        }
+        
+        // Renderizar expresiones matemáticas cuando el documento esté listo
+        document.addEventListener('DOMContentLoaded', function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '\\(', right: '\\)', display: false},
+                    {left: '\\[', right: '\\]', display: true}
+                ],
+                throwOnError: false
+            });
+        });
+    </script>
+</body>
+</html>
+                            
