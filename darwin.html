@@ -31,41 +31,93 @@
   </section>  <section class="mt-12 max-w-3xl mx-auto">
     <h2 class="text-2xl font-semibold mb-4">📘 Notas críticas</h2>
     <p>Este recorrido ilustra la transición del pensamiento naturalista clásico a la biología moderna. Darwin no descubrió la selección natural de inmediato: sus ideas maduraron lentamente al integrar geología, observación y comparación. Las cartas y cuadernos de notas muestran que la idea clave emergió hacia 1838, tras leer el ensayo de Malthus. El hallazgo independiente de Wallace en 1858 impulsó su publicación. La teoría, ampliada en el siglo XX con la genética, dio lugar a la Síntesis Moderna de la evolución.</p>
-  </section>  <script>
-    const map = L.map('map').setView([0, -30], 2);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
+  </section> 
+<script>
+  const map = L.map('map').setView([0, -30], 2);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
 
-    const ruta = [
-      [50.37, -4.14], // Plymouth, Reino Unido
-      [38.70, -9.13], // Lisboa, Portugal
-      [0.0, -30.0],   // Atlántico
-      [-12.97, -38.50], // Bahía, Brasil
-      [-22.90, -43.20], // Río de Janeiro
-      [-34.60, -58.38], // Buenos Aires
-      [-51.62, -69.22], // Puerto Deseado
-      [-53.16, -70.90], // Punta Arenas
-      [-42.77, -65.03], // Puerto Madryn
-      [-33.45, -70.66], // Santiago de Chile (terremoto de 1835)
-      [-0.90, -90.97],  // Islas Galápagos
-      [-33.87, 151.21], // Sídney, Australia
-      [19.43, -99.13],  // México (escala de regreso)
-      [50.37, -4.14]    // Regreso a Plymouth
-    ];
+  const rawRuta = [
+    [50.37, -4.14],     // Plymouth
+    [38.70, -9.13],     // Lisboa
+    [-12.97, -38.50],   // Bahía
+    [-22.90, -43.20],   // Río de Janeiro
+    [-34.60, -58.38],   // Buenos Aires
+    [-51.62, -69.22],   // Puerto Deseado
+    [-53.16, -70.90],   // Punta Arenas
+    [-42.77, -65.03],   // Puerto Madryn
+    [-33.45, -70.66],   // Santiago de Chile
+    [-0.90, -90.97],    // Galápagos
+    [-33.87, 151.21],   // Sídney
+    [19.43, -99.13],    // México (escala)
+    [50.37, -4.14]      // regreso
+  ];
 
-    const polyline = L.polyline(ruta, {color: 'blue', weight: 3, opacity: 0.7}).addTo(map);
+  // Convert degrees to radians
+  const rad = d => d * Math.PI / 180;
+  const deg = r => r * 180 / Math.PI;
 
-    const puntos = [
-      {coords: [50.37, -4.14], texto: '⚓ Plymouth (Inicio y fin del viaje)'} ,
-      {coords: [-12.97, -38.50], texto: '🌴 Bahía (Brasil) — Selva tropical y biodiversidad exuberante'},
-      {coords: [-34.60, -58.38], texto: '🦴 Argentina — Fósiles gigantes de mamíferos'},
-      {coords: [-33.45, -70.66], texto: '🌋 Chile — Terremoto de Concepción (1835)'},
-      {coords: [-0.90, -90.97], texto: '🐢 Islas Galápagos — Pinzones y tortugas'},
-      {coords: [-33.87, 151.21], texto: '🇦🇺 Australia — Comparaciones biogeográficas'},
-    ];
+  function breakAtAntimeridian(coords) {
+    const broken = [];
+    for (let i = 0; i < coords.length - 1; i++) {
+      const [lat0, lon0] = coords[i];
+      const [lat1, lon1] = coords[i + 1];
+      broken.push([lat0, lon0]);
+      let dLon = lon1 - lon0;
+      if (Math.abs(dLon) > 180) {
+        // Convert to radians
+        const lat0r = rad(lat0), lon0r = rad(lon0);
+        const lat1r = rad(lat1), lon1r = rad(lon1);
+        // Cartesian coords
+        const x0 = Math.cos(lon0r) * Math.sin(lat0r);
+        const y0 = Math.sin(lon0r) * Math.sin(lat0r);
+        const z0 = Math.cos(lat0r);
+        const x1 = Math.cos(lon1r) * Math.sin(lat1r);
+        const y1 = Math.sin(lon1r) * Math.sin(lat1r);
+        const z1 = Math.cos(lat1r);
+        const t = y1 / (y1 - y0);
+        const x = t * x0 + (1 - t) * x1;
+        const z = t * z0 + (1 - t) * z1;
+        const lat2 = deg(Math.atan(z / x));
 
-    puntos.forEach(p => L.marker(p.coords).addTo(map).bindPopup(p.texto));
-    map.fitBounds(polyline.getBounds());
+        // Choose the right sign for longitude
+        const lonBreak0 = lon0 > 0 ? 180 : -180;
+        const lonBreak1 = lon1 > 0 ? 180 : -180;
+        broken.push([lat2, lonBreak0]);
+        broken.push([lat2, lonBreak1]);
+      }
+    }
+    broken.push(coords[coords.length - 1]);
+    return broken;
+  }
 
-    ScrollReveal().reveal('.event', { interval: 200, origin: 'bottom', distance: '20px', opacity: 0, duration: 800 });
-  </script></body>
+  const ruta = breakAtAntimeridian(rawRuta);
+
+  // Draw each continuous segment separately
+  let segment = [];
+  for (let i = 0; i < ruta.length; i++) {
+    segment.push(ruta[i]);
+    if (i < ruta.length - 1) {
+      const lon = ruta[i][1], nextLon = ruta[i + 1][1];
+      if (Math.abs(lon - nextLon) > 180) {
+        L.polyline(segment, {color: 'blue', weight: 3, opacity: 0.7}).addTo(map);
+        segment = [];
+      }
+    }
+  }
+  if (segment.length > 1)
+    L.polyline(segment, {color: 'blue', weight: 3, opacity: 0.7}).addTo(map);
+
+  const puntos = [
+    {coords: [50.37, -4.14], texto: '⚓ Plymouth (Inicio y fin)'},
+    {coords: [-12.97, -38.50], texto: '🌴 Bahía (Brasil)'},
+    {coords: [-34.60, -58.38], texto: '🦴 Argentina — fósiles gigantes'},
+    {coords: [-33.45, -70.66], texto: '🌋 Chile — terremoto 1835'},
+    {coords: [-0.90, -90.97], texto: '🐢 Galápagos'},
+    {coords: [-33.87, 151.21], texto: '🇦🇺 Sídney (Australia)'}
+  ];
+  puntos.forEach(p => L.marker(p.coords).addTo(map).bindPopup(p.texto));
+  map.fitBounds(L.latLngBounds(ruta));
+</script></body>
 </html>
