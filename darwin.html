@@ -1,191 +1,71 @@
-<!doctype html>
-
-<html lang="es">
+<!DOCTYPE html><html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>El viaje del Beagle y la génesis de la teoría de la selección natural — Documento interactivo</title>
-  <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Vis Timeline (for interactive timeline) -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/vis-timeline/7.7.2/vis-timeline-graph2d.min.css" rel="stylesheet" />
-  <!-- Leaflet for map -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>El Viaje del Beagle — Cronología y Teoría de la Evolución</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/scrollreveal"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <style>
-    body{padding-top:56px}
-    #map{height:420px}
-    .card-scroll{max-height:360px;overflow:auto}
-    .source-list{font-size:.9rem}
-    .hero{background:linear-gradient(90deg, rgba(12,68,104,.08), rgba(55,152,185,.04));padding:28px;border-radius:8px}
+    body {font-family: 'Inter', sans-serif; background-color: #f9fafb; color: #1f2937;}
+    .timeline {border-left: 4px solid #2563eb; margin: 2rem auto; padding: 1rem; max-width: 800px;}
+    .event {margin-left: 1rem; padding: 1rem 0; position: relative;}
+    .event::before {content: '⚓'; position: absolute; left: -1.5rem; top: 1rem; font-size: 1.2rem; color: #2563eb;}
+    #map {height: 500px; border-radius: 1rem; margin-top: 1.5rem;}
   </style>
 </head>
-<body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
-  <div class="container-fluid">
-    <a class="navbar-brand" href="#">Beagle → Origen de la Teoría</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navmenu">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navmenu">
-      <ul class="navbar-nav ms-auto">
-        <li class="nav-item"><a href="#timeline" class="nav-link">Cronología</a></li>
-        <li class="nav-item"><a href="#mapa" class="nav-link">Mapa</a></li>
-        <li class="nav-item"><a href="#analisis" class="nav-link">Notas críticas</a></li>
-        <li class="nav-item"><a href="#bibliografia" class="nav-link">Fuentes</a></li>
-      </ul>
-    </div>
-  </div>
-</nav><div class="container mt-4">
-  <div class="row gy-4">
-    <div class="col-12">
-      <div class="hero">
-        <h1>El viaje del <em>Beagle</em> y la génesis de la selección natural</h1>
-        <p class="mb-0">Documento interactivo: cronología, mapa, análisis historiográfico y científico — enfoque mixto y con rigor.</p>
-      </div>
-    </div><div class="col-lg-7">
-  <div class="card">
-    <div class="card-body">
-      <h4 class="card-title">Línea de tiempo interactiva</h4>
-      <div id="timeline" style="height:480px;"></div>
-      <p class="mt-2"><small>Arrastra o usa el scroll para explorar los eventos; haz clic sobre un evento para ver notas ampliadas.</small></p>
-    </div>
-  </div>
+<body class="p-6">
+  <header class="text-center mb-8">
+    <h1 class="text-3xl font-bold mb-2">🧭 El viaje del Beagle y el nacimiento de la selección natural</h1>
+    <p class="text-gray-600">Una cronología interactiva del viaje de Charles Darwin (1831–1836)</p>
+  </header>  <section id="map"></section>  <section class="timeline mt-8">
+    <div class="event"><h3>1️⃣ 1831 — Embarque en Plymouth</h3><p>Darwin zarpa el 27 de diciembre de 1831 a bordo del HMS Beagle como acompañante del capitán Robert FitzRoy.</p></div>
+    <div class="event"><h3>2️⃣ 1832 — Brasil</h3><p>En Bahía y Río de Janeiro, Darwin se maravilla ante la biodiversidad tropical. <em>“Es como entrar en un nuevo mundo.”</em></p></div>
+    <div class="event"><h3>3️⃣ 1833–1834 — Argentina y Patagonia</h3><p>Excava fósiles de mamíferos gigantes extintos y observa la geología dinámica de la región.</p></div>
+    <div class="event"><h3>4️⃣ 1835 — Chile y el terremoto de Concepción</h3><p>Presencia el levantamiento del terreno tras un gran terremoto, comprendiendo que la Tierra cambia con el tiempo.</p></div>
+    <div class="event"><h3>5️⃣ 1835 — Islas Galápagos</h3><p>En septiembre, observa tortugas y pinzones cuyas variaciones inspiran más tarde su teoría sobre el origen de las especies.</p></div>
+    <div class="event"><h3>6️⃣ 1836 — Regreso a Inglaterra</h3><p>El Beagle regresa el 2 de octubre de 1836 tras casi cinco años. Darwin comienza a analizar los datos recolectados.</p></div>
+    <div class="event"><h3>7️⃣ 1858 — Coincidencia con Wallace</h3><p>Recibe el manuscrito de Alfred Russel Wallace con ideas semejantes sobre la selección natural; presentan ambos trabajos ante la Sociedad Linneana.</p></div>
+    <div class="event"><h3>8️⃣ 1859 — Publicación de <em>El origen de las especies</em></h3><p>El 24 de noviembre de 1859, Darwin publica su obra fundamental que transforma la biología moderna.</p></div>
+  </section>  <section class="mt-12 max-w-3xl mx-auto">
+    <h2 class="text-2xl font-semibold mb-4">📘 Notas críticas</h2>
+    <p>Este recorrido ilustra la transición del pensamiento naturalista clásico a la biología moderna. Darwin no descubrió la selección natural de inmediato: sus ideas maduraron lentamente al integrar geología, observación y comparación. Las cartas y cuadernos de notas muestran que la idea clave emergió hacia 1838, tras leer el ensayo de Malthus. El hallazgo independiente de Wallace en 1858 impulsó su publicación. La teoría, ampliada en el siglo XX con la genética, dio lugar a la Síntesis Moderna de la evolución.</p>
+  </section>  <script>
+    const map = L.map('map').setView([0, -30], 2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
 
-  <div class="card mt-3">
-    <div class="card-body">
-      <h4>Notas ampliadas (evento seleccionado)</h4>
-      <div id="eventDetail" class="card-scroll p-2"></div>
-    </div>
-  </div>
-</div>
+    const ruta = [
+      [50.37, -4.14], // Plymouth, Reino Unido
+      [38.70, -9.13], // Lisboa, Portugal
+      [0.0, -30.0],   // Atlántico
+      [-12.97, -38.50], // Bahía, Brasil
+      [-22.90, -43.20], // Río de Janeiro
+      [-34.60, -58.38], // Buenos Aires
+      [-51.62, -69.22], // Puerto Deseado
+      [-53.16, -70.90], // Punta Arenas
+      [-42.77, -65.03], // Puerto Madryn
+      [-33.45, -70.66], // Santiago de Chile (terremoto de 1835)
+      [-0.90, -90.97],  // Islas Galápagos
+      [-33.87, 151.21], // Sídney, Australia
+      [19.43, -99.13],  // México (escala de regreso)
+      [50.37, -4.14]    // Regreso a Plymouth
+    ];
 
-<div class="col-lg-5">
-  <div class="card mb-3">
-    <div class="card-body">
-      <h5>Mapa: Ruta aproximada del <em>HMS Beagle</em></h5>
-      <div id="map"></div>
-      <small class="d-block mt-2">El mapa muestra una ruta aproximada interactiva y puntos clave citados en la cronología.</small>
-    </div>
-  </div>
+    const polyline = L.polyline(ruta, {color: 'blue', weight: 3, opacity: 0.7}).addTo(map);
 
-  <div class="card">
-    <div class="card-body">
-      <h5>Galería</h5>
-      <div class="row g-2">
-        <div class="col-12">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/4/42/Voyage_of_the_Beagle-en.svg" alt="Ruta del Beagle" class="img-fluid rounded">
-        </div>
-        <div class="col-6">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/2/21/Darwin%27s_finches_by_Gould.jpg" alt="Darwin's finches by Gould" class="img-fluid rounded">
-        </div>
-        <div class="col-6">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/Charles_Darwin_by_H._N._Hughes%2C_1840.jpg" alt="Charles Darwin portrait" class="img-fluid rounded">
-        </div>
-      </div>
-    </div>
-  </div>
+    const puntos = [
+      {coords: [50.37, -4.14], texto: '⚓ Plymouth (Inicio y fin del viaje)'} ,
+      {coords: [-12.97, -38.50], texto: '🌴 Bahía (Brasil) — Selva tropical y biodiversidad exuberante'},
+      {coords: [-34.60, -58.38], texto: '🦴 Argentina — Fósiles gigantes de mamíferos'},
+      {coords: [-33.45, -70.66], texto: '🌋 Chile — Terremoto de Concepción (1835)'},
+      {coords: [-0.90, -90.97], texto: '🐢 Islas Galápagos — Pinzones y tortugas'},
+      {coords: [-33.87, 151.21], texto: '🇦🇺 Australia — Comparaciones biogeográficas'},
+    ];
 
-</div>
+    puntos.forEach(p => L.marker(p.coords).addTo(map).bindPopup(p.texto));
+    map.fitBounds(polyline.getBounds());
 
-<div class="col-12">
-  <div class="card">
-    <div class="card-body">
-      <h3 id="analisis">Notas críticas — enfoque mixto</h3>
-      <p>A continuación se presentan observaciones históricas y científicas con matices: qué ocurrió, cómo se interpretó y cómo la teoría evolucionó hasta la síntesis moderna.</p>
-
-      <h5 class="mt-3">I. Observaciones del viaje y su interpretación</h5>
-      <ul>
-        <li>Darwin viajó en calidad de <em>gentleman companion</em> del capitán Robert FitzRoy; no era el naturalista oficial contratado por la Marina. Esto influyó en su libertad de movimientos y en su financiación personal para colecciones.</li>
-        <li>Las observaciones en Galápagos (1835) fueron importantes, pero la iconografía popular exagera la "epifanía" inmediata: Darwin no identificó por completo la importancia de los pinzones hasta más tarde y muchos especímenes fueron determinados por el ornitólogo John Gould tras su regreso.</li>
-        <li>Las evidencias geológicas (terremotos, levantamientos, fósiles en Argentina) fueron clave en que Darwin concibiera un mundo dinámico; esto conectó con las ideas geológicas de Lyell.</li>
-      </ul>
-
-      <h5 class="mt-3">II. Del esbozo a la publicación</h5>
-      <ul>
-        <li>Tras su retorno (1836) Darwin trabajó décadas acumulando datos y probando ideas (cría de palomas, horticultura, correspondencia). No publicó inmediatamente; la formulación cuidada de la selección natural tardó años.</li>
-        <li>El ensayo de Wallace (1858) precipitó la presentación conjunta en la Linnean Society y aceleró la decisión de Darwin de publicar en 1859.</li>
-      </ul>
-
-      <h5 class="mt-3">III. Rigor científico moderno</h5>
-      <ul>
-        <li>La selección natural explica el mecanismo del cambio adaptativo, pero la genética mendeliana (redescubierta a principios del siglo XX) y la síntesis moderna (1930s–40s) integraron la herencia, la variación y la población genética en la teoría evolutiva contemporánea.</li>
-        <li>Hoy se entiende la especiación como un proceso multifactorial (aislamiento geográfico, deriva genética, selección, flujo génico, etc.).</li>
-      </ul>
-
-    </div>
-  </div>
-</div>
-
-<div class="col-12">
-  <div class="card">
-    <div class="card-body">
-      <h4 id="bibliografia">Fuentes (selección)</h4>
-      <p class="source-list">Recursos consultados para este dossier: cronologías y archivos del <em>Darwin Project</em>, entradas de <em>Britannica</em>, material de la <em>Linnean Society</em>, archivos del <em>Darwin Online</em>, y recursos museísticos (NHM, AMNH) y de conservación (Galápagos). El documento incluye imágenes de dominio público / Wikimedia Commons.</p>
-      <p class="mb-0"><small>Nota: este HTML es autosuficiente y puede abrirse localmente. Las bibliografías primarias se listan en la sección de comentarios técnicos del archivo.</small></p>
-    </div>
-  </div>
-</div>
-
-  </div>
-</div><!-- Scripts --><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/vis-timeline/7.7.2/vis-timeline-graph2d.min.js"></script><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script>
-  // Timeline data (events resumen) — ampliable
-  const items = new vis.DataSet([
-    {id:1, content:'Nacimiento (1809)', start:'1809-02-12', title:'Charles Robert Darwin nace en Shrewsbury, 12 de febrero de 1809'},
-    {id:2, content:'Zarpe del Beagle (1831)', start:'1831-12-27', title:'La Beagle zarpa de Plymouth; Darwin, 22 años, embarca como companion'},
-    {id:3, content:'Galápagos (1835)', start:'1835-09-15', title:'Visita a las Islas Galápagos; observaciones de tortugas y aves'},
-    {id:4, content:'Regreso a Inglaterra (1836)', start:'1836-10-02', title:'La Beagle regresa a Inglaterra; Darwin comienza a trabajar en ideas evolutivas'},
-    {id:5, content:'Carta de Wallace (1858)', start:'1858-06-18', title:'Darwin recibe el ensayo de Alfred Russel Wallace desde Ternate'},
-    {id:6, content:'Presentación conjunta (1858)', start:'1858-07-01', title:'Lectura conjunta de Darwin y Wallace en la Linnean Society'},
-    {id:7, content:'Publicación: Origin (1859)', start:'1859-11-24', title:'Publicación de On the Origin of Species'}
-  ]);
-
-  const container = document.getElementById('timeline');
-  const options = {height: '480px', selectable:true};
-  const timeline = new vis.Timeline(container, items, options);
-
-  // Event detail
-  const eventDetail = document.getElementById('eventDetail');
-  function showDetail(id){
-    const e = items.get(id);
-    let html = `<h6>${e.content} — ${e.start}</h6><p>${e.title}</p>`;
-    // add longer notes
-    if(id===3){
-      html += `<p><strong>Notas:</strong> Darwin recolectó múltiples especímenes; pocas de sus observaciones fueron inmediatamente interpretadas como claves. Los especímenes de aves fueron identificados por John Gould después del viaje.</p>`;
-    }
-    if(id===5){
-      html += `<p><strong>Notas:</strong> Wallace envió un ensayo desde Ternate describiendo un mecanismo similar; Darwin consultó con Lyell y Hooker para decidir la presentación conjunta.</p>`;
-    }
-    if(id===7){
-      html += `<p><strong>Notas:</strong> Publicación el 24 de noviembre de 1859 por John Murray; primera edición de 1250 ejemplares.</p>`;
-    }
-    eventDetail.innerHTML = html;
-  }
-
-  timeline.on('select', function(props){
-    if(props.items.length) showDetail(props.items[0]);
-  });
-  // show first
-  showDetail(2);
-
-  // Leaflet map setup (simple world view + markers)
-  const map = L.map('map',{zoomControl:true}).setView([0, -30], 2);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 18, attribution: '© OpenStreetMap contributors'}).addTo(map);
-
-  // Approximate route polyline (simplified)
-  const route = [
-    [50,-4],[38,-10],[2,-50],[-34,-60],[-32,-60],[-12,-77],[-0.5,-90],[-34,151],[51,0]
-  ];
-  L.polyline(route,{color:'#d9534f',weight:3,opacity:0.7}).addTo(map);
-
-  // Key points
-  const pts = [
-    {name:'Plymouth (zarpe)',coords:[50,-4]},
-    {name:'Bahía de Rio (Brasil)',coords:[-22,-43]},
-    {name:'Galápagos (1835)',coords:[-0.5,-90]},
-    {name:'Patagonia / Chile (terremoto 1835)',coords:[-42,-73]},
-    {name:'Isla de Ternate (Wallace)',coords:[1.5,127]}
-  ];
-  pts.forEach(p=>L.marker(p.coords).addTo(map).bindPopup(`<b>${p.name}</b>`));
-
-</script></body>
+    ScrollReveal().reveal('.event', { interval: 200, origin: 'bottom', distance: '20px', opacity: 0, duration: 800 });
+  </script></body>
 </html>
