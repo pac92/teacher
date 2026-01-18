@@ -386,7 +386,7 @@
             
             <div id="setupScreen">
                 <div class="input-section">
-                    <h2>Añadir Alumnos</h2>
+                    <h2>Añadir jugadores</h2>
                     <input 
                         type="text" 
                         id="studentInput" 
@@ -413,9 +413,9 @@
                         <input 
                             type="number" 
                             id="timeoutInput" 
-                            min="3" 
+                            min="1" 
                             max="30" 
-                            value="5"
+                            value="3"
                         >
                     </div>
                 </div>
@@ -501,9 +501,9 @@
             if (gameMode === 'easy') {
                 timeoutInput.value = 5;
             } else if (gameMode === 'medium') {
-                timeoutInput.value = 4;
+                timeoutInput.value = 1;
             } else if (gameMode === 'expert') {
-                timeoutInput.value = 3;
+                timeoutInput.value = 1;
             }
         });
 
