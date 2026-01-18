@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tablas de Multiplicar</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .main-content {
+            flex: 1;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .scoreboard {
+            width: 300px;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .scoreboard.mobile-hidden {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .scoreboard.mobile-hidden.show {
+            display: block;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+
+        .overlay.show {
+            display: block;
+        }
+
+        .trophy-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #667eea;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            display: none;
+            z-index: 900;
+        }
+
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+
+        h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .input-section {
+            margin-bottom: 20px;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .students-list {
+            margin: 20px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .student-tag {
+            background: #667eea;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .student-tag button {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .start-btn, .next-btn {
+            width: 100%;
+            padding: 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 20px;
+        }
+
+        .start-btn:hover, .next-btn:hover {
+            background: #5568d3;
+        }
+
+        .start-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .game-area {
+            text-align: center;
+        }
+
+        .current-student {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            font-size: 20px;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .operation {
+            font-size: 72px;
+            font-weight: bold;
+            color: #333;
+            margin: 40px 0;
+            min-height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .operation span {
+            opacity: 0;
+            animation: fadeIn 0.5s forwards;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 30px 0;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.1s linear;
+        }
+
+        .result {
+            font-size: 48px;
+            color: #667eea;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .btn {
+            width: 80px;
+            height: 80px;
+            border: none;
+            border-radius: 50%;
+            font-size: 40px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:hover {
+            transform: scale(1.1);
+        }
+
+        .btn-correct {
+            background: #4caf50;
+        }
+
+        .btn-incorrect {
+            background: #f44336;
+        }
+
+        .score-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f5f5f5;
+            border-radius: 10px;
+        }
+
+        .score-item.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .score-name {
+            font-weight: bold;
+        }
+
+        .score-numbers {
+            display: flex;
+            gap: 15px;
+        }
+
+        .score-correct {
+            color: #4caf50;
+        }
+
+        .score-incorrect {
+            color: #f44336;
+        }
+
+        .score-item.active .score-correct,
+        .score-item.active .score-incorrect {
+            color: white;
+            opacity: 0.9;
+        }
+
+        .settings-section {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 10px;
+        }
+
+        .setting-item {
+            margin-bottom: 15px;
+        }
+
+        .setting-item label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .setting-item select,
+        .setting-item input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .setting-item select:focus,
+        .setting-item input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .medal {
+            font-size: 24px;
+            margin-right: 8px;
+        }
+
+        .close-scoreboard {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 30px;
+            cursor: pointer;
+            color: #666;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .scoreboard {
+                display: none;
+            }
+
+            .trophy-btn {
+                display: block;
+            }
+
+            .scoreboard.mobile-hidden .close-scoreboard {
+                display: block;
+            }
+
+            .operation {
+                font-size: 48px;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay" id="overlay"></div>
+    
+    <div class="container">
+        <div class="main-content">
+            <h1>🎓 Tablas de Multiplicar</h1>
+            
+            <div id="setupScreen">
+                <div class="input-section">
+                    <h2>Añadir Alumnos</h2>
+                    <input 
+                        type="text" 
+                        id="studentInput" 
+                        placeholder="Escribe el nombre y presiona Enter"
+                    >
+                </div>
+                
+                <div class="students-list" id="studentsList"></div>
+                
+                <div class="settings-section">
+                    <h2>Configuración</h2>
+                    
+                    <div class="setting-item">
+                        <label for="modeSelect">Modo de juego:</label>
+                        <select id="modeSelect">
+                            <option value="easy">Fácil (1-9)</option>
+                            <option value="medium">Medio (sin 1 y 10)</option>
+                            <option value="expert">Experto (hasta 2 cifras)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <label for="timeoutInput">Tiempo para responder (segundos):</label>
+                        <input 
+                            type="number" 
+                            id="timeoutInput" 
+                            min="3" 
+                            max="30" 
+                            value="5"
+                        >
+                    </div>
+                </div>
+                
+                <button class="start-btn" id="startBtn" disabled>
+                    Comenzar Juego
+                </button>
+            </div>
+            
+            <div id="gameScreen" style="display: none;">
+                <div class="game-area">
+                    <div class="current-student" id="currentStudent"></div>
+                    
+                    <div class="operation" id="operation"></div>
+                    
+                    <div class="progress-container">
+                        <div class="progress-bar" id="progressBar"></div>
+                    </div>
+                    
+                    <div class="result" id="result"></div>
+                    
+                    <div class="buttons" id="buttons" style="display: none;">
+                        <button class="btn btn-correct" id="correctBtn">👍</button>
+                        <button class="btn btn-incorrect" id="incorrectBtn">👎</button>
+                    </div>
+                    
+                    <button class="next-btn" id="nextBtn" style="display: none;">
+                        Siguiente Pregunta
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="scoreboard" id="scoreboard">
+            <button class="close-scoreboard" id="closeScoreboard">×</button>
+            <h2>🏆 Marcador</h2>
+            <div id="scoreList"></div>
+        </div>
+        
+        <div class="scoreboard mobile-hidden" id="scoreboardMobile">
+            <button class="close-scoreboard" id="closeScoreboardMobile">×</button>
+            <h2>🏆 Marcador</h2>
+            <div id="scoreListMobile"></div>
+        </div>
+    </div>
+    
+    <button class="trophy-btn" id="trophyBtn">🏆</button>
+
+    <script>
+        const students = [];
+        const scores = {};
+        let currentStudentIndex = 0;
+        let num1, num2, answer;
+        let progressInterval;
+        let gameMode = 'easy';
+        let timeoutDuration = 5000;
+
+        const studentInput = document.getElementById('studentInput');
+        const studentsList = document.getElementById('studentsList');
+        const startBtn = document.getElementById('startBtn');
+        const setupScreen = document.getElementById('setupScreen');
+        const gameScreen = document.getElementById('gameScreen');
+        const currentStudentDiv = document.getElementById('currentStudent');
+        const operation = document.getElementById('operation');
+        const progressBar = document.getElementById('progressBar');
+        const result = document.getElementById('result');
+        const buttons = document.getElementById('buttons');
+        const correctBtn = document.getElementById('correctBtn');
+        const incorrectBtn = document.getElementById('incorrectBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const scoreList = document.getElementById('scoreList');
+        const scoreListMobile = document.getElementById('scoreListMobile');
+        const trophyBtn = document.getElementById('trophyBtn');
+        const scoreboardMobile = document.getElementById('scoreboardMobile');
+        const overlay = document.getElementById('overlay');
+        const closeScoreboardMobile = document.getElementById('closeScoreboardMobile');
+        const modeSelect = document.getElementById('modeSelect');
+        const timeoutInput = document.getElementById('timeoutInput');
+
+        // Actualizar timeout por defecto según modo
+        modeSelect.addEventListener('change', (e) => {
+            gameMode = e.target.value;
+            if (gameMode === 'easy') {
+                timeoutInput.value = 5;
+            } else if (gameMode === 'medium') {
+                timeoutInput.value = 4;
+            } else if (gameMode === 'expert') {
+                timeoutInput.value = 3;
+            }
+        });
+
+        studentInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && studentInput.value.trim()) {
+                const name = studentInput.value.trim();
+                students.push(name);
+                scores[name] = { correct: 0, incorrect: 0 };
+                updateStudentsList();
+                updateScoreboard();
+                studentInput.value = '';
+                startBtn.disabled = false;
+            }
+        });
+
+        function updateStudentsList() {
+            studentsList.innerHTML = students.map((name, index) => `
+                <div class="student-tag">
+                    ${name}
+                    <button onclick="removeStudent(${index})">×</button>
+                </div>
+            `).join('');
+        }
+
+        function removeStudent(index) {
+            const name = students[index];
+            delete scores[name];
+            students.splice(index, 1);
+            updateStudentsList();
+            updateScoreboard();
+            if (students.length === 0) {
+                startBtn.disabled = true;
+            }
+        }
+
+        startBtn.addEventListener('click', () => {
+            gameMode = modeSelect.value;
+            timeoutDuration = parseInt(timeoutInput.value) * 1000;
+            setupScreen.style.display = 'none';
+            gameScreen.style.display = 'block';
+            startNewQuestion();
+        });
+
+        function generateNumbers() {
+            if (gameMode === 'easy') {
+                num1 = Math.floor(Math.random() * 9) + 1;
+                num2 = Math.floor(Math.random() * 9) + 1;
+            } else if (gameMode === 'medium') {
+                // Sin 1 y 10
+                do {
+                    num1 = Math.floor(Math.random() * 9) + 1;
+                    num2 = Math.floor(Math.random() * 9) + 1;
+                } while (num1 === 1 || num2 === 1 || num1 === 10 || num2 === 10);
+            } else if (gameMode === 'expert') {
+                // Puede incluir números de 2 cifras (hasta 12)
+                do {
+                    num1 = Math.floor(Math.random() * 12) + 1;
+                    num2 = Math.floor(Math.random() * 12) + 1;
+                } while (num1 === 1 || num2 === 1);
+            }
+        }
+
+        function startNewQuestion() {
+            currentStudentDiv.textContent = `Turno de: ${students[currentStudentIndex]}`;
+            generateNumbers();
+            answer = num1 * num2;
+            
+            operation.innerHTML = '';
+            result.textContent = '';
+            buttons.style.display = 'none';
+            nextBtn.style.display = 'none';
+            progressBar.style.width = '100%';
+            
+            showOperation();
+        }
+
+        function showOperation() {
+            const spans = [
+                `<span style="animation-delay: 0s">${num1}</span>`,
+                `<span style="animation-delay: 0.5s">×</span>`,
+                `<span style="animation-delay: 1s">${num2}</span>`,
+                `<span style="animation-delay: 1.5s">=</span>`,
+                `<span style="animation-delay: 2s">?</span>`
+            ];
+            
+            operation.innerHTML = spans.join('');
+            
+            setTimeout(() => {
+                startProgress();
+            }, 2500);
+        }
+
+        function startProgress() {
+            let progress = 100;
+            const interval = 50;
+            const decrement = (100 * interval) / timeoutDuration;
+            
+            progressInterval = setInterval(() => {
+                progress -= decrement;
+                if (progress <= 0) {
+                    clearInterval(progressInterval);
+                    showAnswer();
+                }
+                progressBar.style.width = progress + '%';
+            }, interval);
+        }
+
+        function showAnswer() {
+            result.textContent = answer;
+            buttons.style.display = 'flex';
+        }
+
+        correctBtn.addEventListener('click', () => {
+            scores[students[currentStudentIndex]].correct++;
+            updateScoreboard();
+            showNextButton();
+        });
+
+        incorrectBtn.addEventListener('click', () => {
+            scores[students[currentStudentIndex]].incorrect++;
+            updateScoreboard();
+            showNextButton();
+        });
+
+        function showNextButton() {
+            buttons.style.display = 'none';
+            nextBtn.style.display = 'block';
+        }
+
+        nextBtn.addEventListener('click', () => {
+            currentStudentIndex = (currentStudentIndex + 1) % students.length;
+            startNewQuestion();
+        });
+
+        function getMedal(position) {
+            if (position === 0) return '🥇';
+            if (position === 1) return '🥈';
+            if (position === 2) return '🥉';
+            return '';
+        }
+
+        function updateScoreboard() {
+            // Ordenar estudiantes por puntuación
+            const sortedStudents = [...students].sort((a, b) => {
+                const scoreA = scores[a].correct;
+                const scoreB = scores[b].correct;
+                if (scoreB !== scoreA) return scoreB - scoreA;
+                // En caso de empate, ordenar por menos incorrectas
+                return scores[a].incorrect - scores[b].incorrect;
+            });
+
+            const html = sortedStudents.map((name, position) => {
+                const isActive = name === students[currentStudentIndex] && gameScreen.style.display !== 'none';
+                const medal = getMedal(position);
+                return `
+                    <div class="score-item ${isActive ? 'active' : ''}">
+                        <span class="score-name">
+                            ${medal ? `<span class="medal">${medal}</span>` : ''}${name}
+                        </span>
+                        <div class="score-numbers">
+                            <span class="score-correct">✓ ${scores[name].correct}</span>
+                            <span class="score-incorrect">✗ ${scores[name].incorrect}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            scoreList.innerHTML = html;
+            scoreListMobile.innerHTML = html;
+        }
+
+        trophyBtn.addEventListener('click', () => {
+            scoreboardMobile.classList.add('show');
+            overlay.classList.add('show');
+        });
+
+        closeScoreboardMobile.addEventListener('click', () => {
+            scoreboardMobile.classList.remove('show');
+            overlay.classList.remove('show');
+        });
+
+        overlay.addEventListener('click', () => {
+            scoreboardMobile.classList.remove('show');
+            overlay.classList.remove('show');
+        });
+    </script>
+</body>
+</html>
