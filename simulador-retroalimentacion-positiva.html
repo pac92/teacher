@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador de Retroalimentación Positiva</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #f5f0e8;
+  --bg2:      #ede7d9;
+  --panel:    #faf7f2;
+  --border:   #d8ccb8;
+  --border2:  #c8b898;
+  --text:     #2a1f0e;
+  --text-dim: #8a7a62;
+  --text-mid: #5a4a32;
+
+  /* Parto */
+  --birth-a:  #c4185c;
+  --birth-b:  #e8527c;
+  --birth-c:  #ff9bb8;
+  --birth-bg: #fdf0f4;
+
+  /* Etileno */
+  --ethyl-a:  #2d7a3a;
+  --ethyl-b:  #52a85e;
+  --ethyl-c:  #a8d8ae;
+  --ethyl-bg: #f0f7f1;
+  --amber:    #d4820a;
+  --amber-lt: #f5c842;
+
+  --danger:   #b03020;
+  --warn:     #c07010;
+  --safe:     #2d7a3a;
+
+  --mono: 'DM Mono', monospace;
+  --serif: 'DM Serif Display', serif;
+  --body: 'Lora', serif;
+
+  --shadow: 0 4px 24px rgba(42,31,14,0.10);
+  --shadow-lg: 0 8px 40px rgba(42,31,14,0.15);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--body);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* organic noise texture */
+body::before {
+  content:'';
+  position:fixed; inset:0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events:none; z-index:0;
+}
+
+/* ── HOME ── */
+#home {
+  position:relative; z-index:1;
+  min-height:100vh;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  padding:50px 20px; gap:50px;
+}
+
+.home-deco {
+  position:absolute; inset:0; overflow:hidden; pointer-events:none;
+}
+.deco-circle {
+  position:absolute; border-radius:50%;
+  opacity:0.06;
+}
+.deco-circle:nth-child(1) { width:500px;height:500px; background:var(--birth-a); top:-150px;right:-100px; }
+.deco-circle:nth-child(2) { width:400px;height:400px; background:var(--ethyl-a); bottom:-120px;left:-80px; }
+.deco-circle:nth-child(3) { width:200px;height:200px; background:var(--amber); top:30%;left:10%; }
+
+.home-header { text-align:center; position:relative; z-index:1; }
+.home-header .tag {
+  font-family:var(--mono); font-size:10px; letter-spacing:5px;
+  color:var(--text-dim); text-transform:uppercase; margin-bottom:16px;
+  display:block;
+}
+.home-header h1 {
+  font-family:var(--serif);
+  font-size: clamp(2.4rem,6vw,4.5rem);
+  line-height:1.05; color:var(--text);
+  margin-bottom:6px;
+}
+.home-header h1 em { color:var(--birth-a); font-style:italic; }
+.home-header .sub {
+  font-size:1rem; color:var(--text-dim); max-width:500px;
+  margin:14px auto 0; line-height:1.7;
+}
+.home-header .pos-badge {
+  display:inline-flex; align-items:center; gap:6px;
+  font-family:var(--mono); font-size:9px; letter-spacing:2px;
+  padding:4px 12px; border-radius:20px; margin-bottom:14px;
+  background:#c4185c12; color:var(--birth-a);
+  border:1px solid #c4185c30; text-transform:uppercase;
+}
+
+.sim-cards {
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+  gap:24px; max-width:760px; width:100%; position:relative; z-index:1;
+}
+
+.sim-card {
+  border-radius:20px; padding:32px;
+  cursor:pointer; transition:all 0.35s cubic-bezier(.25,.8,.25,1);
+  position:relative; overflow:hidden;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+}
+.sim-card.birth { background:var(--birth-bg); }
+.sim-card.ethyl { background:var(--ethyl-bg); }
+
+.sim-card::after {
+  content:''; position:absolute; inset:0; opacity:0;
+  transition:opacity 0.3s;
+}
+.sim-card.birth::after { background:radial-gradient(ellipse at 80% 80%, #c4185c12, transparent 60%); }
+.sim-card.ethyl::after { background:radial-gradient(ellipse at 80% 80%, #2d7a3a12, transparent 60%); }
+.sim-card:hover { transform:translateY(-6px); box-shadow:var(--shadow-lg); }
+.sim-card:hover::after { opacity:1; }
+
+.card-orb {
+  width:60px; height:60px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.8rem; margin-bottom:18px;
+  position:relative;
+}
+.birth .card-orb { background:linear-gradient(135deg,#ffd0e0,#ffaac8); }
+.ethyl .card-orb { background:linear-gradient(135deg,#c8ecd0,#96d4a4); }
+.card-orb::after {
+  content:'⊕'; position:absolute; right:-4px; bottom:-4px;
+  font-size:0.85rem; width:20px;height:20px;
+  border-radius:50%; display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono); font-weight:500;
+}
+.birth .card-orb::after { background:var(--birth-a); color:white; }
+.ethyl .card-orb::after { background:var(--ethyl-a); color:white; }
+
+.card-type { font-family:var(--mono); font-size:9px; letter-spacing:3px; text-transform:uppercase; margin-bottom:8px; }
+.birth .card-type { color:var(--birth-a); }
+.ethyl .card-type { color:var(--ethyl-a); }
+
+.card-title { font-family:var(--serif); font-size:1.6rem; line-height:1.1; margin-bottom:10px; color:var(--text); }
+.card-desc  { font-size:0.83rem; color:var(--text-dim); line-height:1.65; }
+
+.card-arrow {
+  position:absolute; right:24px; bottom:24px;
+  width:36px;height:36px; border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1rem; transition:all 0.3s; opacity:0.4;
+  border:1px solid currentColor;
+}
+.birth .card-arrow { color:var(--birth-a); }
+.ethyl .card-arrow { color:var(--ethyl-a); }
+.sim-card:hover .card-arrow { opacity:1; transform:translate(3px,-3px) scale(1.1); }
+
+/* ── SIMULATORS ── */
+.simulator { display:none; position:relative; z-index:1; min-height:100vh; flex-direction:column; padding:20px; gap:16px; }
+.simulator.active { display:flex; }
+
+/* TOP BAR */
+.top-bar {
+  display:flex; align-items:center; gap:14px;
+  padding:12px 20px; background:var(--panel);
+  border:1px solid var(--border); border-radius:14px;
+  box-shadow:var(--shadow);
+}
+.back-btn {
+  background:none; border:1px solid var(--border);
+  color:var(--text-dim); font-family:var(--mono);
+  font-size:10px; letter-spacing:2px; padding:6px 12px;
+  border-radius:6px; cursor:pointer; transition:all 0.2s; text-transform:uppercase;
+}
+.back-btn:hover { color:var(--text); border-color:var(--text-dim); }
+.sim-title { font-family:var(--serif); font-size:1.2rem; flex:1; color:var(--text); }
+.sim-badge { font-family:var(--mono); font-size:9px; letter-spacing:2px; padding:4px 10px; border-radius:20px; text-transform:uppercase; }
+.birth-badge { background:#c4185c15; color:var(--birth-a); border:1px solid #c4185c30; }
+.ethyl-badge  { background:#2d7a3a15; color:var(--ethyl-a); border:1px solid #2d7a3a30; }
+
+.status-dot { width:8px;height:8px;border-radius:50%; animation:blink 1.4s ease-in-out infinite; }
+.dot-birth  { background:var(--birth-a); box-shadow:0 0 8px var(--birth-a); }
+.dot-ethyl  { background:var(--ethyl-a); box-shadow:0 0 8px var(--ethyl-a); }
+.dot-warn   { background:var(--warn);    box-shadow:0 0 8px var(--warn); animation-duration:0.4s; }
+.dot-danger { background:var(--danger);  box-shadow:0 0 8px var(--danger); animation-duration:0.3s; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* LAYOUT */
+.sim-body { display:grid; grid-template-columns:260px 1fr 240px; gap:16px; flex:1; }
+@media(max-width:1100px){ .sim-body{grid-template-columns:1fr;} }
+
+/* PANELS */
+.panel {
+  background:var(--panel); border:1px solid var(--border);
+  border-radius:16px; padding:20px;
+  display:flex; flex-direction:column; gap:16px;
+  box-shadow:var(--shadow);
+}
+.panel-title {
+  font-family:var(--mono); font-size:9px; letter-spacing:3px;
+  color:var(--text-dim); text-transform:uppercase;
+  padding-bottom:10px; border-bottom:1px solid var(--border);
+}
+
+/* CONTROLS */
+.control-group { display:flex; flex-direction:column; gap:7px; }
+.control-label { display:flex; justify-content:space-between; align-items:baseline; font-size:0.8rem; }
+.control-label span:first-child { color:var(--text-mid); font-weight:600; font-family:var(--body); }
+.control-value {
+  font-family:var(--mono); font-size:0.75rem;
+  padding:2px 7px; border-radius:4px;
+  border:1px solid var(--border); background:var(--bg2); color:var(--text-mid);
+}
+
+input[type=range] {
+  -webkit-appearance:none; width:100%; height:4px;
+  border-radius:2px; outline:none; cursor:pointer;
+}
+.birth-sim input[type=range] { background:linear-gradient(to right, var(--birth-a) 0%, var(--birth-a) var(--pct,50%), #d8ccb8 var(--pct,50%), #d8ccb8 100%); }
+.ethyl-sim input[type=range] { background:linear-gradient(to right, var(--ethyl-a) 0%, var(--ethyl-a) var(--pct,50%), #d8ccb8 var(--pct,50%), #d8ccb8 100%); }
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance:none; width:14px;height:14px;
+  border-radius:50%; cursor:pointer; border:2px solid var(--bg);
+}
+.birth-sim input[type=range]::-webkit-slider-thumb { background:var(--birth-a); box-shadow:0 0 6px #c4185c60; }
+.ethyl-sim input[type=range]::-webkit-slider-thumb { background:var(--ethyl-a); box-shadow:0 0 6px #2d7a3a60; }
+
+/* TOGGLE */
+.toggle-row { display:flex; align-items:center; justify-content:space-between; }
+.toggle-label { font-size:0.8rem; font-weight:600; color:var(--text-mid); }
+.toggle {
+  width:42px;height:22px; background:var(--bg2);
+  border:1px solid var(--border); border-radius:11px;
+  cursor:pointer; transition:all 0.3s; position:relative;
+}
+.toggle.on-b { border-color:var(--birth-a); background:#c4185c20; }
+.toggle.on-g { border-color:var(--ethyl-a); background:#2d7a3a20; }
+.toggle::after {
+  content:''; position:absolute; top:3px;left:3px;
+  width:14px;height:14px;border-radius:50%;
+  background:var(--text-dim); transition:all 0.3s;
+}
+.toggle.on-b::after { left:23px; background:var(--birth-a); box-shadow:0 0 6px var(--birth-a); }
+.toggle.on-g::after { left:23px; background:var(--ethyl-a); box-shadow:0 0 6px var(--ethyl-a); }
+
+/* BUTTONS */
+.action-btn {
+  width:100%; padding:10px; border-radius:10px; border:none;
+  cursor:pointer; font-family:var(--body); font-size:0.82rem; font-weight:600;
+  transition:all 0.2s; display:flex; align-items:center; justify-content:center; gap:6px;
+}
+.btn-b { background:#c4185c18; color:var(--birth-a); border:1px solid #c4185c30; }
+.btn-b:hover { background:#c4185c28; box-shadow:0 4px 16px #c4185c20; }
+.btn-g { background:#2d7a3a18; color:var(--ethyl-a); border:1px solid #2d7a3a30; }
+.btn-g:hover { background:#2d7a3a28; box-shadow:0 4px 16px #2d7a3a20; }
+.btn-warn { background:#c0701015; color:var(--warn); border:1px solid #c0701030; }
+.btn-warn:hover { background:#c0701025; }
+.btn-neutral { background:var(--bg2); color:var(--text-mid); border:1px solid var(--border); }
+.btn-neutral:hover { border-color:var(--text-dim); }
+.btn-danger { background:#b0302015; color:var(--danger); border:1px solid #b0302030; }
+.btn-danger:hover { background:#b0302025; }
+
+/* CENTER */
+.center-panel { display:flex; flex-direction:column; gap:16px; }
+
+/* MAIN DISPLAY */
+.main-display {
+  background:var(--panel); border:1px solid var(--border);
+  border-radius:16px; padding:22px 26px;
+  display:flex; align-items:center; gap:24px;
+  box-shadow:var(--shadow);
+}
+.big-label { font-family:var(--mono); font-size:9px; letter-spacing:3px; color:var(--text-dim); text-transform:uppercase; }
+.big-value {
+  font-family:var(--mono); font-size:3.4rem; font-weight:400;
+  line-height:1; transition:color 0.4s;
+}
+.big-value.birth-color { color:var(--birth-a); }
+.big-value.ethyl-color { color:var(--ethyl-a); }
+.big-value.warn-color  { color:var(--warn); }
+.big-value.danger-color{ color:var(--danger); }
+.big-unit { font-family:var(--mono); font-size:0.85rem; color:var(--text-dim); margin-top:4px; }
+
+.mini-stats { flex:1; display:flex; flex-direction:column; gap:10px; }
+.mini-stat-row { display:flex; flex-direction:column; gap:4px; }
+.mini-stat-label { display:flex; justify-content:space-between; font-size:0.74rem; }
+.mini-stat-label span:first-child { color:var(--text-dim); }
+.mini-stat-label span:last-child { font-family:var(--mono); font-size:0.7rem; color:var(--text-mid); }
+.bar-track { height:5px; background:var(--bg2); border-radius:3px; overflow:hidden; }
+.bar-fill { height:100%; border-radius:3px; transition:width 0.5s ease; }
+.bar-b { background:linear-gradient(90deg,#e8527c,var(--birth-a)); }
+.bar-g { background:linear-gradient(90deg,var(--ethyl-b),var(--ethyl-a)); }
+.bar-a { background:linear-gradient(90deg,var(--amber-lt),var(--amber)); }
+
+/* ESCALATION METER */
+.escalation-wrap {
+  background:var(--panel); border:1px solid var(--border);
+  border-radius:16px; padding:18px 22px;
+  box-shadow:var(--shadow);
+}
+.escalation-label {
+  display:flex; justify-content:space-between; align-items:center;
+  margin-bottom:12px;
+}
+.esc-title { font-family:var(--mono); font-size:10px; letter-spacing:3px; color:var(--text-dim); text-transform:uppercase; }
+.esc-phase { font-family:var(--mono); font-size:10px; padding:3px 10px; border-radius:20px; }
+.phase-b { background:#c4185c15; color:var(--birth-a); border:1px solid #c4185c30; }
+.phase-g { background:#2d7a3a15; color:var(--ethyl-a); border:1px solid #2d7a3a30; }
+.phase-warn { background:#c0701015; color:var(--warn); border:1px solid #c0701030; }
+
+.esc-track {
+  height:16px; border-radius:8px; background:var(--bg2);
+  position:relative; overflow:hidden; margin-bottom:8px;
+}
+.esc-fill {
+  height:100%; border-radius:8px;
+  transition:width 0.5s ease, background 0.5s ease;
+  position:relative;
+}
+.esc-fill::after {
+  content:''; position:absolute; inset:0;
+  background:repeating-linear-gradient(90deg,transparent,transparent 8px,rgba(255,255,255,0.15) 8px,rgba(255,255,255,0.15) 9px);
+}
+.esc-fill-b { background:linear-gradient(90deg,#ffaac8,var(--birth-a)); }
+.esc-fill-g { background:linear-gradient(90deg,var(--ethyl-c),var(--ethyl-a)); }
+.esc-fill-crit { background:linear-gradient(90deg,var(--warn),var(--danger)); }
+
+.esc-ticks { display:flex; justify-content:space-between; font-family:var(--mono); font-size:8px; color:var(--text-dim); }
+.no-return-marker {
+  position:absolute; top:0; bottom:0; width:2px;
+  background:var(--danger); opacity:0.7;
+  top:-2px; height:calc(100% + 4px);
+}
+
+/* CANVAS CHART */
+.chart-wrap {
+  background:var(--panel); border:1px solid var(--border);
+  border-radius:16px; padding:18px 22px;
+  flex:1; display:flex; flex-direction:column; gap:12px;
+  box-shadow:var(--shadow);
+}
+.chart-header { display:flex; align-items:center; justify-content:space-between; }
+.chart-title  { font-family:var(--mono); font-size:10px; letter-spacing:2px; color:var(--text-dim); text-transform:uppercase; }
+.chart-legend { display:flex; gap:14px; }
+.legend-item  { display:flex; align-items:center; gap:5px; font-size:0.7rem; color:var(--text-dim); font-family:var(--mono); }
+.legend-dot   { width:8px;height:8px;border-radius:50%; }
+
+/* EXPLAIN */
+.explain-box {
+  background:var(--panel); border:1px solid var(--border);
+  border-radius:12px; padding:14px 18px;
+  font-size:0.82rem; line-height:1.65; color:var(--text-dim);
+  display:flex; gap:10px; align-items:flex-start;
+  box-shadow:var(--shadow);
+}
+.explain-icon { font-size:1.1rem; flex-shrink:0; margin-top:2px; }
+
+/* RIGHT */
+.right-panel { display:flex; flex-direction:column; gap:16px; }
+
+/* LOOP DIAGRAM */
+.loop-diagram {
+  background:var(--panel); border:1px solid var(--border);
+  border-radius:16px; padding:18px;
+  display:flex; flex-direction:column; gap:6px; align-items:center;
+  box-shadow:var(--shadow);
+}
+.loop-title { font-family:var(--mono); font-size:9px; letter-spacing:3px; color:var(--text-dim); text-transform:uppercase; align-self:stretch; padding-bottom:10px; border-bottom:1px solid var(--border); }
+.loop-node {
+  padding:8px 12px; border-radius:8px; font-size:0.74rem; font-weight:600;
+  text-align:center; border:1px solid var(--border); background:var(--bg2);
+  color:var(--text-dim); transition:all 0.4s; width:170px;
+}
+.loop-node.active-b { border-color:var(--birth-a); color:var(--birth-a); background:#c4185c12; box-shadow:0 0 12px #c4185c25; }
+.loop-node.active-g { border-color:var(--ethyl-a); color:var(--ethyl-a); background:#2d7a3a12; box-shadow:0 0 12px #2d7a3a25; }
+.loop-arrow { font-size:1.1rem; color:var(--text-dim); transition:color 0.4s; line-height:1; }
+.loop-arrow.active-b { color:var(--birth-a); }
+.loop-arrow.active-g { color:var(--ethyl-a); }
+.loop-pos { font-family:var(--mono); font-size:10px; padding:4px 12px; border-radius:20px; margin-top:4px; }
+.loop-pos.b { background:#c4185c15; color:var(--birth-a); border:1px solid #c4185c30; }
+.loop-pos.g { background:#2d7a3a15; color:var(--ethyl-a); border:1px solid #2d7a3a30; }
+
+/* EVENT LOG */
+.event-log {
+  background:var(--panel); border:1px solid var(--border);
+  border-radius:16px; padding:16px; flex:1;
+  display:flex; flex-direction:column; gap:10px;
+  box-shadow:var(--shadow);
+}
+.log-list { display:flex; flex-direction:column; gap:5px; max-height:170px; overflow-y:auto; }
+.log-list::-webkit-scrollbar { width:3px; }
+.log-list::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+.log-entry { display:flex; gap:7px; align-items:flex-start; font-size:0.72rem; color:var(--text-dim); animation:fadeIn 0.3s ease; font-family:var(--mono); }
+.log-time { font-size:0.65rem; opacity:0.5; flex-shrink:0; margin-top:1px; }
+.log-dot  { width:6px;height:6px;border-radius:50%;margin-top:4px;flex-shrink:0; }
+.log-dot.info   { background:var(--text-dim); }
+.log-dot.warn   { background:var(--warn); }
+.log-dot.danger { background:var(--danger); }
+.log-dot.safe   { background:var(--safe); }
+.log-dot.birth  { background:var(--birth-a); }
+.log-dot.ethyl  { background:var(--ethyl-a); }
+@keyframes fadeIn { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:none} }
+
+/* ── BIRTH SPECIFIC: Cervix Viz ── */
+.cervix-viz {
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:12px; padding:16px;
+  display:flex; flex-direction:column; align-items:center; gap:10px;
+}
+.cervix-title { font-family:var(--mono); font-size:9px; letter-spacing:2px; color:var(--text-dim); text-transform:uppercase; }
+.cervix-svg { width:100%; max-width:160px; }
+
+/* ── FRUIT GRID ── */
+.fruit-grid {
+  display:grid; grid-template-columns:repeat(5,1fr); gap:6px;
+  padding:12px; background:var(--bg2); border-radius:10px;
+  border:1px solid var(--border);
+}
+.fruit-item {
+  aspect-ratio:1; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.1rem; transition:all 0.8s ease;
+  border:2px solid transparent; position:relative;
+  cursor:default;
+}
+.fruit-item.unripe  { background:#c8e8c0; border-color:#90c888; filter:saturate(0.7); }
+.fruit-item.turning { background:#e8d878; border-color:#c8b040; }
+.fruit-item.ripe    { background:#f0a030; border-color:#d07010; }
+.fruit-item.overripe{ background:#a05020; border-color:#703010; filter:saturate(1.5); }
+
+/* ETHYLENE PARTICLES */
+#ethylene-canvas { position:absolute; pointer-events:none; top:0;left:0; }
+
+/* ALERT */
+.alert-overlay {
+  position:fixed; inset:0; z-index:100;
+  background:rgba(245,240,232,0.85);
+  display:none; align-items:center; justify-content:center;
+  backdrop-filter:blur(8px);
+}
+.alert-overlay.show { display:flex; }
+.alert-box {
+  background:var(--panel); border:2px solid var(--border);
+  border-radius:22px; padding:36px 40px; max-width:440px; width:90%;
+  text-align:center; box-shadow:var(--shadow-lg);
+  animation:alertIn 0.4s cubic-bezier(.25,.8,.25,1.4);
+}
+@keyframes alertIn { from{transform:scale(0.8);opacity:0} to{transform:scale(1);opacity:1} }
+.alert-icon  { font-size:3.2rem; margin-bottom:14px; }
+.alert-title { font-family:var(--serif); font-size:1.5rem; color:var(--text); margin-bottom:10px; }
+.alert-msg   { color:var(--text-dim); font-size:0.88rem; line-height:1.65; margin-bottom:22px; }
+.alert-btn {
+  background:var(--bg2); color:var(--text-mid); border:1px solid var(--border);
+  border-radius:10px; padding:10px 28px; cursor:pointer;
+  font-family:var(--body); font-size:0.9rem; font-weight:600;
+  transition:all 0.2s;
+}
+.alert-btn:hover { border-color:var(--text-dim); }
+
+/* INTERRUPT ZONE */
+.interrupt-zone {
+  background:var(--bg2); border:1px dashed var(--border2);
+  border-radius:10px; padding:12px;
+  font-size:0.75rem; color:var(--text-dim); line-height:1.6;
+}
+.interrupt-zone strong { color:var(--text-mid); }
+
+</style>
+</head>
+<body>
+
+<!-- ═══ HOME ═══ -->
+<div id="home">
+  <div class="home-deco">
+    <div class="deco-circle"></div>
+    <div class="deco-circle"></div>
+    <div class="deco-circle"></div>
+  </div>
+
+  <div class="home-header">
+    <span class="pos-badge">⊕ amplificación · espiral · cascada</span>
+    <div class="tag">Biología · Homeostasis · Regulación</div>
+    <h1>Retroalimentación<br><em>Positiva</em></h1>
+    <p class="sub">El estímulo amplifica su propia respuesta, creando una espiral acelerante que lleva al sistema hasta un punto de culminación o ruptura.</p>
+  </div>
+
+  <div class="sim-cards">
+    <div class="sim-card birth" onclick="openSim('birth')">
+      <div class="card-orb">🤰</div>
+      <div class="card-type">⊕ Retroalimentación positiva</div>
+      <div class="card-title">Contracciones<br>del Parto</div>
+      <div class="card-desc">La presión del bebé libera oxitocina, que intensifica las contracciones, que aumentan la presión… hasta la expulsión. Simula intervenciones como la epidural o la oxitocina sintética.</div>
+      <div class="card-arrow">↗</div>
+    </div>
+
+    <div class="sim-card ethyl" onclick="openSim('ethyl')">
+      <div class="card-orb">🍊</div>
+      <div class="card-type">⊕ Retroalimentación positiva</div>
+      <div class="card-title">Maduración<br>por Etileno</div>
+      <div class="card-desc">Un fruto maduro emite etileno que acelera la maduración de los vecinos, que producen más etileno… Controla temperatura, ventilación y número de frutos.</div>
+      <div class="card-arrow">↗</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ BIRTH SIMULATOR ═══ -->
+<div id="sim-birth" class="simulator birth-sim">
+
+  <div class="top-bar">
+    <button class="back-btn" onclick="closeSim()">← Inicio</button>
+    <div class="sim-title">🤰 Contracciones del Parto</div>
+    <div class="sim-badge birth-badge">⊕ RETRO. POSITIVA</div>
+    <div class="status-dot dot-birth" id="b-dot"></div>
+    <span id="b-status-text" style="font-family:var(--mono);font-size:10px;color:var(--text-dim)">LATENTE</span>
+  </div>
+
+  <div class="sim-body">
+
+    <!-- LEFT -->
+    <div class="panel">
+      <div class="panel-title">⚙ Controles</div>
+
+      <div class="control-group">
+        <div class="control-label">
+          <span>Oxitocina basal</span>
+          <span class="control-value" id="b-oxytocin-val">20%</span>
+        </div>
+        <input type="range" id="b-oxytocin" min="0" max="100" value="20" oninput="updateSlider(this,'b-oxytocin-val','%')">
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">
+          <span>Presión cervical</span>
+          <span class="control-value" id="b-pressure-val">2</span>
+        </div>
+        <input type="range" id="b-pressure" min="0" max="10" value="2" step="0.5" oninput="updateSlider(this,'b-pressure-val','')">
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">
+          <span>Velocidad simulación</span>
+          <span class="control-value" id="b-speed-val">1×</span>
+        </div>
+        <input type="range" id="b-speed" min="1" max="5" value="1" step="0.5" oninput="updateSliderDirect(this,'b-speed-val','×')">
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div class="toggle-row">
+          <span class="toggle-label">Epidural (bloqueo)</span>
+          <div class="toggle" id="b-epidural" onclick="toggleBirth('b-epidural')"></div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button class="action-btn btn-b" onclick="injectOxytocin()">💉 Oxitocina sintética (+30%)</button>
+        <button class="action-btn btn-warn" onclick="startBirth()">▶ Iniciar trabajo de parto</button>
+        <button class="action-btn btn-danger" onclick="emergencyCSection()">🔪 Cesárea de emergencia</button>
+        <button class="action-btn btn-neutral" onclick="resetSim('birth')">↺ Reiniciar</button>
+      </div>
+
+      <div class="interrupt-zone">
+        <strong>Interrupciones del bucle:</strong><br>
+        La epidural bloquea los receptores de estiramiento cervical, interrumpiendo la señal al hipotálamo. La cesárea termina el bucle por extracción directa.
+      </div>
+    </div>
+
+    <!-- CENTER -->
+    <div class="center-panel">
+
+      <div class="main-display">
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <div class="big-label">Oxitocina</div>
+          <div class="big-value birth-color" id="b-big-value">20</div>
+          <div class="big-unit">% nivel</div>
+        </div>
+        <div class="mini-stats">
+          <div class="mini-stat-row">
+            <div class="mini-stat-label"><span>Intensidad contracción</span><span id="b-contraction-val">0%</span></div>
+            <div class="bar-track"><div class="bar-fill bar-b" id="b-contraction-bar" style="width:0%"></div></div>
+          </div>
+          <div class="mini-stat-row">
+            <div class="mini-stat-label"><span>Dilatación cervical</span><span id="b-dilation-val">0 cm</span></div>
+            <div class="bar-track"><div class="bar-fill bar-b" id="b-dilation-bar" style="width:0%"></div></div>
+          </div>
+          <div class="mini-stat-row">
+            <div class="mini-stat-label"><span>Receptores activos</span><span id="b-receptors-val">20%</span></div>
+            <div class="bar-track"><div class="bar-fill bar-b" id="b-receptors-bar" style="width:20%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ESCALATION -->
+      <div class="escalation-wrap panel">
+        <div class="escalation-label">
+          <div class="esc-title">Nivel de escalada del bucle</div>
+          <div class="esc-phase phase-b" id="b-phase-label">FASE: LATENTE</div>
+        </div>
+        <div class="esc-track">
+          <div class="esc-fill esc-fill-b" id="b-esc-fill" style="width:10%"></div>
+          <div class="no-return-marker" style="left:70%"></div>
+        </div>
+        <div class="esc-ticks">
+          <span>Inicio</span><span>Activo</span><span>⚠ Sin retorno (70%)</span><span>Expulsión</span>
+        </div>
+
+        <!-- CERVIX SVG -->
+        <div style="margin-top:10px">
+          <svg class="cervix-svg" viewBox="0 0 200 80" style="width:100%;max-width:none;height:80px;">
+            <defs>
+              <radialGradient id="cervGrad" cx="50%" cy="50%">
+                <stop offset="0%" stop-color="#ffaac8" stop-opacity="0.6"/>
+                <stop offset="100%" stop-color="#c4185c" stop-opacity="0.3"/>
+              </radialGradient>
+            </defs>
+            <!-- Uterus walls -->
+            <path d="M20,10 Q100,5 180,10 L185,70 Q100,75 15,70 Z" fill="url(#cervGrad)" stroke="#c4185c50" stroke-width="1"/>
+            <!-- Cervix opening -->
+            <ellipse id="cervix-open" cx="100" cy="72" rx="3" ry="4" fill="#c4185c" opacity="0.8"/>
+            <!-- Baby head -->
+            <circle id="baby-head" cx="100" cy="40" r="18" fill="#ffeedd" stroke="#d4a080" stroke-width="1.5"/>
+            <text x="100" y="45" text-anchor="middle" font-size="14">👶</text>
+            <!-- Contraction waves -->
+            <path id="wave1" d="M30,30 Q100,20 170,30" stroke="#c4185c" stroke-width="0" fill="none" opacity="0.6"/>
+            <path id="wave2" d="M25,50 Q100,40 175,50" stroke="#c4185c" stroke-width="0" fill="none" opacity="0.4"/>
+          </svg>
+          <div style="text-align:center;font-family:var(--mono);font-size:9px;color:var(--text-dim);margin-top:4px">
+            Dilatación: <span id="b-dil-display" style="color:var(--birth-a)">0.0 cm</span> / 10 cm
+          </div>
+        </div>
+      </div>
+
+      <!-- CHART -->
+      <div class="chart-wrap">
+        <div class="chart-header">
+          <div class="chart-title">📈 Espiral de amplificación</div>
+          <div class="chart-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:var(--birth-a)"></div>Oxitocina</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--birth-b)"></div>Contracción</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div>Dilatación</div>
+          </div>
+        </div>
+        <canvas id="chart-b"></canvas>
+      </div>
+
+      <div class="explain-box">
+        <div class="explain-icon">💡</div>
+        <div id="b-explain">El sistema está en reposo. El bucle de retroalimentación <strong>positiva</strong> se activará cuando la presión del bebé sobre el cuello uterino supere el umbral. A diferencia de los bucles negativos, este <strong>amplifica</strong> la señal.</div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right-panel">
+      <div class="loop-diagram">
+        <div class="loop-title">Diagrama del bucle ⊕</div>
+        <div class="loop-node" id="bn1">👶 Presión en cérvix</div>
+        <div class="loop-arrow" id="ba1">↓</div>
+        <div class="loop-node" id="bn2">🧠 Hipotálamo → oxitocina</div>
+        <div class="loop-arrow" id="ba2">↓</div>
+        <div class="loop-node" id="bn3">💥 Contracciones uterinas</div>
+        <div class="loop-arrow" id="ba3">↓</div>
+        <div class="loop-node" id="bn4">📈 Mayor presión cervical</div>
+        <div class="loop-arrow" id="ba4">↓</div>
+        <div class="loop-node" id="bn5">🔄 Más oxitocina →</div>
+        <div class="loop-pos b">⊕ amplificación</div>
+      </div>
+
+      <div class="event-log">
+        <div class="panel-title">📋 Registro de eventos</div>
+        <div class="log-list" id="b-log"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ ETHYLENE SIMULATOR ═══ -->
+<div id="sim-ethyl" class="simulator ethyl-sim">
+
+  <div class="top-bar">
+    <button class="back-btn" onclick="closeSim()">← Inicio</button>
+    <div class="sim-title">🍊 Maduración por Etileno</div>
+    <div class="sim-badge ethyl-badge">⊕ RETRO. POSITIVA</div>
+    <div class="status-dot dot-ethyl" id="e-dot"></div>
+    <span id="e-status-text" style="font-family:var(--mono);font-size:10px;color:var(--text-dim)">ESTABLE</span>
+  </div>
+
+  <div class="sim-body">
+
+    <!-- LEFT -->
+    <div class="panel">
+      <div class="panel-title">⚙ Controles</div>
+
+      <div class="control-group">
+        <div class="control-label">
+          <span>Temperatura ambiente</span>
+          <span class="control-value" id="e-temp-val">20°C</span>
+        </div>
+        <input type="range" id="e-temp" min="5" max="40" value="20" oninput="updateSlider(this,'e-temp-val','°C')">
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">
+          <span>Humedad relativa</span>
+          <span class="control-value" id="e-humid-val">60%</span>
+        </div>
+        <input type="range" id="e-humid" min="20" max="100" value="60" oninput="updateSlider(this,'e-humid-val','%')">
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">
+          <span>Nº de frutos</span>
+          <span class="control-value" id="e-count-val">5</span>
+        </div>
+        <input type="range" id="e-count" min="1" max="10" value="5" step="1" oninput="updateSlider(this,'e-count-val','')">
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">
+          <span>Velocidad simulación</span>
+          <span class="control-value" id="e-speed-val">1×</span>
+        </div>
+        <input type="range" id="e-speed" min="1" max="5" value="1" step="0.5" oninput="updateSliderDirect(this,'e-speed-val','×')">
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div class="toggle-row">
+          <span class="toggle-label">Ventilación abierta</span>
+          <div class="toggle" id="e-vent" onclick="toggleVent()"></div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button class="action-btn btn-g" onclick="addRipeFruit()">🍊 Añadir fruto maduro</button>
+        <button class="action-btn btn-warn" onclick="refrigerate()">🧊 Refrigerar (4°C)</button>
+        <button class="action-btn btn-g" onclick="applyEthyleneBlocker()">🧪 Bloqueante de etileno</button>
+        <button class="action-btn btn-neutral" onclick="resetSim('ethyl')">↺ Reiniciar</button>
+      </div>
+
+      <div class="interrupt-zone">
+        <strong>Control del bucle:</strong><br>
+        La ventilación dispersa el etileno. La refrigeración enlentece enzimas. El bloqueante compite con los receptores de etileno, interrumpiendo la señal de maduración.
+      </div>
+    </div>
+
+    <!-- CENTER -->
+    <div class="center-panel">
+
+      <div class="main-display">
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <div class="big-label">Etileno</div>
+          <div class="big-value ethyl-color" id="e-big-value">0.0</div>
+          <div class="big-unit">ppm</div>
+        </div>
+        <div class="mini-stats">
+          <div class="mini-stat-row">
+            <div class="mini-stat-label"><span>Tasa producción etileno</span><span id="e-rate-val">0.1 ppm/min</span></div>
+            <div class="bar-track"><div class="bar-fill bar-g" id="e-rate-bar" style="width:2%"></div></div>
+          </div>
+          <div class="mini-stat-row">
+            <div class="mini-stat-label"><span>Frutos maduros</span><span id="e-ripe-val">0/5</span></div>
+            <div class="bar-track"><div class="bar-fill bar-a" id="e-ripe-bar" style="width:0%"></div></div>
+          </div>
+          <div class="mini-stat-row">
+            <div class="mini-stat-label"><span>Actividad enzimática</span><span id="e-enzyme-val">30%</span></div>
+            <div class="bar-track"><div class="bar-fill bar-g" id="e-enzyme-bar" style="width:30%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ESCALATION -->
+      <div class="escalation-wrap panel">
+        <div class="escalation-label">
+          <div class="esc-title">Concentración de etileno y cascada</div>
+          <div class="esc-phase phase-g" id="e-phase-label">FASE: INICIO</div>
+        </div>
+        <div class="esc-track">
+          <div class="esc-fill esc-fill-g" id="e-esc-fill" style="width:2%"></div>
+          <div class="no-return-marker" style="left:60%"></div>
+        </div>
+        <div class="esc-ticks">
+          <span>Basal</span><span>Cascada</span><span>⚠ Sin retorno (60%)</span><span>Sobremaduración</span>
+        </div>
+
+        <!-- FRUIT GRID -->
+        <div style="margin-top:12px">
+          <div style="font-family:var(--mono);font-size:9px;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">Estado de los frutos</div>
+          <div class="fruit-grid" id="fruit-grid"></div>
+          <div style="display:flex;gap:10px;margin-top:8px;font-family:var(--mono);font-size:8px;color:var(--text-dim)">
+            <span>🟢 Verde</span><span>🟡 Virando</span><span>🟠 Maduro</span><span>🟤 Pasado</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CHART -->
+      <div class="chart-wrap" style="position:relative">
+        <div class="chart-header">
+          <div class="chart-title">📈 Cascada de etileno</div>
+          <div class="chart-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:var(--ethyl-a)"></div>Etileno (ppm)</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div>Frutos maduros</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--birth-b)"></div>Actividad enz.</div>
+          </div>
+        </div>
+        <canvas id="chart-e"></canvas>
+        <canvas id="ethylene-canvas" style="position:absolute;top:0;left:0;pointer-events:none;opacity:0.4;border-radius:8px"></canvas>
+      </div>
+
+      <div class="explain-box">
+        <div class="explain-icon">💡</div>
+        <div id="e-explain">Sistema en estado basal. El etileno se produce lentamente. Añade un <strong>fruto maduro</strong> o sube la temperatura para desencadenar la cascada. El efecto dominó es la esencia de la retroalimentación <strong>positiva</strong>.</div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right-panel">
+      <div class="loop-diagram">
+        <div class="loop-title">Diagrama del bucle ⊕</div>
+        <div class="loop-node" id="en1">🍊 Fruto emite etileno</div>
+        <div class="loop-arrow" id="ea1">↓</div>
+        <div class="loop-node" id="en2">📡 Vecinos detectan</div>
+        <div class="loop-arrow" id="ea2">↓</div>
+        <div class="loop-node" id="en3">⚗️ Activan enzimas</div>
+        <div class="loop-arrow" id="ea3">↓</div>
+        <div class="loop-node" id="en4">🟠 Maduración acelera</div>
+        <div class="loop-arrow" id="ea4">↓</div>
+        <div class="loop-node" id="en5">📈 Más etileno →</div>
+        <div class="loop-pos g">⊕ amplificación</div>
+      </div>
+
+      <div class="event-log">
+        <div class="panel-title">📋 Registro de eventos</div>
+        <div class="log-list" id="e-log"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ALERT -->
+<div class="alert-overlay" id="alert-overlay">
+  <div class="alert-box">
+    <div class="alert-icon" id="alert-icon">⊕</div>
+    <div class="alert-title" id="alert-title">EVENTO</div>
+    <div class="alert-msg" id="alert-msg"></div>
+    <button class="alert-btn" onclick="closeAlert()">Continuar</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+//  SHARED
+// ══════════════════════════════════════
+let activeSimInterval = null;
+
+function openSim(type) {
+  document.getElementById('home').style.display = 'none';
+  const el = document.getElementById('sim-' + type);
+  el.classList.add('active');
+  if (type === 'birth') initBirth();
+  else initEthyl();
+}
+function closeSim() {
+  document.querySelectorAll('.simulator').forEach(s => s.classList.remove('active'));
+  document.getElementById('home').style.display = 'flex';
+  clearInterval(activeSimInterval);
+  activeSimInterval = null;
+}
+function updateSlider(el, labelId, suffix) {
+  const pct = (el.value - el.min) / (el.max - el.min) * 100;
+  el.style.setProperty('--pct', pct + '%');
+  document.getElementById(labelId).textContent = el.value + suffix;
+}
+function updateSliderDirect(el, labelId, suffix) {
+  const pct = (el.value - el.min) / (el.max - el.min) * 100;
+  el.style.setProperty('--pct', pct + '%');
+  document.getElementById(labelId).textContent = el.value + suffix;
+}
+function toggleBirth(id) { document.getElementById(id).classList.toggle('on-b'); }
+function toggleVent() { document.getElementById('e-vent').classList.toggle('on-g'); }
+function addLog(listId, msg, type='info') {
+  const list = document.getElementById(listId);
+  const time = new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const el = document.createElement('div');
+  el.className = 'log-entry';
+  el.innerHTML = `<span class="log-time">${time}</span><div class="log-dot ${type}"></div><span>${msg}</span>`;
+  list.prepend(el);
+  while(list.children.length > 20) list.removeChild(list.lastChild);
+}
+function showAlert(icon, title, msg) {
+  document.getElementById('alert-icon').textContent = icon;
+  document.getElementById('alert-title').textContent = title;
+  document.getElementById('alert-msg').textContent = msg;
+  document.getElementById('alert-overlay').classList.add('show');
+}
+function closeAlert() { document.getElementById('alert-overlay').classList.remove('show'); }
+function setLoopActive(prefix, cls) {
+  ['n1','n2','n3','n4','n5','a1','a2','a3','a4'].forEach(id => {
+    const el = document.getElementById(prefix + id);
+    if(el) { el.classList.remove('active-b','active-g'); if(cls) el.classList.add(cls); }
+  });
+}
+
+// CHART FACTORY
+function makeChart(canvasId, c1, c2, c3, minY, maxY) {
+  const canvas = document.getElementById(canvasId);
+  const ctx = canvas.getContext('2d');
+  const W = 400, H = 160;
+  canvas.width = W; canvas.height = H;
+  const d1=[], d2=[], d3=[];
+  const maxPts = 120;
+  function draw() {
+    ctx.clearRect(0,0,W,H);
+    ctx.strokeStyle = '#d8ccb840'; ctx.lineWidth=0.5;
+    for(let i=0;i<=4;i++){const y=(i/4)*H;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+    function line(data, color, dash) {
+      if(data.length<2)return;
+      ctx.strokeStyle=color; ctx.lineWidth=1.8;
+      ctx.setLineDash(dash||[]);
+      ctx.beginPath();
+      data.forEach((v,i)=>{
+        const x=(i/(maxPts-1))*W;
+        const y=H-((v-minY)/(maxY-minY))*H;
+        i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+      });
+      ctx.stroke(); ctx.setLineDash([]);
+    }
+    line(d3,c3,[3,4]);
+    line(d2,c2,[]);
+    line(d1,c1,[]);
+  }
+  function push(v1,v2,v3){
+    d1.push(v1);d2.push(v2);d3.push(v3);
+    if(d1.length>maxPts){d1.shift();d2.shift();d3.shift();}
+    draw();
+  }
+  return {push, draw};
+}
+
+// ══════════════════════════════════════
+//  BIRTH SIMULATOR
+// ══════════════════════════════════════
+let bState={}, bChart=null, bAlerts={};
+let birthFinished = false;
+
+function initBirth() {
+  bState = {
+    oxytocin: 20,
+    contraction: 0,
+    dilation: 0,
+    receptors: 20,
+    pressure: 2,
+    injected: 0,
+    active: false,
+    escalation: 10,
+    tick: 0
+  };
+  bAlerts = { cascade:false, noreturn:false, birth:false };
+  birthFinished = false;
+
+  bChart = makeChart('chart-b', 'var(--birth-a)', 'var(--birth-b)', 'var(--amber)', 0, 100);
+  document.getElementById('b-log').innerHTML = '';
+  addLog('b-log','Simulación iniciada — útero en reposo','info');
+  addLog('b-log','Nivel basal de oxitocina: 20%','birth');
+
+  const oxSlider=document.getElementById('b-oxytocin');
+  oxSlider.value=20; updateSlider(oxSlider,'b-oxytocin-val','%');
+  const prSlider=document.getElementById('b-pressure');
+  prSlider.value=2; updateSlider(prSlider,'b-pressure-val','');
+
+  setLoopActive('b');
+  clearInterval(activeSimInterval);
+  activeSimInterval = setInterval(birthStep, 200);
+}
+
+function birthStep() {
+  if(birthFinished) return;
+  const speed = parseFloat(document.getElementById('b-speed').value);
+  const epidural = document.getElementById('b-epidural').classList.contains('on-b');
+  const baseOxy = parseInt(document.getElementById('b-oxytocin').value);
+  const basePressure = parseFloat(document.getElementById('b-pressure').value);
+
+  for(let s=0;s<speed;s++){
+    bState.tick++;
+    let oxy = bState.oxytocin;
+    let dil = bState.dilation;
+    let con = bState.contraction;
+
+    // Injected oxytocin decays
+    if(bState.injected > 0) {
+      oxy += bState.injected * 0.5;
+      bState.injected *= 0.90;
+      if(bState.injected < 0.1) bState.injected = 0;
+    }
+
+    if(bState.active && !epidural) {
+      // POSITIVE FEEDBACK LOOP
+      // Pressure → oxytocin → contractions → more pressure
+      const loopGain = 1 + (dil / 10) * 0.8;
+      oxy = Math.min(100, oxy + (basePressure + dil * 0.3) * 0.04 * loopGain);
+      con = Math.min(100, oxy * 0.9 + (dil * 2));
+      dil = Math.min(10, dil + oxy * 0.0008 * loopGain);
+      setLoopActive('b','active-b');
+    } else if(epidural) {
+      // Epidural interrupts feedback
+      oxy = Math.max(baseOxy, oxy - 0.3);
+      con = Math.max(0, con - 2);
+      dil = Math.min(10, dil + 0.001); // slow residual
+      setLoopActive('b');
+    } else {
+      oxy = baseOxy;
+      con = Math.max(0, con - 0.5);
+      setLoopActive('b');
+    }
+
+    bState.oxytocin = Math.max(0, Math.min(100, oxy));
+    bState.contraction = Math.max(0, Math.min(100, con));
+    bState.dilation = Math.max(0, Math.min(10, dil));
+    bState.receptors = epidural ? 0 : Math.min(100, oxy * 0.9);
+    bState.escalation = Math.min(100, (oxy/100)*40 + (dil/10)*60);
+
+    // Birth event
+    if(dil >= 9.8 && !birthFinished) {
+      birthFinished = true;
+      clearInterval(activeSimInterval);
+      activeSimInterval = null;
+      showAlert('👶','¡Nacimiento!','La dilatación completa (10 cm) ha sido alcanzada. El bucle de retroalimentación positiva cumplió su función biológica: amplificar la señal hasta el evento culminante. El bebé nace y el bucle se interrumpe naturalmente.');
+      addLog('b-log','🎉 PARTO COMPLETADO — dilatación 10 cm','safe');
+      setLoopActive('b');
+      return;
+    }
+  }
+
+  // Alerts
+  if(bState.escalation > 30 && !bAlerts.cascade) {
+    bAlerts.cascade = true;
+    addLog('b-log','⊕ Bucle positivo activo — espiral en marcha','birth');
+  }
+  if(bState.escalation > 68 && !bAlerts.noreturn) {
+    bAlerts.noreturn = true;
+    addLog('b-log','⚠ PUNTO DE NO RETORNO: dilatación > 7 cm','warn');
+    showAlert('⚠️','Punto de no retorno','Con más de 7 cm de dilatación, el proceso es irreversible sin cesárea. El bucle positivo ha generado suficiente momentum para completarse.');
+  }
+
+  renderBirth();
+  bChart.push(bState.oxytocin, bState.contraction, bState.dilation * 10);
+}
+
+function renderBirth() {
+  const oxy = bState.oxytocin;
+  const dil = bState.dilation;
+  const con = bState.contraction;
+  const esc = bState.escalation;
+
+  document.getElementById('b-big-value').textContent = Math.round(oxy);
+  const bigEl = document.getElementById('b-big-value');
+  bigEl.className = 'big-value ' + (oxy > 75 ? 'danger-color' : oxy > 50 ? 'warn-color' : 'birth-color');
+
+  document.getElementById('b-contraction-bar').style.width = con + '%';
+  document.getElementById('b-contraction-val').textContent = Math.round(con) + '%';
+  document.getElementById('b-dilation-bar').style.width = (dil/10)*100 + '%';
+  document.getElementById('b-dilation-val').textContent = dil.toFixed(1) + ' cm';
+  document.getElementById('b-receptors-bar').style.width = bState.receptors + '%';
+  document.getElementById('b-receptors-val').textContent = Math.round(bState.receptors) + '%';
+
+  // Escalation
+  const escFill = document.getElementById('b-esc-fill');
+  escFill.style.width = esc + '%';
+  escFill.className = 'esc-fill ' + (esc > 68 ? 'esc-fill-crit' : 'esc-fill-b');
+
+  let phase = 'LATENTE';
+  if(esc>68) phase='SIN RETORNO'; else if(esc>40) phase='ACTIVO'; else if(esc>15) phase='INICIANDO';
+  document.getElementById('b-phase-label').textContent = 'FASE: ' + phase;
+
+  // Status
+  let dotClass='dot-birth', statusText='LATENTE';
+  if(esc>68){dotClass='dot-warn';statusText='IRREVERSIBLE';}
+  else if(esc>30){dotClass='dot-birth';statusText='ESCALANDO';}
+  else if(bState.active){statusText='ACTIVO';}
+  document.getElementById('b-dot').className='status-dot '+dotClass;
+  document.getElementById('b-status-text').textContent=statusText;
+
+  // Cervix SVG
+  const rx = 3 + dil * 5;
+  const ry = 4 + dil * 2.5;
+  const cervEl = document.getElementById('cervix-open');
+  cervEl.setAttribute('rx', Math.min(rx, 40));
+  cervEl.setAttribute('ry', Math.min(ry, 15));
+  // Baby moves down
+  const headY = 40 - dil * 2.5;
+  document.getElementById('baby-head').setAttribute('cy', headY);
+  document.querySelector('#baby-head + text').setAttribute('y', headY + 5);
+  // Wave animation with contraction
+  const waveW = con * 0.015;
+  document.getElementById('wave1').setAttribute('stroke-width', waveW.toFixed(1));
+  document.getElementById('wave2').setAttribute('stroke-width', (waveW*0.6).toFixed(1));
+
+  document.getElementById('b-dil-display').textContent = dil.toFixed(1) + ' cm';
+
+  // Explain
+  const epidural = document.getElementById('b-epidural').classList.contains('on-b');
+  let explain='';
+  if(epidural) explain='La epidural <strong>interrumpe el bucle</strong>: bloquea los receptores de estiramiento cervical, impidiendo que la señal llegue al hipotálamo. La oxitocina deja de amplificarse.';
+  else if(esc > 68) explain=`Más de 7 cm de dilatación: el proceso es <strong>irreversible</strong>. El bucle positivo generó suficiente momentum. Cada contracción es más intensa que la anterior.`;
+  else if(bState.active) explain=`Bucle activo: la oxitocina (${Math.round(oxy)}%) causa contracciones que aumentan la presión cervical, que estimula más oxitocina. <strong>Cada ciclo amplifica el siguiente.</strong>`;
+  else explain='El trabajo de parto no ha comenzado. Pulsa <strong>"Iniciar trabajo de parto"</strong> o sube la oxitocina basal y la presión cervical para que el bucle se autoactive.';
+  document.getElementById('b-explain').innerHTML = explain;
+}
+
+function startBirth() {
+  bState.active = true;
+  bState.oxytocin = Math.max(bState.oxytocin, 35);
+  addLog('b-log','▶ Trabajo de parto iniciado','birth');
+}
+function injectOxytocin() {
+  bState.injected = 30;
+  bState.active = true;
+  addLog('b-log','💉 Oxitocina sintética administrada (+30%)','warn');
+}
+function emergencyCSection() {
+  birthFinished = true;
+  clearInterval(activeSimInterval);
+  activeSimInterval = null;
+  setLoopActive('b');
+  showAlert('🔪','Cesárea de emergencia','El bucle de retroalimentación positiva fue interrumpido quirúrgicamente. El bebé es extraído directamente, sin necesidad de completar el proceso natural de dilatación.');
+  addLog('b-log','🔪 Cesárea: bucle interrumpido quirúrgicamente','danger');
+}
+
+// ══════════════════════════════════════
+//  ETHYLENE SIMULATOR
+// ══════════════════════════════════════
+let eState={}, eChart=null, eAlerts={};
+let fruits=[];
+let eFinished=false;
+
+function initEthyl() {
+  const count = parseInt(document.getElementById('e-count').value);
+  fruits = Array.from({length: count}, () => ({ ripeness: Math.random()*15, ethylene: 0 }));
+
+  eState = {
+    ethylene: 0.1,
+    rate: 0.1,
+    ripeMature: 0,
+    enzyme: 30,
+    blocker: 0,
+    escalation: 2,
+    tick: 0
+  };
+  eAlerts = { cascade:false, noreturn:false, overflow:false };
+  eFinished = false;
+
+  eChart = makeChart('chart-e', 'var(--ethyl-a)', 'var(--amber)', 'var(--birth-b)', 0, 100);
+  document.getElementById('e-log').innerHTML='';
+  addLog('e-log','Simulación iniciada — frutos en estado verde','info');
+  addLog('e-log',`${count} frutos en el espacio cerrado`,'ethyl');
+
+  renderFruitGrid();
+  setLoopActive('e');
+  clearInterval(activeSimInterval);
+  activeSimInterval = setInterval(ethylStep, 200);
+}
+
+function ethylStep() {
+  const speed = parseFloat(document.getElementById('e-speed').value);
+  const temp = parseInt(document.getElementById('e-temp').value);
+  const humid = parseInt(document.getElementById('e-humid').value);
+  const vent = document.getElementById('e-vent').classList.contains('on-g');
+  const count = parseInt(document.getElementById('e-count').value);
+
+  // Adjust fruits array size
+  while(fruits.length < count) fruits.push({ripeness: Math.random()*10, ethylene: 0});
+  while(fruits.length > count) fruits.pop();
+
+  for(let s=0; s<speed; s++) {
+    eState.tick++;
+
+    const tempFactor = Math.max(0.1, (temp - 5) / 35);
+    const humidFactor = 0.5 + (humid/100)*0.5;
+    const ventFactor = vent ? 0.15 : 1.0;
+    const blockerFactor = Math.max(0, 1 - eState.blocker * 0.15);
+    eState.blocker = Math.max(0, eState.blocker - 0.005);
+
+    // Fruit ripening
+    const ripeMature = fruits.filter(f => f.ripeness > 70).length;
+    const ripeVirando = fruits.filter(f => f.ripeness > 40).length;
+    eState.ripeMature = ripeMature;
+
+    // Each ripe fruit emits ethylene
+    const ethyleneFromFruits = (ripeMature * 2.0 + ripeVirando * 0.5) * tempFactor * 0.05;
+    const ethyleneProduction = (0.1 + ethyleneFromFruits + eState.ethylene * 0.02 * blockerFactor) * tempFactor * humidFactor;
+    const ethyleneDissipation = eState.ethylene * 0.01 + (vent ? eState.ethylene * 0.08 : 0);
+
+    eState.ethylene = Math.max(0, Math.min(100, eState.ethylene + ethyleneProduction - ethyleneDissipation));
+    eState.rate = ethyleneProduction;
+    eState.enzyme = Math.min(100, 20 + tempFactor * 30 + (eState.ethylene / 100) * 50);
+
+    // Each fruit ripens based on ethylene exposure
+    fruits.forEach(f => {
+      const exposure = (eState.ethylene / 100) * tempFactor * blockerFactor * humidFactor;
+      f.ripeness = Math.min(100, f.ripeness + exposure * 0.8 + tempFactor * 0.05);
+      f.ethylene = f.ripeness > 40 ? f.ripeness / 100 : 0;
+    });
+
+    // POSITIVE FEEDBACK — ethylene from fruits makes more ethylene
+    if(ripeMature > 0 || eState.ethylene > 10) {
+      setLoopActive('e', 'active-g');
+    } else {
+      setLoopActive('e');
+    }
+
+    eState.escalation = Math.min(100,
+      (eState.ethylene / 100) * 40 +
+      (ripeMature / Math.max(1, count)) * 60
+    );
+
+    // Check all overripe
+    if(fruits.every(f => f.ripeness > 95) && !eFinished) {
+      eFinished = true;
+      clearInterval(activeSimInterval); activeSimInterval = null;
+      showAlert('🍂','Sobremaduración completa','Todos los frutos han supermadurado. El bucle de etileno se agotó al no quedar frutos verdes que madurar. El sistema alcanzó su punto de culminación.');
+      addLog('e-log','🍂 SOBREMADURACIÓN: todos los frutos pasados','danger');
+    }
+  }
+
+  // Alerts
+  if(eState.escalation > 20 && !eAlerts.cascade) {
+    eAlerts.cascade = true;
+    addLog('e-log','⊕ Cascada de etileno iniciada — efecto dominó','ethyl');
+  }
+  if(eState.escalation > 58 && !eAlerts.noreturn) {
+    eAlerts.noreturn = true;
+    addLog('e-log','⚠ PUNTO DE NO RETORNO: mayoría de frutos virando','warn');
+    showAlert('🌡️','Cascada irreversible','Más del 60% de los frutos están madurando activamente. La concentración de etileno es demasiado alta para ser neutralizada por ventilación normal. Solo la refrigeración puede frenar el proceso.');
+  }
+
+  renderEthyl();
+  renderFruitGrid();
+  eChart.push(
+    eState.ethylene,
+    (eState.ripeMature / Math.max(1, fruits.length)) * 100,
+    eState.enzyme
+  );
+}
+
+function renderEthyl() {
+  const eth = eState.ethylene;
+  const esc = eState.escalation;
+
+  document.getElementById('e-big-value').textContent = eth.toFixed(1);
+  const bigEl = document.getElementById('e-big-value');
+  bigEl.className = 'big-value ' + (eth > 60 ? 'danger-color' : eth > 30 ? 'warn-color' : 'ethyl-color');
+
+  document.getElementById('e-rate-bar').style.width = Math.min(100, eState.rate * 200) + '%';
+  document.getElementById('e-rate-val').textContent = eState.rate.toFixed(2) + ' ppm/min';
+  document.getElementById('e-ripe-bar').style.width = (eState.ripeMature / Math.max(1, fruits.length)) * 100 + '%';
+  document.getElementById('e-ripe-val').textContent = eState.ripeMature + '/' + fruits.length;
+  document.getElementById('e-enzyme-bar').style.width = eState.enzyme + '%';
+  document.getElementById('e-enzyme-val').textContent = Math.round(eState.enzyme) + '%';
+
+  const escFill = document.getElementById('e-esc-fill');
+  escFill.style.width = esc + '%';
+  escFill.className = 'esc-fill ' + (esc > 58 ? 'esc-fill-crit' : 'esc-fill-g');
+
+  let phase = 'INICIO';
+  if(esc > 58) phase='SIN RETORNO'; else if(esc > 30) phase='CASCADA'; else if(esc > 10) phase='ACTIVANDO';
+  document.getElementById('e-phase-label').textContent = 'FASE: ' + phase;
+
+  let dotClass='dot-ethyl', statusText='ESTABLE';
+  if(esc>58){dotClass='dot-warn';statusText='IRREVERSIBLE';}
+  else if(esc>20){dotClass='dot-ethyl';statusText='CASCADA';}
+  document.getElementById('e-dot').className='status-dot '+dotClass;
+  document.getElementById('e-status-text').textContent=statusText;
+
+  // Explain
+  const vent = document.getElementById('e-vent').classList.contains('on-g');
+  const temp = parseInt(document.getElementById('e-temp').value);
+  let explain='';
+  if(eFinished) explain='Sobremaduración completada. El bucle se agotó. <strong>Sin frutos verdes que activar, el etileno deja de amplificarse.</strong>';
+  else if(esc>58) explain=`Cascada irreversible: ${eState.ripeMature} frutos maduros generan etileno que acelera a los demás. La concentración (${eth.toFixed(1)} ppm) supera la capacidad de disipación.`;
+  else if(vent) explain=`Ventilación activa: el etileno se dispersa, <strong>interrumpiendo el bucle</strong>. La concentración sube más lentamente. Este es el mecanismo que usan las bodegas comerciales.`;
+  else if(temp < 10) explain=`Temperatura baja (${temp}°C): las enzimas de maduración están inhibidas. El bucle se <strong>ralentiza drásticamente</strong> aunque no se interrumpe.`;
+  else if(eth > 5) explain=`Bucle positivo activo: el etileno (${eth.toFixed(1)} ppm) activa enzimas en los frutos vecinos, que maduran y emiten más etileno. <strong>La señal se amplifica sola.</strong>`;
+  else explain=`Estado basal. Sube la temperatura, añade un fruto maduro, o cierra la ventilación para desencadenar la <strong>cascada de etileno</strong>.`;
+  document.getElementById('e-explain').innerHTML = explain;
+}
+
+function renderFruitGrid() {
+  const grid = document.getElementById('fruit-grid');
+  grid.innerHTML = '';
+  fruits.forEach(f => {
+    const div = document.createElement('div');
+    div.className = 'fruit-item';
+    let cls, emoji;
+    if(f.ripeness < 30) { cls='unripe'; emoji='🟢'; }
+    else if(f.ripeness < 60) { cls='turning'; emoji='🟡'; }
+    else if(f.ripeness < 90) { cls='ripe'; emoji='🟠'; }
+    else { cls='overripe'; emoji='🟤'; }
+    div.classList.add(cls);
+    div.textContent = emoji;
+    div.title = `Madurez: ${Math.round(f.ripeness)}%`;
+    grid.appendChild(div);
+  });
+}
+
+function addRipeFruit() {
+  fruits.push({ ripeness: 85, ethylene: 0.8 });
+  const slider = document.getElementById('e-count');
+  slider.value = Math.min(10, fruits.length);
+  updateSlider(slider, 'e-count-val', '');
+  addLog('e-log','🍊 Fruto maduro añadido — fuente de etileno activa','ethyl');
+  eAlerts.cascade = false;
+  eFinished = false;
+  if(!activeSimInterval) activeSimInterval = setInterval(ethylStep, 200);
+}
+
+function refrigerate() {
+  const slider = document.getElementById('e-temp');
+  slider.value = 4;
+  updateSlider(slider, 'e-temp-val', '°C');
+  addLog('e-log','🧊 Refrigeración a 4°C: enzimas inhibidas','safe');
+}
+
+function applyEthyleneBlocker() {
+  eState.blocker = 8;
+  addLog('e-log','🧪 Bloqueante de etileno aplicado — receptores inhibidos','safe');
+  addLog('e-log','Mecanismo: compite con el etileno en receptores celulares','info');
+}
+
+function resetSim(type) {
+  clearInterval(activeSimInterval); activeSimInterval = null;
+  if(type==='birth') initBirth();
+  else initEthyl();
+}
+
+// init sliders
+window.addEventListener('load', () => {
+  document.querySelectorAll('input[type=range]').forEach(el => {
+    const pct = (el.value - el.min) / (el.max - el.min) * 100;
+    el.style.setProperty('--pct', pct+'%');
+  });
+});
+</script>
+</body>
+</html>
