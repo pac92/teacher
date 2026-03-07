@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador de Retroalimentación Negativa</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #070b14;
+    --panel: #0d1525;
+    --panel2: #111b30;
+    --border: #1e2d4a;
+    --glucose-color: #00e5a0;
+    --glucose-dim: #00996b;
+    --temp-color: #ff7b2f;
+    --temp-dim: #a04a10;
+    --danger: #ff3b5c;
+    --safe: #00e5a0;
+    --warn: #ffc847;
+    --text: #c8d8f0;
+    --text-dim: #4a6080;
+    --mono: 'Share Tech Mono', monospace;
+    --sans: 'Outfit', sans-serif;
+    --glow-g: 0 0 20px #00e5a055, 0 0 60px #00e5a020;
+    --glow-t: 0 0 20px #ff7b2f55, 0 0 60px #ff7b2f20;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── BACKGROUND GRID ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,160,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,160,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── HOME SCREEN ── */
+  #home {
+    position: relative; z-index: 1;
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 40px 20px;
+    gap: 50px;
+  }
+
+  .home-header { text-align: center; }
+  .home-header .tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .home-header h1 {
+    font-size: clamp(2rem, 5vw, 3.8rem);
+    font-weight: 900;
+    line-height: 1.05;
+    background: linear-gradient(135deg, #ffffff 0%, #c8d8f0 50%, #6090c0 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .home-header h1 span {
+    background: linear-gradient(90deg, var(--glucose-color), var(--temp-color));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .home-header p {
+    margin-top: 14px;
+    color: var(--text-dim);
+    font-size: 1rem;
+    max-width: 480px;
+    margin-left: auto; margin-right: auto;
+    line-height: 1.6;
+  }
+
+  .sim-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    max-width: 720px;
+    width: 100%;
+  }
+
+  .sim-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+    position: relative; overflow: hidden;
+  }
+  .sim-card::before {
+    content: '';
+    position: absolute; inset: 0;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .sim-card.glucose::before { background: radial-gradient(ellipse at top left, #00e5a015, transparent 60%); }
+  .sim-card.temp::before    { background: radial-gradient(ellipse at top left, #ff7b2f15, transparent 60%); }
+
+  .sim-card:hover { transform: translateY(-4px); }
+  .sim-card.glucose:hover { border-color: var(--glucose-dim); box-shadow: var(--glow-g); }
+  .sim-card.temp:hover    { border-color: var(--temp-dim);    box-shadow: var(--glow-t); }
+  .sim-card:hover::before { opacity: 1; }
+
+  .card-icon {
+    font-size: 2.4rem; margin-bottom: 14px;
+    display: block;
+    filter: drop-shadow(0 0 12px currentColor);
+  }
+  .sim-card.glucose .card-icon { color: var(--glucose-color); }
+  .sim-card.temp .card-icon    { color: var(--temp-color); }
+
+  .card-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-family: var(--mono); font-size: 9px; letter-spacing: 2px;
+    padding: 3px 8px; border-radius: 20px; margin-bottom: 10px;
+    text-transform: uppercase;
+  }
+  .sim-card.glucose .card-badge { background: #00e5a015; color: var(--glucose-color); border: 1px solid #00e5a030; }
+  .sim-card.temp .card-badge    { background: #ff7b2f15; color: var(--temp-color); border: 1px solid #ff7b2f30; }
+
+  .card-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 8px; }
+  .card-desc  { font-size: 0.82rem; color: var(--text-dim); line-height: 1.55; }
+  .card-arrow {
+    position: absolute; right: 22px; bottom: 22px;
+    font-size: 1.2rem; opacity: 0.3; transition: all 0.3s;
+  }
+  .sim-card:hover .card-arrow { opacity: 1; transform: translate(3px, -3px); }
+
+  /* ── SIMULATORS ── */
+  .simulator {
+    display: none;
+    position: relative; z-index: 1;
+    min-height: 100vh;
+    flex-direction: column;
+    padding: 20px;
+    gap: 16px;
+  }
+  .simulator.active { display: flex; }
+
+  /* TOP BAR */
+  .top-bar {
+    display: flex; align-items: center; gap: 16px;
+    padding: 12px 20px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+  .back-btn {
+    background: none; border: 1px solid var(--border);
+    color: var(--text-dim); font-family: var(--mono);
+    font-size: 11px; letter-spacing: 2px;
+    padding: 6px 12px; border-radius: 6px; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .back-btn:hover { color: var(--text); border-color: var(--text-dim); }
+  .sim-title { font-size: 1.1rem; font-weight: 700; flex: 1; }
+  .sim-badge {
+    font-family: var(--mono); font-size: 9px; letter-spacing: 2px;
+    padding: 4px 10px; border-radius: 20px; text-transform: uppercase;
+  }
+  .glucose-badge { background: #00e5a020; color: var(--glucose-color); border: 1px solid #00e5a040; }
+  .temp-badge    { background: #ff7b2f20; color: var(--temp-color); border: 1px solid #ff7b2f40; }
+
+  .status-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  .status-dot.running { background: var(--safe); box-shadow: 0 0 8px var(--safe); }
+  .status-dot.danger  { background: var(--danger); box-shadow: 0 0 8px var(--danger); animation-duration: 0.5s; }
+  .status-dot.warn    { background: var(--warn); box-shadow: 0 0 8px var(--warn); }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* MAIN LAYOUT */
+  .sim-body {
+    display: grid;
+    grid-template-columns: 260px 1fr 240px;
+    gap: 16px;
+    flex: 1;
+  }
+  @media (max-width: 1100px) {
+    .sim-body { grid-template-columns: 1fr; }
+  }
+
+  /* PANELS */
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    display: flex; flex-direction: column; gap: 18px;
+  }
+  .panel-title {
+    font-family: var(--mono); font-size: 10px;
+    letter-spacing: 3px; color: var(--text-dim);
+    text-transform: uppercase;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* SLIDERS */
+  .control-group { display: flex; flex-direction: column; gap: 8px; }
+  .control-label {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 0.8rem;
+  }
+  .control-label span:first-child { color: var(--text); font-weight: 600; }
+  .control-value {
+    font-family: var(--mono); font-size: 0.8rem;
+    padding: 2px 8px; border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--panel2);
+  }
+
+  input[type=range] {
+    -webkit-appearance: none; width: 100%; height: 4px;
+    border-radius: 2px; outline: none; cursor: pointer;
+  }
+  .glucose-sim input[type=range] {
+    background: linear-gradient(to right, var(--glucose-color) 0%, var(--glucose-color) var(--pct,50%), #1e2d4a var(--pct,50%), #1e2d4a 100%);
+  }
+  .temp-sim input[type=range] {
+    background: linear-gradient(to right, var(--temp-color) 0%, var(--temp-color) var(--pct,50%), #1e2d4a var(--pct,50%), #1e2d4a 100%);
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 14px; height: 14px;
+    border-radius: 50%; border: 2px solid var(--bg); cursor: pointer;
+  }
+  .glucose-sim input[type=range]::-webkit-slider-thumb { background: var(--glucose-color); box-shadow: 0 0 8px var(--glucose-color); }
+  .temp-sim    input[type=range]::-webkit-slider-thumb { background: var(--temp-color);    box-shadow: 0 0 8px var(--temp-color); }
+
+  /* TOGGLE */
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; }
+  .toggle-label { font-size: 0.8rem; font-weight: 600; }
+  .toggle {
+    position: relative; width: 42px; height: 22px;
+    background: var(--panel2); border: 1px solid var(--border);
+    border-radius: 11px; cursor: pointer; transition: all 0.3s;
+  }
+  .toggle.on { border-color: var(--danger); background: #ff3b5c20; }
+  .toggle::after {
+    content: ''; position: absolute;
+    top: 3px; left: 3px;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--text-dim); transition: all 0.3s;
+  }
+  .toggle.on::after { left: 23px; background: var(--danger); box-shadow: 0 0 6px var(--danger); }
+
+  /* ACTION BUTTONS */
+  .action-btn {
+    width: 100%; padding: 10px;
+    border-radius: 8px; border: none; cursor: pointer;
+    font-family: var(--sans); font-size: 0.82rem; font-weight: 600;
+    letter-spacing: 0.5px; transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .btn-primary-g { background: #00e5a020; color: var(--glucose-color); border: 1px solid #00e5a040; }
+  .btn-primary-g:hover { background: #00e5a035; box-shadow: var(--glow-g); }
+  .btn-primary-t { background: #ff7b2f20; color: var(--temp-color); border: 1px solid #ff7b2f40; }
+  .btn-primary-t:hover { background: #ff7b2f35; box-shadow: var(--glow-t); }
+  .btn-danger { background: #ff3b5c20; color: var(--danger); border: 1px solid #ff3b5c40; }
+  .btn-danger:hover { background: #ff3b5c30; }
+  .btn-neutral { background: var(--panel2); color: var(--text); border: 1px solid var(--border); }
+  .btn-neutral:hover { border-color: var(--text-dim); }
+
+  /* ── CENTER PANEL ── */
+  .center-panel { display: flex; flex-direction: column; gap: 16px; }
+
+  /* MAIN VALUE DISPLAY */
+  .main-display {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 24px;
+    display: flex; align-items: center; gap: 24px;
+  }
+
+  .big-value-wrap { display: flex; flex-direction: column; gap: 2px; }
+  .big-label { font-family: var(--mono); font-size: 9px; letter-spacing: 3px; color: var(--text-dim); text-transform: uppercase; }
+  .big-value {
+    font-family: var(--mono); font-size: 3.5rem; font-weight: 400;
+    line-height: 1; transition: color 0.3s;
+  }
+  .big-value.safe   { color: var(--glucose-color); text-shadow: var(--glow-g); }
+  .big-value.temp-safe { color: var(--temp-color); text-shadow: var(--glow-t); }
+  .big-value.danger { color: var(--danger); text-shadow: 0 0 20px #ff3b5c55; }
+  .big-value.warn   { color: var(--warn); text-shadow: 0 0 20px #ffc84755; }
+  .big-unit { font-family: var(--mono); font-size: 0.9rem; color: var(--text-dim); margin-top: 4px; }
+
+  .status-bar-area { flex: 1; }
+  .status-bars { display: flex; flex-direction: column; gap: 10px; }
+  .mini-stat { display: flex; flex-direction: column; gap: 4px; }
+  .mini-stat-label { display: flex; justify-content: space-between; font-size: 0.75rem; }
+  .mini-stat-label span:first-child { color: var(--text-dim); }
+  .mini-stat-label span:last-child { font-family: var(--mono); font-size: 0.72rem; }
+  .bar-track { height: 5px; background: var(--panel2); border-radius: 3px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
+  .bar-g { background: linear-gradient(90deg, var(--glucose-dim), var(--glucose-color)); }
+  .bar-t { background: linear-gradient(90deg, var(--temp-dim), var(--temp-color)); }
+  .bar-d { background: linear-gradient(90deg, #ff3b5c80, var(--danger)); }
+
+  /* CHART */
+  .chart-wrap {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 20px;
+    flex: 1;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .chart-header { display: flex; align-items: center; justify-content: space-between; }
+  .chart-title { font-family: var(--mono); font-size: 10px; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; }
+  .chart-legend { display: flex; gap: 14px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 0.72rem; color: var(--text-dim); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  canvas#chart-g, canvas#chart-t {
+    width: 100%; height: 160px;
+    display: block;
+  }
+
+  /* ZONE INDICATOR (Glucemia) */
+  .zone-bar {
+    height: 22px; border-radius: 6px; position: relative;
+    background: linear-gradient(90deg, #ff3b5c 0%, #ff3b5c 20%, #ffc847 20%, #ffc847 25%, #00e5a0 25%, #00e5a0 75%, #ffc847 75%, #ffc847 80%, #ff3b5c 80%, #ff3b5c 100%);
+    overflow: hidden;
+  }
+  .zone-marker {
+    position: absolute; top: 0; bottom: 0;
+    width: 3px; background: white;
+    border-radius: 2px;
+    box-shadow: 0 0 6px white;
+    transition: left 0.4s ease;
+  }
+  .zone-labels { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 9px; color: var(--text-dim); padding: 4px 0; }
+
+  /* RIGHT PANEL */
+  .right-panel { display: flex; flex-direction: column; gap: 16px; }
+
+  /* LOOP DIAGRAM */
+  .loop-diagram {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+    display: flex; flex-direction: column; gap: 8px;
+    align-items: center;
+  }
+  .loop-title { font-family: var(--mono); font-size: 10px; letter-spacing: 3px; color: var(--text-dim); text-transform: uppercase; align-self: stretch; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+
+  .loop-node {
+    padding: 8px 14px; border-radius: 8px;
+    font-size: 0.75rem; font-weight: 600; text-align: center;
+    border: 1px solid var(--border);
+    background: var(--panel2);
+    color: var(--text-dim);
+    transition: all 0.4s; width: 160px;
+    position: relative;
+  }
+  .loop-node.active-g { border-color: var(--glucose-color); color: var(--glucose-color); background: #00e5a015; box-shadow: 0 0 12px #00e5a030; }
+  .loop-node.active-t { border-color: var(--temp-color); color: var(--temp-color); background: #ff7b2f15; box-shadow: 0 0 12px #ff7b2f30; }
+  .loop-arrow { font-size: 1rem; color: var(--text-dim); transition: color 0.4s; line-height: 1; }
+  .loop-arrow.active-g { color: var(--glucose-color); }
+  .loop-arrow.active-t { color: var(--temp-color); }
+  .loop-neg { font-family: var(--mono); font-size: 10px; padding: 4px 10px; border-radius: 20px; margin-top: 4px; }
+  .loop-neg.g { background: #00e5a015; color: var(--glucose-color); border: 1px solid #00e5a030; }
+  .loop-neg.t { background: #ff7b2f15; color: var(--temp-color); border: 1px solid #ff7b2f30; }
+
+  /* LOG */
+  .event-log {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px; flex: 1;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .log-list { display: flex; flex-direction: column; gap: 5px; max-height: 180px; overflow-y: auto; }
+  .log-list::-webkit-scrollbar { width: 3px; }
+  .log-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  .log-entry {
+    display: flex; gap: 8px; align-items: flex-start;
+    font-size: 0.73rem; color: var(--text-dim);
+    animation: fadeIn 0.3s ease;
+  }
+  .log-time { font-family: var(--mono); font-size: 0.68rem; opacity: 0.5; flex-shrink: 0; margin-top: 1px; }
+  .log-dot { width: 6px; height: 6px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+  .log-dot.info   { background: var(--text-dim); }
+  .log-dot.warn   { background: var(--warn); }
+  .log-dot.danger { background: var(--danger); }
+  .log-dot.safe   { background: var(--safe); }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:none} }
+
+  /* EXPLAIN BOX */
+  .explain-box {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    font-size: 0.82rem; line-height: 1.6;
+    color: var(--text-dim);
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .explain-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+  .explain-text strong { color: var(--text); }
+
+  /* ALERT OVERLAY */
+  .alert-overlay {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(0,0,0,0.7);
+    display: none; align-items: center; justify-content: center;
+    backdrop-filter: blur(6px);
+  }
+  .alert-overlay.show { display: flex; }
+  .alert-box {
+    background: var(--panel);
+    border: 2px solid var(--danger);
+    border-radius: 18px;
+    padding: 32px 36px; max-width: 420px; width: 90%;
+    text-align: center;
+    box-shadow: 0 0 40px #ff3b5c30;
+    animation: alertIn 0.4s cubic-bezier(.25,.8,.25,1.4);
+  }
+  @keyframes alertIn { from{transform:scale(0.8);opacity:0} to{transform:scale(1);opacity:1} }
+  .alert-icon { font-size: 3rem; margin-bottom: 12px; }
+  .alert-title { font-size: 1.3rem; font-weight: 700; color: var(--danger); margin-bottom: 8px; }
+  .alert-msg { color: var(--text-dim); font-size: 0.88rem; line-height: 1.6; margin-bottom: 20px; }
+  .alert-btn {
+    background: #ff3b5c20; color: var(--danger);
+    border: 1px solid #ff3b5c40; border-radius: 8px;
+    padding: 10px 24px; cursor: pointer; font-family: var(--sans);
+    font-size: 0.9rem; font-weight: 600; transition: all 0.2s;
+  }
+  .alert-btn:hover { background: #ff3b5c30; }
+
+  /* DIABETES MODE SELECTOR */
+  .mode-selector { display: flex; gap: 6px; }
+  .mode-btn {
+    flex: 1; padding: 7px 4px;
+    border-radius: 6px; border: 1px solid var(--border);
+    background: var(--panel2); color: var(--text-dim);
+    font-size: 0.72rem; font-weight: 600; cursor: pointer;
+    transition: all 0.2s; text-align: center;
+  }
+  .mode-btn.active-mode { border-color: var(--glucose-color); color: var(--glucose-color); background: #00e5a015; }
+
+  /* BODY SILHOUETTE (temp) */
+  .body-viz {
+    background: var(--panel2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px;
+    display: flex; flex-direction: column; gap: 8px; align-items: center;
+  }
+  .body-svg { width: 70px; height: auto; }
+  .response-pills { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; }
+  .pill {
+    font-size: 0.68rem; padding: 3px 8px; border-radius: 20px;
+    border: 1px solid var(--border); color: var(--text-dim);
+    transition: all 0.3s;
+  }
+  .pill.on-t { border-color: var(--temp-color); color: var(--temp-color); background: #ff7b2f15; }
+  .pill.on-d { border-color: var(--danger); color: var(--danger); background: #ff3b5c15; }
+
+  /* SPEEDOMETER */
+  .speed-display {
+    display: flex; align-items: center; gap: 8px;
+    font-family: var(--mono); font-size: 0.75rem; color: var(--text-dim);
+  }
+  .speed-pip { width: 6px; height: 6px; border-radius: 50%; background: var(--panel2); transition: all 0.2s; }
+  .speed-pip.on-g { background: var(--glucose-color); box-shadow: 0 0 5px var(--glucose-color); }
+  .speed-pip.on-t { background: var(--temp-color); box-shadow: 0 0 5px var(--temp-color); }
+
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ HOME ═══════════════ -->
+<div id="home">
+  <div class="home-header">
+    <div class="tag">Biología · Homeostasis · Regulación</div>
+    <h1>Retroalimentación<br><span>Negativa</span></h1>
+    <p>Explora cómo los sistemas biológicos detectan desviaciones y activan respuestas correctoras para mantener el equilibrio.</p>
+  </div>
+
+  <div class="sim-cards">
+    <div class="sim-card glucose" onclick="openSim('glucose')">
+      <span class="card-icon">🩸</span>
+      <div class="card-badge">⊖ Retroalimentación negativa</div>
+      <div class="card-title">Control de Glucemia</div>
+      <div class="card-desc">Observa cómo el páncreas regula la glucosa en sangre mediante insulina y glucagón. Simula diabetes, ejercicio y alimentación.</div>
+      <div class="card-arrow">↗</div>
+    </div>
+
+    <div class="sim-card temp" onclick="openSim('temp')">
+      <span class="card-icon">🌡️</span>
+      <div class="card-badge">⊖ Retroalimentación negativa</div>
+      <div class="card-title">Temperatura Corporal</div>
+      <div class="card-desc">Manipula la temperatura ambiental, el ejercicio y la hidratación. Activa fiebre y observa cómo el hipotálamo reajusta el set-point.</div>
+      <div class="card-arrow">↗</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ SIMULATOR GLUCOSE ═══════════════ -->
+<div id="sim-glucose" class="simulator glucose-sim">
+
+  <div class="top-bar">
+    <button class="back-btn" onclick="closeSim()">← INICIO</button>
+    <div class="sim-title">🩸 Control de Glucemia</div>
+    <div class="sim-badge glucose-badge">⊖ RETRO. NEGATIVA</div>
+    <div class="status-dot running" id="g-dot"></div>
+    <span id="g-status-text" style="font-family:var(--mono);font-size:10px;color:var(--text-dim)">ESTABLE</span>
+  </div>
+
+  <div class="sim-body">
+
+    <!-- LEFT CONTROLS -->
+    <div class="panel">
+      <div class="panel-title">⚙ Controles</div>
+
+      <div>
+        <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:8px;font-weight:600">MODO PACIENTE</div>
+        <div class="mode-selector">
+          <div class="mode-btn active-mode" id="mode-sano" onclick="setGlucoseMode('sano')">Sano</div>
+          <div class="mode-btn" id="mode-t1" onclick="setGlucoseMode('t1')">Tipo 1</div>
+          <div class="mode-btn" id="mode-t2" onclick="setGlucoseMode('t2')">Tipo 2</div>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">
+          <span>Función pancreática</span>
+          <span class="control-value" id="g-pancreas-val">100%</span>
+        </div>
+        <input type="range" id="g-pancreas" min="0" max="100" value="100" oninput="updateSlider(this,'g-pancreas-val','%')">
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">
+          <span>Ejercicio físico</span>
+          <span class="control-value" id="g-exercise-val">0%</span>
+        </div>
+        <input type="range" id="g-exercise" min="0" max="100" value="0" oninput="updateSlider(this,'g-exercise-val','%')">
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">
+          <span>Velocidad simulación</span>
+          <span class="control-value" id="g-speed-val">1×</span>
+        </div>
+        <input type="range" id="g-speed" min="1" max="5" value="1" step="0.5" oninput="updateSliderDirect(this,'g-speed-val','×')">
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div class="toggle-row">
+          <span class="toggle-label">Estrés (cortisol)</span>
+          <div class="toggle" id="g-stress-toggle" onclick="toggleSwitch('g-stress-toggle')"></div>
+        </div>
+        <div class="toggle-row">
+          <span class="toggle-label">Vista comparativa</span>
+          <div class="toggle" id="g-compare-toggle" onclick="toggleSwitch('g-compare-toggle')"></div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button class="action-btn btn-primary-g" onclick="eatMeal('low')">🥗 Comida ligera (+20 mg/dL)</button>
+        <button class="action-btn btn-primary-g" onclick="eatMeal('medium')">🍝 Comida normal (+50 mg/dL)</button>
+        <button class="action-btn btn-primary-g" onclick="eatMeal('high')">🍰 Comida copiosa (+90 mg/dL)</button>
+        <button class="action-btn btn-danger" onclick="injectInsulin()">💉 Inyectar insulina</button>
+        <button class="action-btn btn-neutral" onclick="resetSim('glucose')">↺ Reiniciar</button>
+      </div>
+
+    </div>
+
+    <!-- CENTER -->
+    <div class="center-panel">
+      <div class="main-display">
+        <div class="big-value-wrap">
+          <div class="big-label">Glucemia actual</div>
+          <div class="big-value safe" id="g-big-value">90</div>
+          <div class="big-unit">mg/dL</div>
+        </div>
+        <div class="status-bar-area">
+          <div class="status-bars">
+            <div class="mini-stat">
+              <div class="mini-stat-label"><span>Insulina</span><span id="g-insulin-val">0 μU/mL</span></div>
+              <div class="bar-track"><div class="bar-fill bar-g" id="g-insulin-bar" style="width:0%"></div></div>
+            </div>
+            <div class="mini-stat">
+              <div class="mini-stat-label"><span>Glucagón</span><span id="g-glucagon-val">0 pg/mL</span></div>
+              <div class="bar-track"><div class="bar-fill bar-d" id="g-glucagon-bar" style="width:0%"></div></div>
+            </div>
+            <div class="mini-stat">
+              <div class="mini-stat-label"><span>Glucosa celular</span><span id="g-uptake-val">80%</span></div>
+              <div class="bar-track"><div class="bar-fill bar-g" id="g-uptake-bar" style="width:80%"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ZONE BAR -->
+      <div class="panel" style="gap:8px;padding:16px 20px">
+        <div class="panel-title">Rango de referencia (mg/dL)</div>
+        <div class="zone-bar">
+          <div class="zone-marker" id="g-zone-marker" style="left:25%"></div>
+        </div>
+        <div class="zone-labels">
+          <span>40</span><span>70</span><span>Normal (70–110)</span><span>180</span><span>300+</span>
+        </div>
+        <div id="g-zone-label" style="text-align:center;font-size:0.8rem;color:var(--safe);font-family:var(--mono)">✓ NORMOGLUCEMIA</div>
+      </div>
+
+      <!-- CHART -->
+      <div class="chart-wrap">
+        <div class="chart-header">
+          <div class="chart-title">📈 Gráfica en tiempo real</div>
+          <div class="chart-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:var(--glucose-color)"></div>Glucemia</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--danger)"></div>Insulina</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--warn)"></div>Glucagón</div>
+          </div>
+        </div>
+        <canvas id="chart-g"></canvas>
+      </div>
+
+      <!-- EXPLAIN -->
+      <div class="explain-box">
+        <div class="explain-icon">💡</div>
+        <div class="explain-text" id="g-explain">
+          El sistema está en <strong>normoglucemia</strong>. El páncreas mantiene una secreción basal de insulina. Usa los botones de comida para ver cómo se activa el bucle corrector.
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right-panel">
+      <div class="loop-diagram">
+        <div class="loop-title">Diagrama del bucle</div>
+        <div class="loop-node" id="gn1">🩸 Glucosa elevada</div>
+        <div class="loop-arrow" id="ga1">↓</div>
+        <div class="loop-node" id="gn2">🫀 Páncreas detecta</div>
+        <div class="loop-arrow" id="ga2">↓</div>
+        <div class="loop-node" id="gn3">💉 Secreta insulina</div>
+        <div class="loop-arrow" id="ga3">↓</div>
+        <div class="loop-node" id="gn4">📥 Células captan glucosa</div>
+        <div class="loop-arrow" id="ga4">↓</div>
+        <div class="loop-node" id="gn5">✅ Glucemia baja</div>
+        <div class="loop-neg g">⊖ corrección</div>
+      </div>
+
+      <div class="event-log">
+        <div class="panel-title">📋 Registro de eventos</div>
+        <div class="log-list" id="g-log"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════ SIMULATOR TEMP ═══════════════ -->
+<div id="sim-temp" class="simulator temp-sim">
+
+  <div class="top-bar">
+    <button class="back-btn" onclick="closeSim()">← INICIO</button>
+    <div class="sim-title">🌡️ Temperatura Corporal</div>
+    <div class="sim-badge temp-badge">⊖ RETRO. NEGATIVA</div>
+    <div class="status-dot running" id="t-dot" style="--c:var(--temp-color)"></div>
+    <span id="t-status-text" style="font-family:var(--mono);font-size:10px;color:var(--text-dim)">ESTABLE</span>
+  </div>
+
+  <div class="sim-body">
+
+    <!-- LEFT CONTROLS -->
+    <div class="panel">
+      <div class="panel-title">⚙ Controles</div>
+
+      <div class="control-group">
+        <div class="control-label">
+          <span>Temperatura ambiental</span>
+          <span class="control-value" id="t-ambient-val">22°C</span>
+        </div>
+        <input type="range" id="t-ambient" min="-10" max="50" value="22" oninput="updateSlider(this,'t-ambient-val','°C')">
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">
+          <span>Intensidad de ejercicio</span>
+          <span class="control-value" id="t-exercise-val">0%</span>
+        </div>
+        <input type="range" id="t-exercise" min="0" max="100" value="0" oninput="updateSlider(this,'t-exercise-val','%')">
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">
+          <span>Hidratación</span>
+          <span class="control-value" id="t-hydration-val">100%</span>
+        </div>
+        <input type="range" id="t-hydration" min="0" max="100" value="100" oninput="updateSlider(this,'t-hydration-val','%')">
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">
+          <span>Aislamiento (ropa)</span>
+          <span class="control-value" id="t-insul-val">Normal</span>
+        </div>
+        <input type="range" id="t-insul" min="0" max="2" value="1" step="1" oninput="updateInsulLabel(this)">
+      </div>
+
+      <div class="control-group">
+        <div class="control-label">
+          <span>Velocidad simulación</span>
+          <span class="control-value" id="t-speed-val">1×</span>
+        </div>
+        <input type="range" id="t-speed" min="1" max="5" value="1" step="0.5" oninput="updateSliderDirect(this,'t-speed-val','×')">
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div class="toggle-row">
+          <span class="toggle-label">Fiebre (infección)</span>
+          <div class="toggle" id="t-fever-toggle" onclick="toggleFever()"></div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button class="action-btn btn-primary-t" onclick="takeParacetamol()">💊 Tomar paracetamol</button>
+        <button class="action-btn btn-primary-t" onclick="drinkWater()">💧 Beber agua (+30%)</button>
+        <button class="action-btn btn-neutral" onclick="resetSim('temp')">↺ Reiniciar</button>
+      </div>
+
+    </div>
+
+    <!-- CENTER -->
+    <div class="center-panel">
+      <div class="main-display">
+        <div class="big-value-wrap">
+          <div class="big-label">Temperatura corporal</div>
+          <div class="big-value temp-safe" id="t-big-value">37.0</div>
+          <div class="big-unit">°C</div>
+        </div>
+        <div class="status-bar-area">
+          <div class="status-bars">
+            <div class="mini-stat">
+              <div class="mini-stat-label"><span>Sudoración</span><span id="t-sweat-val">0%</span></div>
+              <div class="bar-track"><div class="bar-fill bar-t" id="t-sweat-bar" style="width:0%"></div></div>
+            </div>
+            <div class="mini-stat">
+              <div class="mini-stat-label"><span>Vasoconstricción</span><span id="t-vaso-val">0%</span></div>
+              <div class="bar-track"><div class="bar-fill bar-d" id="t-vaso-bar" style="width:0%"></div></div>
+            </div>
+            <div class="mini-stat">
+              <div class="mini-stat-label"><span>Tasa metabólica</span><span id="t-met-val">100%</span></div>
+              <div class="bar-track"><div class="bar-fill bar-t" id="t-met-bar" style="width:50%"></div></div>
+            </div>
+          </div>
+          <!-- BODY VIZ -->
+          <div class="body-viz" style="margin-top:12px">
+            <svg class="body-svg" viewBox="0 0 60 110" fill="none">
+              <ellipse cx="30" cy="12" rx="10" ry="12" id="t-head" fill="#1e2d4a" stroke="#2a3f60" stroke-width="1.5"/>
+              <rect x="18" y="26" width="24" height="38" rx="6" id="t-torso" fill="#1e2d4a" stroke="#2a3f60" stroke-width="1.5"/>
+              <rect x="6"  y="28" width="11" height="32" rx="5" id="t-arm-l" fill="#1e2d4a" stroke="#2a3f60" stroke-width="1.5"/>
+              <rect x="43" y="28" width="11" height="32" rx="5" id="t-arm-r" fill="#1e2d4a" stroke="#2a3f60" stroke-width="1.5"/>
+              <rect x="19" y="66" width="10" height="38" rx="5" id="t-leg-l" fill="#1e2d4a" stroke="#2a3f60" stroke-width="1.5"/>
+              <rect x="31" y="66" width="10" height="38" rx="5" id="t-leg-r" fill="#1e2d4a" stroke="#2a3f60" stroke-width="1.5"/>
+            </svg>
+            <div class="response-pills">
+              <div class="pill" id="pill-sweat">💧 Sudor</div>
+              <div class="pill" id="pill-shiver">🥶 Escalofríos</div>
+              <div class="pill" id="pill-vaso">🔴 Vasodilat.</div>
+              <div class="pill" id="pill-vaso2">🔵 Vasoconstr.</div>
+              <div class="pill" id="pill-meta">⚡ Metabolismo</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SET POINT DISPLAY -->
+      <div class="panel" style="gap:8px;padding:16px 20px">
+        <div class="panel-title">Set-point hipotalámico</div>
+        <div style="display:flex;align-items:center;gap:16px">
+          <div style="font-family:var(--mono);font-size:2rem;color:var(--temp-color)" id="t-setpoint-display">37.0°C</div>
+          <div style="flex:1">
+            <div id="t-setpoint-label" style="font-size:0.8rem;color:var(--text-dim);margin-bottom:6px">Temperatura de referencia normal</div>
+            <div class="bar-track" style="height:8px;border-radius:4px;position:relative">
+              <div class="bar-fill bar-t" id="t-deviation-bar" style="width:50%"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--text-dim);margin-top:4px">
+              <span>Hipotermia &lt;35</span><span>Normal 37</span><span>Hipertermia &gt;40</span>
+            </div>
+          </div>
+        </div>
+        <div id="t-zone-label" style="text-align:center;font-size:0.8rem;color:var(--temp-color);font-family:var(--mono)">✓ NORMOTERMIA</div>
+      </div>
+
+      <!-- CHART -->
+      <div class="chart-wrap">
+        <div class="chart-header">
+          <div class="chart-title">📈 Gráfica en tiempo real</div>
+          <div class="chart-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:var(--temp-color)"></div>Temperatura</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#a0c4ff"></div>Set-point</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--glucose-color)"></div>Ambiental</div>
+          </div>
+        </div>
+        <canvas id="chart-t"></canvas>
+      </div>
+
+      <!-- EXPLAIN -->
+      <div class="explain-box">
+        <div class="explain-icon">💡</div>
+        <div class="explain-text" id="t-explain">
+          El hipotálamo mantiene el <strong>set-point en 37°C</strong>. Cualquier desviación activa mecanismos correctores. Cambia la temperatura ambiental o activa la fiebre para ver la retroalimentación en acción.
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right-panel">
+      <div class="loop-diagram">
+        <div class="loop-title">Diagrama del bucle</div>
+        <div class="loop-node" id="tn1">🌡️ Desviación Tª</div>
+        <div class="loop-arrow" id="ta1">↓</div>
+        <div class="loop-node" id="tn2">🧠 Hipotálamo detecta</div>
+        <div class="loop-arrow" id="ta2">↓</div>
+        <div class="loop-node" id="tn3">⚙️ Respuesta efectora</div>
+        <div class="loop-arrow" id="ta3">↓</div>
+        <div class="loop-node" id="tn4">🔄 Tª se ajusta</div>
+        <div class="loop-arrow" id="ta4">↓</div>
+        <div class="loop-node" id="tn5">✅ Set-point alcanzado</div>
+        <div class="loop-neg t">⊖ corrección</div>
+      </div>
+
+      <div class="event-log">
+        <div class="panel-title">📋 Registro de eventos</div>
+        <div class="log-list" id="t-log"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ALERT -->
+<div class="alert-overlay" id="alert-overlay">
+  <div class="alert-box">
+    <div class="alert-icon" id="alert-icon">⚠️</div>
+    <div class="alert-title" id="alert-title">ALERTA</div>
+    <div class="alert-msg" id="alert-msg"></div>
+    <button class="alert-btn" onclick="closeAlert()">Entendido</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════
+//  SHARED UTILITIES
+// ═══════════════════════════════
+let activeSimInterval = null;
+let gState = {}, tState = {};
+
+function openSim(type) {
+  document.getElementById('home').style.display = 'none';
+  const el = document.getElementById('sim-' + type);
+  el.classList.add('active');
+  if (type === 'glucose') initGlucose();
+  else initTemp();
+}
+
+function closeSim() {
+  document.querySelectorAll('.simulator').forEach(s => s.classList.remove('active'));
+  document.getElementById('home').style.display = 'flex';
+  clearInterval(activeSimInterval);
+  activeSimInterval = null;
+}
+
+function updateSlider(el, labelId, suffix) {
+  const pct = (el.value - el.min) / (el.max - el.min) * 100;
+  el.style.setProperty('--pct', pct + '%');
+  document.getElementById(labelId).textContent = el.value + suffix;
+}
+
+function updateSliderDirect(el, labelId, suffix) {
+  const pct = (el.value - el.min) / (el.max - el.min) * 100;
+  el.style.setProperty('--pct', pct + '%');
+  document.getElementById(labelId).textContent = el.value + suffix;
+}
+
+function updateInsulLabel(el) {
+  const pct = (el.value - el.min) / (el.max - el.min) * 100;
+  el.style.setProperty('--pct', pct + '%');
+  const labels = ['Sin ropa', 'Normal', 'Polar'];
+  document.getElementById('t-insul-val').textContent = labels[el.value];
+}
+
+function toggleSwitch(id) {
+  document.getElementById(id).classList.toggle('on');
+}
+
+function addLog(listId, msg, type = 'info') {
+  const list = document.getElementById(listId);
+  const time = new Date().toLocaleTimeString('es', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+  const el = document.createElement('div');
+  el.className = 'log-entry';
+  el.innerHTML = `<span class="log-time">${time}</span><div class="log-dot ${type}"></div><span>${msg}</span>`;
+  list.prepend(el);
+  while (list.children.length > 20) list.removeChild(list.lastChild);
+}
+
+function showAlert(icon, title, msg) {
+  document.getElementById('alert-icon').textContent = icon;
+  document.getElementById('alert-title').textContent = title;
+  document.getElementById('alert-msg').textContent = msg;
+  document.getElementById('alert-overlay').classList.add('show');
+}
+
+function closeAlert() {
+  document.getElementById('alert-overlay').classList.remove('show');
+}
+
+function setLoopActive(prefix, nodeClass) {
+  const ids = ['n1','n2','n3','n4','n5','a1','a2','a3','a4'];
+  ids.forEach(id => {
+    const el = document.getElementById(prefix + id);
+    if (el) { el.classList.remove('active-g','active-t'); }
+  });
+  if (nodeClass) {
+    ids.forEach(id => {
+      const el = document.getElementById(prefix + id);
+      if (el) el.classList.add(nodeClass);
+    });
+  }
+}
+
+// ═══════════════════════════════
+//  CHART HELPERS
+// ═══════════════════════════════
+function makeChart(canvasId, color1, color2, color3, refLine, label1, label2, label3, minY, maxY) {
+  const canvas = document.getElementById(canvasId);
+  const ctx = canvas.getContext('2d');
+  const W = 400, H = 160;
+  canvas.width = W; canvas.height = H;
+
+  const data1 = [], data2 = [], data3 = [];
+  const maxPts = 120;
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    // Grid
+    ctx.strokeStyle = '#1e2d4a55';
+    ctx.lineWidth = 0.5;
+    for (let i = 0; i <= 4; i++) {
+      const y = (i / 4) * H;
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+    }
+    // Reference line
+    if (refLine !== null) {
+      const ry = H - ((refLine - minY) / (maxY - minY)) * H;
+      ctx.strokeStyle = '#ffffff20';
+      ctx.setLineDash([4, 4]);
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(0, ry); ctx.lineTo(W, ry); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    function drawLine(data, color, dashArr) {
+      if (data.length < 2) return;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.5;
+      if (dashArr) ctx.setLineDash(dashArr); else ctx.setLineDash([]);
+      ctx.beginPath();
+      data.forEach((v, i) => {
+        const x = (i / (maxPts - 1)) * W;
+        const y = H - ((v - minY) / (maxY - minY)) * H;
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    drawLine(data3, color3, [3, 3]);
+    drawLine(data2, color2);
+    drawLine(data1, color1);
+  }
+
+  function push(v1, v2, v3) {
+    data1.push(v1); data2.push(v2); data3.push(v3);
+    if (data1.length > maxPts) { data1.shift(); data2.shift(); data3.shift(); }
+    draw();
+  }
+
+  return { push, draw };
+}
+
+// ═══════════════════════════════
+//  GLUCOSE SIMULATOR
+// ═══════════════════════════════
+let gChart = null;
+let gAlertShown = { hypo: false, hyper: false };
+
+function initGlucose() {
+  gState = {
+    glucose: 90,
+    insulin: 5,
+    glucagon: 10,
+    uptake: 80,
+    pancreas: 100,
+    mode: 'sano',
+    lastMeal: 0,
+    mealBoost: 0,
+    insulinInjected: 0,
+    stress: false,
+    tick: 0
+  };
+  gAlertShown = { hypo: false, hyper: false };
+  gChart = makeChart('chart-g', 'var(--glucose-color)', '#ff3b5c', '#ffc847', 90, 'Glucemia', 'Insulina', 'Glucagón', 40, 300);
+
+  document.getElementById('g-log').innerHTML = '';
+  addLog('g-log', 'Simulación iniciada. Glucemia basal: 90 mg/dL', 'info');
+  addLog('g-log', 'Páncreas al 100% — respuesta normal', 'safe');
+
+  setLoopActive('g');
+  clearInterval(activeSimInterval);
+
+  const pancSlider = document.getElementById('g-pancreas');
+  pancSlider.value = 100; updateSlider(pancSlider, 'g-pancreas-val', '%');
+  const exSlider = document.getElementById('g-exercise');
+  exSlider.value = 0; updateSlider(exSlider, 'g-exercise-val', '%');
+
+  activeSimInterval = setInterval(glucoseStep, 200);
+}
+
+function glucoseStep() {
+  const speed = parseFloat(document.getElementById('g-speed').value);
+  gState.pancreas = parseInt(document.getElementById('g-pancreas').value);
+  const exercise = parseInt(document.getElementById('g-exercise').value);
+  const stress = document.getElementById('g-stress-toggle').classList.contains('on');
+
+  for (let s = 0; s < speed; s++) {
+    gState.tick++;
+    const targetGlucose = 90;
+    let g = gState.glucose;
+
+    // Meal boost decays
+    if (gState.mealBoost > 0) {
+      g += gState.mealBoost * 0.04;
+      gState.mealBoost *= 0.92;
+      if (gState.mealBoost < 0.5) gState.mealBoost = 0;
+    }
+
+    // Stress raises glucose
+    if (stress) g += 0.15;
+
+    // Exercise consumes glucose
+    g -= exercise * 0.006;
+
+    // Insulin injection decays
+    if (gState.insulinInjected > 0) {
+      g -= gState.insulinInjected * 0.08;
+      gState.insulinInjected *= 0.85;
+      if (gState.insulinInjected < 0.1) gState.insulinInjected = 0;
+    }
+
+    // Pancreatic correction (insulin when high, glucagon when low)
+    const efficiency = gState.pancreas / 100;
+    if (g > targetGlucose + 5) {
+      const correction = (g - targetGlucose) * 0.018 * efficiency;
+      g -= correction;
+      gState.insulin = Math.min(100, (g - targetGlucose) * 1.2 * efficiency + 5);
+      gState.glucagon = 5;
+      if (correction > 0.5) setLoopActive('g', 'active-g');
+    } else if (g < targetGlucose - 5) {
+      const correction = (targetGlucose - g) * 0.012 * efficiency;
+      g += correction;
+      gState.glucagon = Math.min(100, (targetGlucose - g) * 1.5 * efficiency + 10);
+      gState.insulin = 5;
+    } else {
+      gState.insulin = 5;
+      gState.glucagon = 10;
+      setLoopActive('g');
+    }
+
+    // Natural drift toward target
+    g += (targetGlucose - g) * 0.005 * efficiency;
+    gState.glucose = Math.max(30, Math.min(320, g));
+    gState.uptake = Math.max(0, Math.min(100, 50 + (gState.insulin / 100) * 50));
+  }
+
+  renderGlucose();
+  gChart.push(
+    gState.glucose,
+    gState.insulin * 2 + 40,
+    gState.glucagon * 0.8 + 40
+  );
+}
+
+function renderGlucose() {
+  const g = gState.glucose;
+  const el = document.getElementById('g-big-value');
+  el.textContent = Math.round(g);
+
+  // Color and zone
+  let cls = 'safe', zoneLabel = '✓ NORMOGLUCEMIA', zoneColor = 'var(--safe)', dotClass = 'running', statusText = 'ESTABLE';
+  if (g < 55) { cls = 'danger'; zoneLabel = '🚨 HIPOGLUCEMIA SEVERA'; zoneColor = 'var(--danger)'; dotClass = 'danger'; statusText = 'CRÍTICO'; }
+  else if (g < 70) { cls = 'warn'; zoneLabel = '⚠ HIPOGLUCEMIA'; zoneColor = 'var(--warn)'; dotClass = 'warn'; statusText = 'ALERTA'; }
+  else if (g > 250) { cls = 'danger'; zoneLabel = '🚨 HIPERGLUCEMIA SEVERA'; zoneColor = 'var(--danger)'; dotClass = 'danger'; statusText = 'CRÍTICO'; }
+  else if (g > 180) { cls = 'warn'; zoneLabel = '⚠ HIPERGLUCEMIA'; zoneColor = 'var(--warn)'; dotClass = 'warn'; statusText = 'ALERTA'; }
+
+  el.className = 'big-value ' + cls;
+  const zl = document.getElementById('g-zone-label');
+  zl.textContent = zoneLabel;
+  zl.style.color = zoneColor;
+  document.getElementById('g-dot').className = 'status-dot ' + dotClass;
+  document.getElementById('g-status-text').textContent = statusText;
+
+  // Zone marker (40–300 range)
+  const pct = Math.max(0, Math.min(100, (g - 40) / 260 * 100));
+  document.getElementById('g-zone-marker').style.left = pct + '%';
+
+  // Bars
+  document.getElementById('g-insulin-bar').style.width = Math.min(100, gState.insulin) + '%';
+  document.getElementById('g-insulin-val').textContent = Math.round(gState.insulin) + ' μU/mL';
+  document.getElementById('g-glucagon-bar').style.width = Math.min(100, gState.glucagon) + '%';
+  document.getElementById('g-glucagon-val').textContent = Math.round(gState.glucagon) + ' pg/mL';
+  document.getElementById('g-uptake-bar').style.width = gState.uptake + '%';
+  document.getElementById('g-uptake-val').textContent = Math.round(gState.uptake) + '%';
+
+  // Explain
+  let explain = '';
+  if (g > 180) explain = `Glucemia elevada (${Math.round(g)} mg/dL). El páncreas secreta <strong>insulina</strong> para que las células capten glucosa. El bucle corrector está <strong>activo</strong>.`;
+  else if (g < 70) explain = `Glucemia baja (${Math.round(g)} mg/dL). Las células alfa secretan <strong>glucagón</strong>, que estimula al hígado a liberar glucosa. Bucle corrector activo.`;
+  else explain = `Glucemia en rango normal (${Math.round(g)} mg/dL). El sistema está en <strong>homeostasis</strong>. Cualquier desviación activará el mecanismo corrector.`;
+  if (gState.pancreas < 30) explain += ` <strong style="color:var(--danger)">⚠ Páncreas con función reducida: la corrección es lenta o insuficiente.</strong>`;
+  document.getElementById('g-explain').innerHTML = explain;
+
+  // Alerts (once)
+  if (g < 55 && !gAlertShown.hypo) {
+    gAlertShown.hypo = true;
+    showAlert('🚨', 'HIPOGLUCEMIA SEVERA', `Glucemia en ${Math.round(g)} mg/dL. El cerebro puede sufrir daño. El cuerpo libera adrenalina y glucagón de emergencia, pero el sistema no puede compensar solo.`);
+    addLog('g-log', '🚨 HIPOGLUCEMIA SEVERA: ' + Math.round(g) + ' mg/dL', 'danger');
+  }
+  if (g > 260 && !gAlertShown.hyper) {
+    gAlertShown.hyper = true;
+    showAlert('⚠️', 'HIPERGLUCEMIA SEVERA', `Glucemia en ${Math.round(g)} mg/dL. Riesgo de daño vascular y cetoacidosis. El páncreas intenta compensar pero no es suficiente.`);
+    addLog('g-log', '⚠️ HIPERGLUCEMIA SEVERA: ' + Math.round(g) + ' mg/dL', 'danger');
+  }
+}
+
+function eatMeal(size) {
+  const boosts = { low: 20, medium: 50, high: 90 };
+  gState.mealBoost += boosts[size];
+  gAlertShown = { hypo: false, hyper: false };
+  const labels = { low: 'Comida ligera (+20)', medium: 'Comida normal (+50)', high: 'Comida copiosa (+90)' };
+  addLog('g-log', '🍽 ' + labels[size] + ' mg/dL', 'warn');
+}
+
+function injectInsulin() {
+  gState.insulinInjected += 15;
+  addLog('g-log', '💉 Insulina inyectada — corrección acelerada', 'safe');
+}
+
+function setGlucoseMode(mode) {
+  gState.mode = mode;
+  const modes = {
+    sano: { pancreas: 100 },
+    t1: { pancreas: 5 },
+    t2: { pancreas: 35 }
+  };
+  const pancSlider = document.getElementById('g-pancreas');
+  pancSlider.value = modes[mode].pancreas;
+  updateSlider(pancSlider, 'g-pancreas-val', '%');
+  ['sano','t1','t2'].forEach(m => document.getElementById('mode-'+m).classList.remove('active-mode'));
+  document.getElementById('mode-'+mode).classList.add('active-mode');
+  const labels = { sano: 'Modo normal activado', t1: '⚠ Diabetes Tipo 1: páncreas sin función', t2: '⚠ Diabetes Tipo 2: función reducida' };
+  addLog('g-log', labels[mode], mode === 'sano' ? 'safe' : 'warn');
+}
+
+// ═══════════════════════════════
+//  TEMPERATURE SIMULATOR
+// ═══════════════════════════════
+let tChart = null;
+let tAlertShown = { hypo: false, hyper: false };
+let feverActive = false;
+
+function initTemp() {
+  tState = {
+    temp: 37.0,
+    setpoint: 37.0,
+    sweat: 0,
+    vaso: 0,
+    meta: 100,
+    fever: false,
+    paracetamol: 0,
+    tick: 0
+  };
+  tAlertShown = { hypo: false, hyper: false };
+  feverActive = false;
+  document.getElementById('t-fever-toggle').classList.remove('on');
+
+  tChart = makeChart('chart-t', 'var(--temp-color)', '#a0c4ff', 'var(--glucose-color)', 37, 'Temperatura', 'Set-point', 'Ambiental', 33, 43);
+
+  document.getElementById('t-log').innerHTML = '';
+  addLog('t-log', 'Simulación iniciada. Temperatura basal: 37°C', 'info');
+  addLog('t-log', 'Set-point hipotalámico: 37°C — normotermia', 'safe');
+
+  const ambient = document.getElementById('t-ambient');
+  ambient.value = 22; updateSlider(ambient, 't-ambient-val', '°C');
+  const exercise = document.getElementById('t-exercise');
+  exercise.value = 0; updateSlider(exercise, 't-exercise-val', '%');
+
+  setLoopActive('t');
+  clearInterval(activeSimInterval);
+  activeSimInterval = setInterval(tempStep, 200);
+}
+
+function tempStep() {
+  const speed = parseFloat(document.getElementById('t-speed').value);
+  const ambient = parseInt(document.getElementById('t-ambient').value);
+  const exercise = parseInt(document.getElementById('t-exercise').value);
+  const hydration = parseInt(document.getElementById('t-hydration').value);
+  const insul = parseInt(document.getElementById('t-insul').value);
+
+  for (let s = 0; s < speed; s++) {
+    tState.tick++;
+    let t = tState.temp;
+    const sp = tState.setpoint;
+
+    // Paracetamol lowers setpoint
+    if (tState.paracetamol > 0) {
+      tState.setpoint = Math.max(37.0, tState.setpoint - 0.01 * tState.paracetamol);
+      tState.paracetamol *= 0.95;
+      if (tState.paracetamol < 0.05) tState.paracetamol = 0;
+    }
+
+    // Environmental influence
+    const insulFactor = [0.6, 0.3, 0.1][insul];
+    t += (ambient - t) * 0.003 * insulFactor;
+
+    // Exercise generates heat
+    t += exercise * 0.003;
+
+    // Hypothalamic correction
+    const deviation = t - sp;
+    if (deviation > 0.3) {
+      // Too hot: sweat + vasodilation
+      const sweatingEff = hydration / 100;
+      const correction = deviation * 0.04 * sweatingEff;
+      t -= correction;
+      tState.sweat = Math.min(100, deviation * 30 * sweatingEff);
+      tState.vaso = 0;
+      tState.meta = Math.max(60, 100 - deviation * 15);
+      setLoopActive('t', 'active-t');
+    } else if (deviation < -0.3) {
+      // Too cold: vasoconstriction + shivering
+      const correction = Math.abs(deviation) * 0.035;
+      t += correction;
+      tState.vaso = Math.min(100, Math.abs(deviation) * 40);
+      tState.sweat = 0;
+      tState.meta = Math.min(160, 100 + Math.abs(deviation) * 25);
+      setLoopActive('t', 'active-t');
+    } else {
+      tState.sweat = Math.max(0, tState.sweat - 2);
+      tState.vaso = Math.max(0, tState.vaso - 2);
+      tState.meta = 100;
+      setLoopActive('t');
+    }
+
+    // Drift toward setpoint
+    t += (sp - t) * 0.01;
+    tState.temp = Math.max(30, Math.min(44, t));
+  }
+
+  renderTemp();
+  tChart.push(
+    tState.temp,
+    tState.setpoint,
+    20 + (parseInt(document.getElementById('t-ambient').value) + 10) / 60 * 10
+  );
+}
+
+function renderTemp() {
+  const t = tState.temp;
+  const el = document.getElementById('t-big-value');
+  el.textContent = t.toFixed(1);
+
+  let cls = 'temp-safe', zoneLabel = '✓ NORMOTERMIA', zoneColor = 'var(--temp-color)', dotClass = 'running', statusText = 'ESTABLE';
+  if (t < 35) { cls = 'danger'; zoneLabel = '🚨 HIPOTERMIA SEVERA'; zoneColor = 'var(--danger)'; dotClass = 'danger'; statusText = 'CRÍTICO'; }
+  else if (t < 36) { cls = 'warn'; zoneLabel = '⚠ HIPOTERMIA'; zoneColor = 'var(--warn)'; dotClass = 'warn'; statusText = 'ALERTA'; }
+  else if (t > 40) { cls = 'danger'; zoneLabel = '🚨 HIPERTERMIA SEVERA'; zoneColor = 'var(--danger)'; dotClass = 'danger'; statusText = 'CRÍTICO'; }
+  else if (t >= 38) { cls = 'warn'; zoneLabel = feverActive ? '🤒 FIEBRE ACTIVA' : '⚠ HIPERTERMIA'; zoneColor = 'var(--warn)'; dotClass = 'warn'; statusText = feverActive ? 'FIEBRE' : 'ALERTA'; }
+
+  el.className = 'big-value ' + cls;
+  document.getElementById('t-zone-label').textContent = zoneLabel;
+  document.getElementById('t-zone-label').style.color = zoneColor;
+  document.getElementById('t-dot').className = 'status-dot ' + dotClass;
+  document.getElementById('t-status-text').textContent = statusText;
+
+  // Setpoint
+  document.getElementById('t-setpoint-display').textContent = tState.setpoint.toFixed(1) + '°C';
+  const spLabel = feverActive ? '🤒 Set-point elevado por pirógenos (infección)' : 'Temperatura de referencia hipotalámica';
+  document.getElementById('t-setpoint-label').textContent = spLabel;
+  document.getElementById('t-setpoint-display').style.color = feverActive ? 'var(--warn)' : 'var(--temp-color)';
+
+  // Deviation bar
+  const devPct = Math.max(0, Math.min(100, ((t - 33) / 10) * 100));
+  document.getElementById('t-deviation-bar').style.width = devPct + '%';
+
+  // Mini bars
+  document.getElementById('t-sweat-bar').style.width = tState.sweat + '%';
+  document.getElementById('t-sweat-val').textContent = Math.round(tState.sweat) + '%';
+  document.getElementById('t-vaso-bar').style.width = tState.vaso + '%';
+  document.getElementById('t-vaso-val').textContent = Math.round(tState.vaso) + '%';
+  const metPct = Math.min(100, (tState.meta / 160) * 100);
+  document.getElementById('t-met-bar').style.width = metPct + '%';
+  document.getElementById('t-met-val').textContent = Math.round(tState.meta) + '%';
+
+  // Body color
+  const hue = t < 37 ? `hsl(210,60%,${20 + (t-33)*4}%)` : `hsl(${30 - (t-37)*8},70%,${25 + (t-37)*3}%)`;
+  ['t-head','t-torso','t-arm-l','t-arm-r','t-leg-l','t-leg-r'].forEach(id => {
+    const el2 = document.getElementById(id);
+    if (el2) el2.setAttribute('fill', hue);
+  });
+
+  // Pills
+  const setpill = (id, on) => document.getElementById(id).className = 'pill' + (on ? ' on-t' : '');
+  const setpillD = (id, on) => document.getElementById(id).className = 'pill' + (on ? ' on-d' : '');
+  setpill('pill-sweat', tState.sweat > 15);
+  setpillD('pill-shiver', tState.vaso > 20 && t < tState.setpoint);
+  setpill('pill-vaso', tState.sweat > 20);
+  setpillD('pill-vaso2', tState.vaso > 20);
+  setpill('pill-meta', tState.meta > 115);
+
+  // Explain
+  let explain = '';
+  if (t > tState.setpoint + 0.5) explain = `Temperatura por encima del set-point (${t.toFixed(1)}°C). El hipotálamo activa <strong>sudoración y vasodilatación</strong> para disipar calor. Bucle corrector activo.`;
+  else if (t < tState.setpoint - 0.5) explain = `Temperatura por debajo del set-point (${t.toFixed(1)}°C). El hipotálamo activa <strong>vasoconstricción y escalofríos</strong> para generar y conservar calor.`;
+  else explain = `Temperatura en equilibrio con el set-point (${t.toFixed(1)}°C). El hipotálamo mantiene la <strong>homeostasis térmica</strong>. Modifica el ambiente o activa fiebre para ver el bucle.`;
+  if (feverActive) explain += ` <strong style="color:var(--warn)">⚠ Set-point elevado a ${tState.setpoint.toFixed(1)}°C por pirógenos: el sistema <em>defiende</em> esa temperatura como si fuera la normal.</strong>`;
+  document.getElementById('t-explain').innerHTML = explain;
+
+  // Alerts
+  if (t < 34 && !tAlertShown.hypo) {
+    tAlertShown.hypo = true;
+    showAlert('🥶', 'HIPOTERMIA SEVERA', `Temperatura en ${t.toFixed(1)}°C. El metabolismo se enlentece gravemente. El sistema ya no puede generar suficiente calor para compensar.`);
+    addLog('t-log', '🚨 HIPOTERMIA SEVERA: ' + t.toFixed(1) + '°C', 'danger');
+  }
+  if (t > 40.5 && !tAlertShown.hyper) {
+    tAlertShown.hyper = true;
+    showAlert('🔥', 'HIPERTERMIA SEVERA', `Temperatura en ${t.toFixed(1)}°C. Riesgo de daño cerebral y fallo multiorgánico. El sistema de disipación está saturado.`);
+    addLog('t-log', '🚨 HIPERTERMIA SEVERA: ' + t.toFixed(1) + '°C', 'danger');
+  }
+}
+
+function toggleFever() {
+  feverActive = !feverActive;
+  const toggle = document.getElementById('t-fever-toggle');
+  toggle.classList.toggle('on');
+  if (feverActive) {
+    tState.setpoint = 39.2;
+    addLog('t-log', '🤒 Fiebre activada: set-point → 39.2°C', 'warn');
+    addLog('t-log', 'El hipotálamo defiende la nueva temperatura de referencia', 'info');
+    tAlertShown = { hypo: false, hyper: false };
+  } else {
+    tState.setpoint = 37.0;
+    tState.paracetamol = 0;
+    addLog('t-log', '✓ Fiebre desactivada: set-point → 37.0°C', 'safe');
+  }
+}
+
+function takeParacetamol() {
+  if (!feverActive) {
+    addLog('t-log', '💊 Paracetamol: sin efecto (no hay fiebre activa)', 'info');
+    return;
+  }
+  tState.paracetamol = 5;
+  addLog('t-log', '💊 Paracetamol administrado: bajando set-point', 'safe');
+  addLog('t-log', 'Mecanismo: bloquea prostaglandinas en hipotálamo', 'info');
+}
+
+function drinkWater() {
+  const slider = document.getElementById('t-hydration');
+  slider.value = Math.min(100, parseInt(slider.value) + 30);
+  updateSlider(slider, 't-hydration-val', '%');
+  addLog('t-log', '💧 Hidratación aumentada: capacidad de sudoración restaurada', 'safe');
+}
+
+function resetSim(type) {
+  clearInterval(activeSimInterval);
+  activeSimInterval = null;
+  if (type === 'glucose') initGlucose();
+  else initTemp();
+}
+
+// Init sliders on load
+window.addEventListener('load', () => {
+  document.querySelectorAll('input[type=range]').forEach(el => {
+    const pct = (el.value - el.min) / (el.max - el.min) * 100;
+    el.style.setProperty('--pct', pct + '%');
+  });
+});
+</script>
+</body>
+</html>
