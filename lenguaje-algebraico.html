@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lenguaje Algebraico</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1a2e;
+    --cream: #fdf6ec;
+    --gold: #d4860b;
+    --gold-light: #f5c842;
+    --teal: #0f7173;
+    --teal-light: #c8f0ef;
+    --coral: #e05c3a;
+    --coral-light: #fde8e2;
+    --lavender: #7b5ea7;
+    --lavender-light: #ede7f6;
+    --paper: #fffdf7;
+    --line: #e8dfc8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background: var(--ink);
+    color: var(--cream);
+    padding: 80px 40px 60px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 80% at 20% 50%, rgba(212,134,11,.18) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 70% at 80% 40%, rgba(15,113,115,.22) 0%, transparent 70%);
+  }
+  .hero-badge {
+    display: inline-block;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-size: .7rem;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    padding: 5px 18px;
+    border-radius: 20px;
+    margin-bottom: 24px;
+    position: relative;
+  }
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.8rem, 7vw, 5rem);
+    font-weight: 700;
+    line-height: 1.1;
+    position: relative;
+    margin-bottom: 18px;
+  }
+  .hero h1 em {
+    font-style: italic;
+    color: var(--gold-light);
+  }
+  .hero p {
+    font-size: 1.05rem;
+    max-width: 560px;
+    margin: 0 auto;
+    opacity: .75;
+    position: relative;
+  }
+  .floating-symbols {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .sym {
+    position: absolute;
+    font-family: 'Playfair Display', serif;
+    font-size: 5rem;
+    opacity: .04;
+    color: var(--gold-light);
+    animation: drift 12s ease-in-out infinite alternate;
+  }
+  .sym:nth-child(1)  { top: 10%; left:  5%; animation-delay: 0s; }
+  .sym:nth-child(2)  { top: 50%; left: 15%; animation-delay: -3s; }
+  .sym:nth-child(3)  { top: 20%; left: 80%; animation-delay: -6s; }
+  .sym:nth-child(4)  { top: 70%; left: 70%; animation-delay: -9s; }
+  .sym:nth-child(5)  { top: 80%; left: 40%; animation-delay: -4s; }
+  @keyframes drift { from { transform: translateY(0) rotate(-5deg); } to { transform: translateY(-20px) rotate(5deg); } }
+
+  /* ── NAV TABS ── */
+  .nav-wrap {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--paper);
+    border-bottom: 2px solid var(--line);
+    box-shadow: 0 2px 20px rgba(0,0,0,.06);
+  }
+  .nav-tabs {
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 20px;
+    gap: 4px;
+  }
+  .nav-tabs::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: .82rem;
+    font-weight: 500;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: #888;
+    padding: 18px 20px 14px;
+    border-bottom: 3px solid transparent;
+    transition: all .25s;
+  }
+  .tab-btn:hover { color: var(--ink); }
+  .tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+  /* ── MAIN ── */
+  .main { max-width: 900px; margin: 0 auto; padding: 48px 24px 80px; }
+
+  .section { display: none; animation: fadeUp .4s ease; }
+  .section.active { display: block; }
+  @keyframes fadeUp { from { opacity:0; transform: translateY(14px); } to { opacity:1; transform: translateY(0); } }
+
+  /* ── SECTION HEADER ── */
+  .sec-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 36px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--line);
+  }
+  .sec-icon {
+    width: 52px; height: 52px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.6rem;
+    flex-shrink: 0;
+    margin-top: 4px;
+  }
+  .sec-icon.gold    { background: #fef3d4; }
+  .sec-icon.teal    { background: var(--teal-light); }
+  .sec-icon.coral   { background: var(--coral-light); }
+  .sec-icon.lavender{ background: var(--lavender-light); }
+  .sec-icon.green   { background: #dcf5e7; }
+
+  .sec-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    line-height: 1.2;
+  }
+  .sec-header p { color: #666; font-size: .95rem; margin-top: 4px; }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 28px 32px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 4px; height: 100%;
+  }
+  .card.gold::before    { background: var(--gold); }
+  .card.teal::before    { background: var(--teal); }
+  .card.coral::before   { background: var(--coral); }
+  .card.lavender::before{ background: var(--lavender); }
+  .card.green::before   { background: #2ecc71; }
+
+  .card h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    margin-bottom: 12px;
+  }
+
+  /* ── FORMULA BOX ── */
+  .formula {
+    background: var(--ink);
+    color: var(--gold-light);
+    font-family: 'DM Mono', monospace;
+    font-size: 1.05rem;
+    padding: 16px 22px;
+    border-radius: 10px;
+    margin: 14px 0;
+    letter-spacing: .04em;
+    text-align: center;
+  }
+
+  /* ── EXAMPLE BOX ── */
+  .example {
+    background: #f8f4eb;
+    border-left: 3px solid var(--gold);
+    padding: 14px 18px;
+    border-radius: 0 8px 8px 0;
+    margin: 12px 0;
+    font-size: .92rem;
+  }
+  .example strong { color: var(--gold); font-weight: 500; }
+
+  /* ── TABLE ── */
+  .vocab-table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+  .vocab-table th {
+    background: var(--ink);
+    color: var(--cream);
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 500;
+    font-size: .8rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+  .vocab-table td { padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  .vocab-table tr:hover td { background: #fdf6ec; }
+  .tag {
+    display: inline-block;
+    background: var(--gold);
+    color: white;
+    font-size: .72rem;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* ── EXERCISE GRID ── */
+  .ex-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+  }
+
+  .ex-card {
+    background: var(--paper);
+    border: 1.5px solid var(--line);
+    border-radius: 14px;
+    padding: 20px 22px;
+    transition: box-shadow .2s, border-color .2s, transform .2s;
+    cursor: pointer;
+  }
+  .ex-card:hover {
+    box-shadow: 0 6px 24px rgba(0,0,0,.08);
+    transform: translateY(-2px);
+  }
+  .ex-num {
+    font-size: .7rem;
+    font-weight: 500;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: #aaa;
+    margin-bottom: 8px;
+  }
+  .ex-q {
+    font-family: 'DM Mono', monospace;
+    font-size: 1rem;
+    color: var(--ink);
+    margin-bottom: 14px;
+    line-height: 1.5;
+  }
+  .ex-input {
+    width: 100%;
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: .95rem;
+    background: #fafafa;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .ex-input:focus { border-color: var(--gold); background: white; }
+  .ex-input.correct { border-color: #2ecc71; background: #f0fff5; }
+  .ex-input.wrong   { border-color: var(--coral); background: #fff5f2; }
+
+  .check-btn {
+    margin-top: 10px;
+    width: 100%;
+    padding: 8px;
+    border: none;
+    border-radius: 8px;
+    background: var(--ink);
+    color: var(--cream);
+    font-family: 'DM Sans', sans-serif;
+    font-size: .82rem;
+    font-weight: 500;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background .2s;
+  }
+  .check-btn:hover { background: var(--gold); }
+
+  .feedback {
+    margin-top: 8px;
+    font-size: .82rem;
+    font-weight: 500;
+    min-height: 18px;
+  }
+  .feedback.ok  { color: #1a9e52; }
+  .feedback.err { color: var(--coral); }
+
+  /* ── SCORE BAR ── */
+  .score-wrap {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 20px 24px;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .score-title { font-size: .8rem; letter-spacing: .1em; text-transform: uppercase; color: #888; }
+  .score-val { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--gold); }
+  .score-bar-track {
+    flex: 1; min-width: 140px;
+    height: 8px;
+    background: var(--line);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .score-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    border-radius: 4px;
+    transition: width .6s ease;
+  }
+
+  .reset-btn {
+    padding: 9px 18px;
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    background: white;
+    font-family: 'DM Sans', sans-serif;
+    font-size: .8rem;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .reset-btn:hover { border-color: var(--coral); color: var(--coral); }
+
+  /* ── TOOLTIP / CALLOUT ── */
+  .callout {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    background: var(--teal-light);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    font-size: .9rem;
+  }
+  .callout-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 1px; }
+
+  /* ── RESPONSIVE ── */
+  @media(max-width:600px) {
+    .hero { padding: 60px 24px 40px; }
+    .card { padding: 20px; }
+    .sec-header { flex-direction: column; gap: 12px; }
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--line);
+    margin: 28px 0;
+  }
+
+  .pill {
+    display: inline-block;
+    background: var(--lavender-light);
+    color: var(--lavender);
+    font-size: .75rem;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 10px;
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="floating-symbols">
+    <span class="sym">x</span><span class="sym">+</span>
+    <span class="sym">a</span><span class="sym">n</span>
+    <span class="sym">%</span>
+  </div>
+  <div class="hero-badge">Álgebra · Nivel introductorio</div>
+  <h1>Lenguaje <em>Algebraico</em></h1>
+  <p>Del lenguaje cotidiano a los símbolos matemáticos: suma, resta, multiplicación, fracciones y porcentajes.</p>
+</div>
+
+<!-- TABS -->
+<div class="nav-wrap">
+  <div class="nav-tabs">
+    <button class="tab-btn active" onclick="show('teoria',this)">📖 Teoría</button>
+    <button class="tab-btn" onclick="show('suma',this)">➕ Suma</button>
+    <button class="tab-btn" onclick="show('resta',this)">➖ Resta</button>
+    <button class="tab-btn" onclick="show('multi',this)">✖️ Multiplicación</button>
+    <button class="tab-btn" onclick="show('frac',this)">⅔ Fracciones</button>
+    <button class="tab-btn" onclick="show('porc',this)">% Porcentajes</button>
+    <button class="tab-btn" onclick="show('ejercicios',this)">🎯 Ejercicios</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- ════════════ TEORÍA ════════════ -->
+  <div id="teoria" class="section active">
+    <div class="sec-header">
+      <div class="sec-icon gold">📖</div>
+      <div>
+        <h2>¿Qué es el lenguaje algebraico?</h2>
+        <p>Aprendemos a traducir palabras en expresiones matemáticas usando letras y símbolos.</p>
+      </div>
+    </div>
+
+    <div class="card gold">
+      <h3>Variables y constantes</h3>
+      <p>En álgebra usamos <strong>letras</strong> para representar números desconocidos o que pueden cambiar.</p>
+      <div class="formula">x, y, a, n, k, …</div>
+      <div class="example">
+        <strong>Ejemplo:</strong> "Un número cualquiera" → <code>n</code> &nbsp;|&nbsp; "El doble de un número" → <code>2n</code>
+      </div>
+      <p style="margin-top:12px">Una <strong>constante</strong> es un número fijo (como 3, 7, ½). Una <strong>variable</strong> es la letra que puede tomar distintos valores.</p>
+    </div>
+
+    <div class="card teal">
+      <h3>Expresión algebraica vs. Ecuación</h3>
+      <div class="example"><strong>Expresión:</strong> no tiene signo <code>=</code> → &nbsp;<code>3x + 5</code></div>
+      <div class="example"><strong>Ecuación:</strong> sí tiene signo <code>=</code> → &nbsp;<code>3x + 5 = 20</code></div>
+    </div>
+
+    <div class="card coral">
+      <h3>Vocabulario clave</h3>
+      <table class="vocab-table">
+        <thead>
+          <tr><th>Palabra / frase</th><th>Operación</th><th>Símbolo</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>suma, más, aumenta, se añaden</td><td>Suma</td><td><span class="tag">+</span></td></tr>
+          <tr><td>resta, menos, disminuye, diferencia</td><td>Resta</td><td><span class="tag">−</span></td></tr>
+          <tr><td>producto, veces, el doble, el triple</td><td>Multiplicación</td><td><span class="tag">·</span></td></tr>
+          <tr><td>cociente, dividido entre, la mitad</td><td>División / fracción</td><td><span class="tag">÷</span></td></tr>
+          <tr><td>por ciento, de cada cien, tanto por ciento</td><td>Porcentaje</td><td><span class="tag">%</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout">
+      <div class="callout-icon">💡</div>
+      <div><strong>Regla de oro:</strong> lee la frase completa antes de escribir la expresión. El orden de las palabras importa: "5 menos x" es <code>5 − x</code>, pero "x menos 5" es <code>x − 5</code>.</div>
+    </div>
+  </div>
+
+  <!-- ════════════ SUMA ════════════ -->
+  <div id="suma" class="section">
+    <div class="sec-header">
+      <div class="sec-icon gold">➕</div>
+      <div>
+        <h2>Suma en lenguaje algebraico</h2>
+        <p>Palabras que indican adición y cómo escribirlas con símbolos.</p>
+      </div>
+    </div>
+
+    <div class="card gold">
+      <h3>Palabras clave → expresión</h3>
+      <div class="formula">la suma de x e y &nbsp;→&nbsp; x + y</div>
+      <table class="vocab-table">
+        <thead><tr><th>Frase verbal</th><th>Expresión algebraica</th></tr></thead>
+        <tbody>
+          <tr><td>Un número aumentado en 7</td><td><code>n + 7</code></td></tr>
+          <tr><td>La suma de a y b</td><td><code>a + b</code></td></tr>
+          <tr><td>Tres más que x</td><td><code>x + 3</code></td></tr>
+          <tr><td>Se le añaden 10 a un número</td><td><code>n + 10</code></td></tr>
+          <tr><td>El total de p y q</td><td><code>p + q</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card teal">
+      <h3>Propiedades útiles</h3>
+      <div class="example"><strong>Conmutativa:</strong> &nbsp;<code>a + b = b + a</code>&nbsp; — el orden no cambia el resultado.</div>
+      <div class="example"><strong>Asociativa:</strong> &nbsp;<code>(a + b) + c = a + (b + c)</code></div>
+      <div class="example"><strong>Elemento neutro:</strong> &nbsp;<code>a + 0 = a</code></div>
+    </div>
+
+    <div class="callout">
+      <div class="callout-icon">✏️</div>
+      <div><strong>Practica:</strong> "María tiene <em>n</em> caramelos y le regalan 15 más" → <code>n + 15</code></div>
+    </div>
+  </div>
+
+  <!-- ════════════ RESTA ════════════ -->
+  <div id="resta" class="section">
+    <div class="sec-header">
+      <div class="sec-icon coral">➖</div>
+      <div>
+        <h2>Resta en lenguaje algebraico</h2>
+        <p>¡Atención al orden! La resta no es conmutativa.</p>
+      </div>
+    </div>
+
+    <div class="card coral">
+      <h3>Palabras clave → expresión</h3>
+      <div class="formula">la diferencia de x e y &nbsp;→&nbsp; x − y</div>
+      <table class="vocab-table">
+        <thead><tr><th>Frase verbal</th><th>Expresión algebraica</th></tr></thead>
+        <tbody>
+          <tr><td>Un número disminuido en 4</td><td><code>n − 4</code></td></tr>
+          <tr><td>La diferencia entre x y 9</td><td><code>x − 9</code></td></tr>
+          <tr><td>8 menos que k</td><td><code>k − 8</code></td></tr>
+          <tr><td>Se retiran 5 unidades de m</td><td><code>m − 5</code></td></tr>
+          <tr><td>Cuánto le falta a p para llegar a 20</td><td><code>20 − p</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card gold">
+      <h3>⚠️ Cuidado con el orden</h3>
+      <div class="example">
+        <strong>"7 menos que x"</strong> = <code>x − 7</code>&nbsp; (no 7 − x)<br>
+        <strong>"x menos 7"</strong> = <code>x − 7</code> &nbsp;✓&nbsp; igual resultado aquí, pero no siempre.
+      </div>
+      <div class="example">
+        <strong>"El triple de n, disminuido en 2"</strong> → <code>3n − 2</code>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════ MULTIPLICACIÓN ════════════ -->
+  <div id="multi" class="section">
+    <div class="sec-header">
+      <div class="sec-icon lavender">✖️</div>
+      <div>
+        <h2>Multiplicación en lenguaje algebraico</h2>
+        <p>Coeficientes, múltiplos y productos.</p>
+      </div>
+    </div>
+
+    <div class="card lavender">
+      <h3>Palabras clave → expresión</h3>
+      <div class="formula">el producto de 4 y x &nbsp;→&nbsp; 4x</div>
+      <table class="vocab-table">
+        <thead><tr><th>Frase verbal</th><th>Expresión algebraica</th></tr></thead>
+        <tbody>
+          <tr><td>El doble de n</td><td><code>2n</code></td></tr>
+          <tr><td>El triple de a</td><td><code>3a</code></td></tr>
+          <tr><td>5 veces x</td><td><code>5x</code></td></tr>
+          <tr><td>El producto de m y 6</td><td><code>6m</code></td></tr>
+          <tr><td>Cuatro veces la suma de x y 3</td><td><code>4(x + 3)</code></td></tr>
+          <tr><td>La mitad de n (como multiplicación)</td><td><code>½ · n = n/2</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card teal">
+      <h3>Propiedad distributiva</h3>
+      <div class="formula">a · (b + c) = ab + ac</div>
+      <div class="example"><strong>Ejemplo:</strong> &nbsp;<code>3(x + 4) = 3x + 12</code></div>
+      <div class="example"><strong>Ejemplo:</strong> &nbsp;<code>2(5n − 1) = 10n − 2</code></div>
+    </div>
+  </div>
+
+  <!-- ════════════ FRACCIONES ════════════ -->
+  <div id="frac" class="section">
+    <div class="sec-header">
+      <div class="sec-icon teal">⅔</div>
+      <div>
+        <h2>Fracciones algebraicas</h2>
+        <p>División expresada como fracción: numerador entre denominador.</p>
+      </div>
+    </div>
+
+    <div class="card teal">
+      <h3>Estructura de una fracción algebraica</h3>
+      <div class="formula">Numerador / Denominador &nbsp;→&nbsp; p / q &nbsp;(q ≠ 0)</div>
+      <table class="vocab-table">
+        <thead><tr><th>Frase verbal</th><th>Expresión</th></tr></thead>
+        <tbody>
+          <tr><td>La mitad de n</td><td><code>n / 2</code></td></tr>
+          <tr><td>x dividido entre 5</td><td><code>x / 5</code></td></tr>
+          <tr><td>El cociente de a y b</td><td><code>a / b</code></td></tr>
+          <tr><td>Un tercio de m más 4</td><td><code>m/3 + 4</code></td></tr>
+          <tr><td>La suma de x y 1, dividida entre 2</td><td><code>(x + 1) / 2</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card coral">
+      <h3>Operaciones con fracciones algebraicas</h3>
+      <div class="pill">Suma / Resta → mismo denominador</div>
+      <div class="formula">a/n + b/n = (a + b) / n</div>
+      <div class="example"><strong>Ejemplo:</strong> &nbsp;<code>x/4 + 3/4 = (x + 3)/4</code></div>
+
+      <hr class="divider">
+      <div class="pill">Suma / Resta → distinto denominador</div>
+      <div class="formula">a/m + b/n = (an + bm) / mn</div>
+      <div class="example"><strong>Ejemplo:</strong> &nbsp;<code>x/2 + x/3 = 3x/6 + 2x/6 = 5x/6</code></div>
+    </div>
+  </div>
+
+  <!-- ════════════ PORCENTAJES ════════════ -->
+  <div id="porc" class="section">
+    <div class="sec-header">
+      <div class="sec-icon green">%</div>
+      <div>
+        <h2>Porcentajes algebraicos</h2>
+        <p>"Por ciento" significa "de cada 100". Convertimos el % en fracción o decimal.</p>
+      </div>
+    </div>
+
+    <div class="card green">
+      <h3>Conversión fundamental</h3>
+      <div class="formula">p% de x &nbsp;→&nbsp; (p/100) · x</div>
+      <table class="vocab-table">
+        <thead><tr><th>Frase verbal</th><th>Expresión algebraica</th></tr></thead>
+        <tbody>
+          <tr><td>El 10% de x</td><td><code>0.1x &nbsp;=&nbsp; x/10</code></td></tr>
+          <tr><td>El 25% de n</td><td><code>0.25n &nbsp;=&nbsp; n/4</code></td></tr>
+          <tr><td>El 50% de m</td><td><code>0.5m &nbsp;=&nbsp; m/2</code></td></tr>
+          <tr><td>El p% de una cantidad x</td><td><code>(p/100)·x</code></td></tr>
+          <tr><td>Aumentar x en un r%</td><td><code>x + (r/100)·x = x(1 + r/100)</code></td></tr>
+          <tr><td>Disminuir x en un r%</td><td><code>x − (r/100)·x = x(1 − r/100)</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card gold">
+      <h3>Ejemplo contextualizado</h3>
+      <div class="example">
+        <strong>Situación:</strong> Un artículo cuesta <em>p</em> euros y tiene un descuento del 15%.<br>
+        <strong>Precio final:</strong> <code>p − 0.15p = 0.85p</code>
+      </div>
+      <div class="example">
+        <strong>Situación:</strong> Una población de <em>n</em> personas crece un 3% cada año.<br>
+        <strong>Después de 1 año:</strong> <code>n · 1.03</code>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════ EJERCICIOS ════════════ -->
+  <div id="ejercicios" class="section">
+    <div class="sec-header">
+      <div class="sec-icon coral">🎯</div>
+      <div>
+        <h2>Ejercicios de práctica</h2>
+        <p>Escribe la expresión algebraica correcta para cada enunciado.</p>
+      </div>
+    </div>
+
+    <div class="score-wrap">
+      <div>
+        <div class="score-title">Puntuación</div>
+        <div class="score-val" id="scoreVal">0 / 0</div>
+      </div>
+      <div class="score-bar-track">
+        <div class="score-bar-fill" id="scoreBar" style="width:0%"></div>
+      </div>
+      <button class="reset-btn" onclick="resetAll()">↺ Reiniciar</button>
+    </div>
+
+    <div class="ex-grid" id="exGrid"></div>
+  </div>
+
+</div><!-- end main -->
+
+<script>
+/* ── TAB NAVIGATION ── */
+function show(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+/* ── EXERCISES DATA ── */
+const exercises = [
+  // SUMA
+  { q: "Un número aumentado en 8", a: ["n+8","n + 8"], hint:"n + 8", cat:"➕ Suma" },
+  { q: "La suma de a y b", a: ["a+b","b+a","a + b","b + a"], hint:"a + b", cat:"➕ Suma" },
+  { q: "Tres más que x", a: ["x+3","x + 3","3+x","3 + x"], hint:"x + 3", cat:"➕ Suma" },
+  { q: "El total de p y 12", a: ["p+12","p + 12","12+p","12 + p"], hint:"p + 12", cat:"➕ Suma" },
+
+  // RESTA
+  { q: "Un número disminuido en 5", a: ["n-5","n − 5","n- 5"], hint:"n − 5", cat:"➖ Resta" },
+  { q: "La diferencia entre x y 9", a: ["x-9","x − 9","x- 9"], hint:"x − 9", cat:"➖ Resta" },
+  { q: "Cuánto le falta a p para llegar a 20", a: ["20-p","20 − p","20- p"], hint:"20 − p", cat:"➖ Resta" },
+  { q: "8 menos que k", a: ["k-8","k − 8","k- 8"], hint:"k − 8", cat:"➖ Resta" },
+
+  // MULTIPLICACIÓN
+  { q: "El doble de n", a: ["2n","2*n","2·n","n*2","n·2"], hint:"2n", cat:"✖️ Multiplicación" },
+  { q: "5 veces x", a: ["5x","5*x","x*5","5·x"], hint:"5x", cat:"✖️ Multiplicación" },
+  { q: "El triple de a", a: ["3a","3*a","a*3","3·a"], hint:"3a", cat:"✖️ Multiplicación" },
+  { q: "Cuatro veces la suma de x y 3", a: ["4(x+3)","4*(x+3)","4·(x+3)"], hint:"4(x+3)", cat:"✖️ Multiplicación" },
+
+  // FRACCIONES
+  { q: "La mitad de n", a: ["n/2","n÷2","n / 2"], hint:"n/2", cat:"⅔ Fracción" },
+  { q: "x dividido entre 5", a: ["x/5","x / 5","x÷5"], hint:"x/5", cat:"⅔ Fracción" },
+  { q: "La suma de x y 1, dividida entre 2", a: ["(x+1)/2","(x + 1)/2","(x+1) / 2"], hint:"(x+1)/2", cat:"⅔ Fracción" },
+  { q: "Un tercio de m", a: ["m/3","m / 3","m÷3"], hint:"m/3", cat:"⅔ Fracción" },
+
+  // PORCENTAJES
+  { q: "El 10% de x", a: ["0.1x","x/10","x·0.1","0.1·x","x * 0.1","0.1 * x"], hint:"0.1x  o  x/10", cat:"% Porcentaje" },
+  { q: "El 50% de m", a: ["0.5m","m/2","m·0.5","0.5·m","m * 0.5","0.5 * m"], hint:"0.5m  o  m/2", cat:"% Porcentaje" },
+  { q: "Aumentar x en un 20%", a: ["1.2x","x*1.2","x·1.2","1.2·x","x+0.2x","x + 0.2x"], hint:"1.2x  o  x + 0.2x", cat:"% Porcentaje" },
+  { q: "El p% de una cantidad x", a: ["(p/100)*x","(p/100)·x","px/100","p*x/100"], hint:"(p/100)·x", cat:"% Porcentaje" },
+];
+
+/* ── SCORE STATE ── */
+let answered = {};
+
+function normalize(s) {
+  return s.trim().toLowerCase().replace(/\s+/g,'').replace(/×/g,'*').replace(/÷/g,'/').replace(/−/g,'-');
+}
+
+function buildGrid() {
+  const grid = document.getElementById('exGrid');
+  grid.innerHTML = '';
+  exercises.forEach((ex, i) => {
+    const card = document.createElement('div');
+    card.className = 'ex-card';
+    card.dataset.idx = i;
+    card.innerHTML = `
+      <div class="ex-num">Ejercicio ${i+1} &nbsp;·&nbsp; ${ex.cat}</div>
+      <div class="ex-q">${ex.q}</div>
+      <input class="ex-input" id="inp${i}" placeholder="Escribe tu respuesta…" autocomplete="off" spellcheck="false">
+      <button class="check-btn" onclick="check(${i})">Comprobar</button>
+      <div class="feedback" id="fb${i}"></div>`;
+    grid.appendChild(card);
+    document.getElementById(`inp${i}`).addEventListener('keydown', e => { if(e.key==='Enter') check(i); });
+  });
+  updateScore();
+}
+
+function check(i) {
+  const input = document.getElementById(`inp${i}`);
+  const fb    = document.getElementById(`fb${i}`);
+  const val   = normalize(input.value);
+  if (!val) return;
+  const correct = exercises[i].a.some(ans => normalize(ans) === val);
+  if (correct) {
+    input.classList.add('correct'); input.classList.remove('wrong');
+    fb.className = 'feedback ok';
+    fb.textContent = '✓ ¡Correcto!';
+    answered[i] = true;
+  } else {
+    input.classList.add('wrong'); input.classList.remove('correct');
+    fb.className = 'feedback err';
+    fb.textContent = `✗ Inténtalo de nuevo. Pista: ${exercises[i].hint}`;
+    answered[i] = false;
+  }
+  updateScore();
+}
+
+function updateScore() {
+  const total   = exercises.length;
+  const correct = Object.values(answered).filter(Boolean).length;
+  const pct     = total ? Math.round((correct/total)*100) : 0;
+  document.getElementById('scoreVal').textContent = `${correct} / ${total}`;
+  document.getElementById('scoreBar').style.width  = pct + '%';
+}
+
+function resetAll() {
+  answered = {};
+  buildGrid();
+}
+
+buildGrid();
+</script>
+</body>
+</html>
