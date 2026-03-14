@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Potencial de acción neuronal — Simulador interactivo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0e1015;
+  --card: #16181f;
+  --card-border: rgba(255,255,255,.07);
+  --text: #e8eaed;
+  --text-dim: #9ca3af;
+  --text-muted: #6b7280;
+  --na: #ff8b60;
+  --na-bg: rgba(255,139,96,.12);
+  --na-light: rgba(255,139,96,.06);
+  --k: #a78bfa;
+  --k-bg: rgba(167,139,250,.12);
+  --k-light: rgba(167,139,250,.06);
+  --pump: #4ade80;
+  --pump-bg: rgba(74,222,128,.08);
+  --curve: #ff8b36;
+  --threshold: #fbbf24;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 28px 16px 40px;
+}
+
+#app {
+  width: 100%;
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ── Title ───────────────────────────────── */
+#title-bar { text-align: center; padding-bottom: 2px; }
+#title-bar h1 {
+  font-size: 23px; font-weight: 600; letter-spacing: -0.5px;
+  background: linear-gradient(135deg, var(--na), var(--k));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+#title-bar p { font-size: 13px; color: var(--text-dim); margin-top: 3px; }
+
+/* ── Header strip ────────────────────────── */
+#header { display: flex; align-items: center; gap: 12px; padding: 0 4px; }
+#mv-display { display: flex; align-items: baseline; gap: 4px; }
+#mv-num {
+  font-size: 38px; font-weight: 600; letter-spacing: -1.5px;
+  min-width: 80px; transition: color .3s;
+  font-variant-numeric: tabular-nums;
+}
+#mv-unit { font-size: 14px; color: var(--text-dim); }
+
+#phase-pill {
+  margin-left: auto;
+  font-size: 11px; font-weight: 500; letter-spacing: .04em; text-transform: uppercase;
+  padding: 5px 14px; border-radius: 20px;
+  border: 1px solid var(--card-border);
+  background: var(--card); color: var(--text-dim);
+  transition: all .4s; white-space: nowrap;
+}
+#phase-pill.reposo { background: rgba(74,222,128,.1); color: #4ade80; border-color: rgba(74,222,128,.3); }
+#phase-pill.umbral { background: rgba(251,191,36,.1); color: #fbbf24; border-color: rgba(251,191,36,.3); }
+#phase-pill.despol { background: rgba(255,139,96,.12); color: #ff8b60; border-color: rgba(255,139,96,.3); }
+#phase-pill.repol  { background: rgba(96,165,250,.1); color: #60a5fa; border-color: rgba(96,165,250,.3); }
+#phase-pill.hiper  { background: rgba(167,139,250,.1); color: #a78bfa; border-color: rgba(167,139,250,.3); }
+
+/* ── Phase description ───────────────────── */
+#phase-desc {
+  font-size: 13px; line-height: 1.55; color: var(--text-dim);
+  padding: 11px 16px;
+  background: var(--card); border: 1px solid var(--card-border); border-radius: 10px;
+  min-height: 46px;
+  transition: opacity .3s;
+}
+
+/* ── Graph ────────────────────────────────── */
+#graph-wrap {
+  position: relative;
+  background: var(--card); border: 1px solid var(--card-border); border-radius: 12px;
+  overflow: hidden; padding: 4px;
+}
+#graph-canvas { display: block; width: 100%; border-radius: 8px; }
+
+/* ── Membrane scene ──────────────────────── */
+#mem-scene {
+  position: relative;
+  border: 1px solid var(--card-border); border-radius: 12px;
+  overflow: hidden; height: 220px;
+  background: var(--card);
+}
+#extra-bg, #intra-bg {
+  position: absolute; left: 0; right: 0; transition: background .6s;
+}
+#extra-bg { top: 0; height: 42%; }
+#intra-bg { bottom: 0; height: 42%; }
+
+.zone-label {
+  position: absolute;
+  font-size: 10px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--text-muted); pointer-events: none;
+}
+#lbl-extra { top: 8px; left: 12px; }
+#lbl-intra { bottom: 8px; left: 12px; }
+
+.charge {
+  position: absolute; right: 14px;
+  font-size: 36px; font-weight: 700; line-height: 1;
+  transition: color .5s, opacity .4s; pointer-events: none;
+}
+#charge-extra { top: 6px; color: var(--na); }
+#charge-intra { bottom: 6px; color: var(--k); }
+
+.conc-bars { position: absolute; left: 12px; display: flex; flex-direction: column; gap: 4px; width: 130px; }
+#conc-extra { top: 24px; }
+#conc-intra { bottom: 24px; }
+.bar-row { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--text-muted); }
+.bar-track { flex: 1; height: 5px; border-radius: 3px; background: rgba(255,255,255,.06); overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 3px; transition: width .7s cubic-bezier(.4,0,.2,1); }
+.fill-na { background: var(--na); }
+.fill-k  { background: var(--k); }
+
+/* Membrane strip */
+#mem-strip {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  left: 0; right: 0; height: 32px;
+  background: rgba(255,255,255,.025);
+  border-top: 1px solid var(--card-border);
+  border-bottom: 1px solid var(--card-border);
+  display: flex; align-items: center; justify-content: space-around;
+  padding: 0 16px;
+}
+.transp {
+  position: relative;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 2px; width: 68px; height: 48px;
+  border: 1px solid var(--card-border); border-radius: 8px;
+  background: var(--card); justify-content: center;
+  transition: all .3s;
+}
+.transp.open-na  { border-color: var(--na);   background: var(--na-bg);   box-shadow: 0 0 14px var(--na-light); }
+.transp.open-k   { border-color: var(--k);    background: var(--k-bg);    box-shadow: 0 0 14px var(--k-light); }
+.transp.open-pump{ border-color: var(--pump);  background: var(--pump-bg); box-shadow: 0 0 14px var(--pump-bg); }
+.transp-name {
+  font-size: 8.5px; font-weight: 500; color: var(--text-muted);
+  letter-spacing: .03em; text-align: center; line-height: 1.2; transition: color .3s;
+}
+.transp.open-na .transp-name   { color: var(--na); }
+.transp.open-k .transp-name    { color: var(--k); }
+.transp.open-pump .transp-name { color: var(--pump); }
+.transp-pore {
+  width: 12px; height: 6px; border-radius: 2px;
+  background: rgba(255,255,255,.06); margin-top: 1px; transition: background .3s;
+}
+.transp.open-na .transp-pore   { background: var(--na); }
+.transp.open-k .transp-pore    { background: var(--k); }
+.transp.open-pump .transp-pore { background: var(--pump); }
+
+#ion-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+
+/* ── Controls ────────────────────────────── */
+#controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+#btn-fire {
+  padding: 10px 24px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px; font-weight: 500;
+  border: none; border-radius: 10px;
+  background: linear-gradient(135deg, #ff8b60, #e05a30);
+  color: #fff; cursor: pointer;
+  transition: all .2s; letter-spacing: .01em;
+}
+#btn-fire:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(255,139,96,.35);
+}
+#btn-fire:active:not(:disabled) { transform: scale(.97); }
+#btn-fire:disabled { opacity: .3; cursor: default; filter: grayscale(.5); }
+
+.spd { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-dim); margin-left: auto; }
+#spd-range { width: 80px; accent-color: var(--na); }
+#spd-val { font-variant-numeric: tabular-nums; min-width: 26px; }
+
+/* ── Legend ───────────────────────────────── */
+#legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 11px; color: var(--text-muted); }
+.leg { display: flex; align-items: center; gap: 5px; }
+.leg-dot { width: 9px; height: 9px; border-radius: 50%; }
+.leg-rect { width: 9px; height: 9px; border-radius: 2px; border: 1.5px solid var(--pump); background: var(--pump-bg); }
+
+/* ── Responsive ──────────────────────────── */
+@media (max-width: 480px) {
+  body { padding: 16px 8px 32px; }
+  #title-bar h1 { font-size: 19px; }
+  #mv-num { font-size: 30px; min-width: 64px; }
+  #phase-pill { font-size: 10px; padding: 4px 10px; }
+  #phase-desc { font-size: 12px; padding: 9px 12px; }
+  #mem-scene { height: 190px; }
+  .transp { width: 56px; height: 42px; }
+  .transp-name { font-size: 7.5px; }
+  .conc-bars { width: 100px; }
+  #btn-fire { padding: 9px 18px; font-size: 13px; }
+}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div id="title-bar">
+    <h1>Potencial de acción neuronal</h1>
+    <p>Simulación interactiva del impulso nervioso</p>
+  </div>
+
+  <div id="header">
+    <div id="mv-display">
+      <span id="mv-num">−70</span>
+      <span id="mv-unit">mV</span>
+    </div>
+    <span id="phase-pill" class="reposo">Reposo</span>
+  </div>
+
+  <div id="phase-desc">Pulsa el botón para iniciar la simulación del potencial de acción.</div>
+
+  <div id="graph-wrap">
+    <canvas id="graph-canvas" height="180"></canvas>
+  </div>
+
+  <div id="mem-scene">
+    <div id="extra-bg"></div>
+    <div id="intra-bg"></div>
+
+    <span class="zone-label" id="lbl-extra">Extracelular</span>
+    <span class="zone-label" id="lbl-intra">Intracelular</span>
+
+    <span class="charge" id="charge-extra">+</span>
+    <span class="charge" id="charge-intra">−</span>
+
+    <div class="conc-bars" id="conc-extra">
+      <div class="bar-row"><span style="width:18px">Na⁺</span><div class="bar-track"><div class="bar-fill fill-na" id="bar-eNa" style="width:85%"></div></div></div>
+      <div class="bar-row"><span style="width:18px">K⁺</span><div class="bar-track"><div class="bar-fill fill-k"  id="bar-eK"  style="width:18%"></div></div></div>
+    </div>
+    <div class="conc-bars" id="conc-intra">
+      <div class="bar-row"><span style="width:18px">Na⁺</span><div class="bar-track"><div class="bar-fill fill-na" id="bar-iNa" style="width:8%"></div></div></div>
+      <div class="bar-row"><span style="width:18px">K⁺</span><div class="bar-track"><div class="bar-fill fill-k"  id="bar-iK"  style="width:90%"></div></div></div>
+    </div>
+
+    <div id="mem-strip">
+      <div class="transp" id="tr-na">
+        <div class="transp-name">Canal Na⁺</div>
+        <div class="transp-pore"></div>
+      </div>
+      <div class="transp" id="tr-pump">
+        <div class="transp-name">Bomba Na⁺/K⁺</div>
+        <div class="transp-pore"></div>
+      </div>
+      <div class="transp" id="tr-k">
+        <div class="transp-name">Canal K⁺</div>
+        <div class="transp-pore"></div>
+      </div>
+    </div>
+
+    <canvas id="ion-canvas"></canvas>
+  </div>
+
+  <div id="controls">
+    <button id="btn-fire" onclick="fireAP()">Disparar potencial de acción</button>
+    <div class="spd">
+      <span>Velocidad</span>
+      <input type="range" id="spd-range" min="0.3" max="3" step="0.1" value="1">
+      <span id="spd-val">1.0×</span>
+    </div>
+  </div>
+
+  <div id="legend">
+    <div class="leg"><div class="leg-dot" style="background:var(--na)"></div> Na⁺ (sodio)</div>
+    <div class="leg"><div class="leg-dot" style="background:var(--k)"></div> K⁺ (potasio)</div>
+    <div class="leg"><div class="leg-rect"></div> Bomba Na⁺/K⁺</div>
+  </div>
+</div>
+
+<script>
+/* ── Helpers ──────────────────────────────────────────────── */
+const $ = id => document.getElementById(id);
+let spd = 1;
+$('spd-range').oninput = e => {
+  spd = +e.target.value;
+  $('spd-val').textContent = spd.toFixed(1) + '×';
+};
+
+function sleep(ms){ return new Promise(r => setTimeout(r, ms / spd)); }
+function lerp(a,b,t){ return a + (b - a) * t; }
+function ease(t){ return t < 0.5 ? 2*t*t : (4 - 2*t)*t - 1; }
+
+/* ── Phase descriptions ──────────────────────────────────── */
+const DESC = {
+  intro:   'Pulsa el botón para iniciar la simulación del potencial de acción.',
+  reposo:  'La neurona en reposo mantiene −70 mV gracias a la bomba Na⁺/K⁺, que saca 3 Na⁺ e introduce 2 K⁺ usando ATP. Esto mantiene el gradiente electroquímico.',
+  umbral:  'El estímulo alcanza el umbral de −55 mV. Los canales de Na⁺ voltaje-dependientes comienzan a abrirse — es el punto de no retorno (ley del todo o nada).',
+  despol:  'Despolarización: los canales de Na⁺ se abren masivamente. El sodio entra a la célula siguiendo su gradiente electroquímico e invierte la polaridad hasta +30 mV.',
+  repol:   'Repolarización: los canales de Na⁺ se inactivan y se abren los de K⁺. El potasio sale de la célula, restaurando progresivamente la carga negativa interior.',
+  hiper:   'Hiperpolarización: los canales de K⁺ tardan en cerrarse, permitiendo una salida excesiva de potasio. El potencial baja por debajo del reposo hasta −85 mV.',
+  restaur: 'La bomba Na⁺/K⁺ restaura activamente las concentraciones iónicas originales. El potencial regresa a −70 mV y la neurona queda lista para otro impulso.'
+};
+function setDesc(key){ $('phase-desc').textContent = DESC[key] || ''; }
+
+/* ── AP curve (piece-wise linear) ────────────────────────── */
+const CURVE = [
+  [0,-70],[0.06,-70],[0.13,-55],[0.23,30],
+  [0.29,10],[0.38,-70],[0.50,-85],[0.68,-85],[0.83,-70],[1,-70]
+];
+function voltAt(t){
+  for(let i = 0; i < CURVE.length - 1; i++){
+    const [t0,v0] = CURVE[i], [t1,v1] = CURVE[i+1];
+    if(t >= t0 && t <= t1) return lerp(v0, v1, (t - t0) / (t1 - t0));
+  }
+  return -70;
+}
+
+/* ── Graph renderer ──────────────────────────────────────── */
+const gc = $('graph-canvas');
+const gx = gc.getContext('2d');
+let GW, GH;
+const PL = 52, PR = 14, PT = 18, PB = 28;
+let PW, PH;
+const VMIN = -100, VMAX = 50;
+const mvY = mv => PT + (1 - (mv - VMIN) / (VMAX - VMIN)) * PH;
+const tX  = t  => PL + t * PW;
+
+let drawnT = 0;
+let rafId  = null;
+
+function sizeGraph(){
+  const rect = gc.parentElement.getBoundingClientRect();
+  GW = rect.width - 8;
+  GH = 180;
+  const dpr = window.devicePixelRatio || 1;
+  gc.width  = GW * dpr;
+  gc.height = GH * dpr;
+  gc.style.width  = GW + 'px';
+  gc.style.height = GH + 'px';
+  gx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  PW = GW - PL - PR;
+  PH = GH - PT - PB;
+}
+
+function drawGraph(){
+  gx.clearRect(0, 0, GW, GH);
+
+  const grid = 'rgba(255,255,255,.05)';
+  const ax   = 'rgba(255,255,255,.12)';
+  const tx   = 'rgba(255,255,255,.32)';
+  const thr  = '#fbbf24';
+
+  /* horizontal grid + threshold */
+  [-85, -70, -55, 0, 30].forEach(mv => {
+    gx.strokeStyle = mv === -55 ? thr : grid;
+    gx.lineWidth   = 0.5;
+    gx.setLineDash(mv === -55 ? [4,3] : [2,6]);
+    gx.beginPath(); gx.moveTo(PL, mvY(mv)); gx.lineTo(PL + PW, mvY(mv)); gx.stroke();
+  });
+  gx.setLineDash([]);
+
+  /* Y-axis labels */
+  gx.font = '10px Outfit, sans-serif';
+  gx.fillStyle = tx; gx.textAlign = 'right';
+  [[-70,'-70'],[-85,'-85'],[0,'0'],[30,'+30']].forEach(([mv,l]) =>
+    gx.fillText(l + ' mV', PL - 5, mvY(mv) + 3.5)
+  );
+
+  /* threshold label */
+  gx.fillStyle = thr; gx.textAlign = 'left';
+  gx.fillText('umbral −55 mV', PL + 6, mvY(-55) - 5);
+
+  /* axes */
+  gx.strokeStyle = ax; gx.lineWidth = 0.5;
+  gx.beginPath(); gx.moveTo(PL, PT); gx.lineTo(PL, PT + PH); gx.stroke();
+  gx.beginPath(); gx.moveTo(PL, PT + PH); gx.lineTo(PL + PW, PT + PH); gx.stroke();
+
+  /* X-axis phase ticks */
+  const ticks = [[0,'reposo'],[0.13,'umbral'],[0.23,'pico'],[0.38,'repol.'],[0.50,'hiper.'],[0.83,'reposo']];
+  gx.font = '9px Outfit, sans-serif'; gx.textAlign = 'center'; gx.fillStyle = tx;
+  ticks.forEach(([t,l]) => {
+    const x = tX(t);
+    gx.strokeStyle = ax; gx.lineWidth = 0.5;
+    gx.beginPath(); gx.moveTo(x, PT + PH); gx.lineTo(x, PT + PH + 4); gx.stroke();
+    gx.fillText(l, x, PT + PH + 14);
+  });
+
+  /* resting label */
+  gx.fillStyle = tx; gx.textAlign = 'left'; gx.font = '10px Outfit, sans-serif';
+  gx.fillText('reposo −70 mV', PL + 6, mvY(-70) - 5);
+
+  /* curve */
+  if(drawnT > 0){
+    const N = Math.max(Math.round(drawnT * 300), 2);
+
+    /* gradient fill under curve */
+    gx.beginPath();
+    for(let i = 0; i <= N; i++){
+      const tt = (i / N) * drawnT;
+      const x = tX(tt), y = mvY(voltAt(tt));
+      i === 0 ? gx.moveTo(x, y) : gx.lineTo(x, y);
+    }
+    gx.lineTo(tX(drawnT), mvY(-70));
+    gx.lineTo(tX(0), mvY(-70));
+    gx.closePath();
+    const grad = gx.createLinearGradient(0, mvY(30), 0, mvY(-85));
+    grad.addColorStop(0,   'rgba(255,139,54,.14)');
+    grad.addColorStop(0.4, 'rgba(255,139,54,.04)');
+    grad.addColorStop(0.7, 'rgba(167,139,250,.06)');
+    grad.addColorStop(1,   'rgba(167,139,250,.02)');
+    gx.fillStyle = grad;
+    gx.fill();
+
+    /* curve line */
+    gx.beginPath();
+    gx.strokeStyle = '#ff8b36'; gx.lineWidth = 2.5;
+    gx.lineJoin = 'round'; gx.lineCap = 'round';
+    for(let i = 0; i <= N; i++){
+      const tt = (i / N) * drawnT;
+      const x = tX(tt), y = mvY(voltAt(tt));
+      i === 0 ? gx.moveTo(x, y) : gx.lineTo(x, y);
+    }
+    gx.stroke();
+
+    /* animated dot with glow */
+    if(drawnT < 1){
+      const dx = tX(drawnT), dy = mvY(voltAt(drawnT));
+      gx.save();
+      gx.shadowColor = '#ff8b36'; gx.shadowBlur = 12;
+      gx.beginPath(); gx.arc(dx, dy, 5, 0, Math.PI * 2);
+      gx.fillStyle = '#ff8b36'; gx.fill();
+      gx.restore();
+    }
+
+    /* peak label */
+    if(drawnT > 0.23){
+      gx.fillStyle = '#ff8b36'; gx.textAlign = 'center';
+      gx.font = '10px Outfit, sans-serif';
+      gx.fillText('+30 mV', tX(0.23), mvY(30) - 8);
+    }
+  } else {
+    /* resting line */
+    gx.strokeStyle = ax; gx.lineWidth = 1;
+    gx.beginPath(); gx.moveTo(PL, mvY(-70)); gx.lineTo(PL + PW, mvY(-70)); gx.stroke();
+  }
+}
+
+sizeGraph();
+drawGraph();
+
+window.addEventListener('resize', () => { sizeGraph(); drawGraph(); resizeIonCanvas(); });
+
+/* ── Smooth graph animation with RAF ─────────────────────── */
+function animGraph(t0, t1, durMs){
+  return new Promise(res => {
+    const start = performance.now();
+    const d = durMs / spd;
+    function frame(now){
+      const p = Math.min((now - start) / d, 1);
+      drawnT = lerp(t0, t1, ease(p));
+      const v = Math.round(voltAt(drawnT));
+      $('mv-num').textContent = (v >= 0 ? '+' : v < 0 ? '' : '') + v;
+      /* colour voltage display */
+      if(v > 0)        $('mv-num').style.color = 'var(--na)';
+      else if(v < -75) $('mv-num').style.color = 'var(--k)';
+      else             $('mv-num').style.color = 'var(--text)';
+      drawGraph();
+      if(p < 1) rafId = requestAnimationFrame(frame);
+      else { drawnT = t1; drawGraph(); res(); }
+    }
+    rafId = requestAnimationFrame(frame);
+  });
+}
+
+/* ── Ion canvas ──────────────────────────────────────────── */
+const scene = $('mem-scene');
+const ic = $('ion-canvas');
+const ix = ic.getContext('2d');
+let ions = [];
+let animRunning = false;
+
+function resizeIonCanvas(){
+  ic.width  = scene.offsetWidth;
+  ic.height = scene.offsetHeight;
+}
+resizeIonCanvas();
+
+function zoneRect(which){
+  const sh = ic.height, sw = ic.width;
+  const stripH = Math.round(sh * 0.16);
+  const memY   = Math.round((sh - stripH) / 2);
+  if(which === 'extra') return { x:0, y:0,             w:sw, h:memY };
+  if(which === 'intra') return { x:0, y:memY + stripH, w:sw, h:sh - memY - stripH };
+  if(which === 'mem')   return { x:0, y:memY,           w:sw, h:stripH };
+  return null;
+}
+
+function transpCX(id){
+  const w = ic.width;
+  const pct = { na: 0.22, pump: 0.5, k: 0.78 };
+  return w * pct[id];
+}
+function memMidY(){ const r = zoneRect('mem'); return r.y + r.h / 2; }
+
+/* Spawn background ions matching physiological distribution */
+function spawnBgIons(){
+  ions = [];
+  const extraR = zoneRect('extra'), intraR = zoneRect('intra');
+  /* Extra: many Na⁺ (15), few K⁺ (3) */
+  for(let i = 0; i < 15; i++) ions.push(mkIon('na', 'extra', extraR));
+  for(let i = 0; i < 3; i++)  ions.push(mkIon('k',  'extra', extraR));
+  /* Intra: few Na⁺ (2), many K⁺ (14) */
+  for(let i = 0; i < 2; i++)  ions.push(mkIon('na', 'intra', intraR));
+  for(let i = 0; i < 14; i++) ions.push(mkIon('k',  'intra', intraR));
+}
+
+function mkIon(type, zone, rect){
+  const margin = 40;
+  return {
+    type, zone,
+    x: margin + Math.random() * (rect.w - margin * 2),
+    y: rect.y + 8 + Math.random() * (rect.h - 16),
+    vx: (Math.random() - .5) * 0.22,
+    vy: (Math.random() - .5) * 0.22,
+    r: 6.5, opacity: 0.75, targetOp: 0.75, transit: false
+  };
+}
+
+/* Travelling ion through a transporter */
+function travelIon(type, transpId, direction, delay_ms){
+  return new Promise(res => {
+    setTimeout(() => {
+      const tx = transpCX(transpId), ty = memMidY();
+      const extra = zoneRect('extra'), intra = zoneRect('intra');
+      let startX, startY, endX, endY;
+      if(direction === 'in'){
+        startX = tx + (Math.random() - .5) * 40;
+        startY = extra.y + 10 + Math.random() * (extra.h - 20);
+        endX   = tx + (Math.random() - .5) * 40;
+        endY   = intra.y + 10 + Math.random() * (intra.h - 20);
+      } else {
+        startX = tx + (Math.random() - .5) * 40;
+        startY = intra.y + 10 + Math.random() * (intra.h - 20);
+        endX   = tx + (Math.random() - .5) * 40;
+        endY   = extra.y + 10 + Math.random() * (extra.h - 20);
+      }
+      const ion = {
+        type, zone: 'travel', x: startX, y: startY, vx: 0, vy: 0,
+        r: 7, opacity: 0, targetOp: 1, transit: true,
+        path: [{x:startX,y:startY}, {x:tx,y:ty}, {x:endX,y:endY}],
+        pathT: 0, pathDur: 520 / spd, startTime: performance.now(),
+        done: false, resolve: res
+      };
+      ions.push(ion);
+    }, delay_ms / spd);
+  });
+}
+
+/* Render loop */
+function renderIons(){
+  if(!animRunning) return;
+  const sw = ic.width, sh = ic.height;
+  ix.clearRect(0, 0, sw, sh);
+  const now = performance.now();
+
+  ions.forEach(ion => {
+    if(ion.transit){
+      const elapsed = now - ion.startTime;
+      ion.pathT = Math.min(elapsed / ion.pathDur, 1);
+      const t = ion.pathT;
+      /* two-segment eased path */
+      if(t < 0.5){
+        const p = Math.min(t / 0.5, 1);
+        const ep = ease(p);
+        ion.x = lerp(ion.path[0].x, ion.path[1].x, ep);
+        ion.y = lerp(ion.path[0].y, ion.path[1].y, ep);
+      } else {
+        const p = Math.min((t - 0.5) / 0.5, 1);
+        const ep = ease(p);
+        ion.x = lerp(ion.path[1].x, ion.path[2].x, ep);
+        ion.y = lerp(ion.path[1].y, ion.path[2].y, ep);
+      }
+      ion.opacity = t < 0.1 ? t / 0.1 : t > 0.9 ? (1 - t) / 0.1 : 1;
+      if(ion.pathT >= 1 && !ion.done){
+        ion.done = true;
+        ion.transit = false;
+        ion.zone = ion.path[2].y < sh / 2 ? 'extra' : 'intra';
+        ion.vx = (Math.random() - .5) * 0.22;
+        ion.vy = (Math.random() - .5) * 0.22;
+        ion.targetOp = 0.75; ion.opacity = 0.75;
+        if(ion.resolve){ ion.resolve(); ion.resolve = null; }
+      }
+    } else {
+      /* drift */
+      ion.x += ion.vx; ion.y += ion.vy;
+      const r = zoneRect(ion.zone);
+      if(r){
+        if(ion.x < r.x + 8 || ion.x > r.x + r.w - 8) ion.vx *= -1;
+        if(ion.y < r.y + 6 || ion.y > r.y + r.h - 6) ion.vy *= -1;
+      }
+      ion.opacity += (ion.targetOp - ion.opacity) * 0.04;
+    }
+
+    /* draw ion */
+    const isNa = ion.type === 'na';
+    const c  = isNa ? '#ff8b60' : '#a78bfa';
+    const bg = isNa ? 'rgba(255,139,96,.12)' : 'rgba(167,139,250,.12)';
+
+    ix.globalAlpha = ion.opacity;
+
+    /* outer glow */
+    ix.beginPath(); ix.arc(ion.x, ion.y, ion.r + 3, 0, Math.PI * 2);
+    ix.fillStyle = bg; ix.fill();
+
+    /* body */
+    ix.beginPath(); ix.arc(ion.x, ion.y, ion.r, 0, Math.PI * 2);
+    ix.fillStyle = isNa ? 'rgba(255,139,96,.18)' : 'rgba(167,139,250,.18)';
+    ix.fill();
+    ix.strokeStyle = c; ix.lineWidth = 1.4; ix.stroke();
+
+    /* label */
+    ix.font = 'bold 7.5px Outfit, sans-serif';
+    ix.fillStyle = c; ix.textAlign = 'center'; ix.textBaseline = 'middle';
+    ix.fillText(isNa ? 'Na' : 'K', ion.x, ion.y);
+    ix.globalAlpha = 1;
+  });
+
+  /* clean up done ions */
+  ions = ions.filter(i => !(i.done && i.opacity < 0.05) || i.transit);
+  requestAnimationFrame(renderIons);
+}
+
+/* ── UI helpers ──────────────────────────────────────────── */
+function setPhase(name, cls){
+  const p = $('phase-pill');
+  p.textContent = name;
+  p.className = cls;
+  p.id = 'phase-pill';
+}
+function setTransp(id, state){
+  $('tr-' + id).className = 'transp' + (state ? ' ' + state : '');
+}
+function setCharges(extPos, intPos){
+  const ec = $('charge-extra'), ic2 = $('charge-intra');
+  ec.textContent  = extPos ? '+' : '−';
+  ec.style.color  = extPos ? 'var(--na)' : 'var(--k)';
+  ic2.textContent = intPos ? '+' : '−';
+  ic2.style.color = intPos ? 'var(--na)' : 'var(--k)';
+}
+function setConc(eNa, eK, iNa, iK){
+  const maxNa = 155, maxK = 145;
+  $('bar-eNa').style.width = Math.max(3, eNa / maxNa * 100) + '%';
+  $('bar-eK').style.width  = Math.max(3, eK  / maxK  * 100) + '%';
+  $('bar-iNa').style.width = Math.max(3, iNa / maxNa * 100) + '%';
+  $('bar-iK').style.width  = Math.max(3, iK  / maxK  * 100) + '%';
+}
+
+/* ── Main AP sequence ────────────────────────────────────── */
+let running = false;
+
+async function fireAP(){
+  if(running) return;
+  running = true;
+  $('btn-fire').disabled = true;
+
+  /* reset */
+  drawnT = 0;
+  sizeGraph(); drawGraph();
+  resizeIonCanvas();
+  spawnBgIons();
+  animRunning = true;
+  renderIons();
+  setConc(145, 4, 12, 140);
+  setCharges(true, false);
+  setTransp('na', ''); setTransp('k', '');
+  setTransp('pump', 'open-pump');
+  setPhase('Reposo inicial', 'reposo');
+  setDesc('reposo');
+  $('mv-num').textContent = '−70';
+  $('mv-num').style.color = 'var(--text)';
+
+  /* ── 0. Resting state — active pump ──────── */
+  await sleep(400);
+  await animGraph(0, 0.05, 2000);
+
+  const p0 = [
+    travelIon('na','pump','out', 0),
+    travelIon('na','pump','out', 240),
+    travelIon('na','pump','out', 480),
+    travelIon('na','pump','out', 720),
+    travelIon('na','pump','out', 960),
+    travelIon('na','pump','out', 1200),
+  ];
+  await sleep(280);
+  p0.push(
+    travelIon('k','pump','in', 0),
+    travelIon('k','pump','in', 260),
+    travelIon('k','pump','in', 360),
+  );
+  await Promise.all(p0);
+  await sleep(500);
+  await animGraph(0.05, 0.13, 2000);
+
+  /* ── 1. Threshold ────────────────────────── */
+  setPhase('Umbral alcanzado', 'umbral');
+  setDesc('umbral');
+  await sleep(250);
+
+  /* ── 2. Depolarization ───────────────────── */
+  setPhase('Despolarización', 'despol');
+  setDesc('despol');
+  setTransp('na', 'open-na');
+  setCharges(false, true);
+  setConc(130, 4, 26, 140);
+
+  const p2 = [
+    travelIon('na','na','in', 0),
+    travelIon('na','na','in', 140),
+    travelIon('na','na','in', 280),
+  ];
+  await animGraph(0.13, 0.23, 2000);
+  await Promise.all(p2);
+  await sleep(200);
+
+  /* ── 3. Repolarization ───────────────────── */
+  setPhase('Repolarización', 'repol');
+  setDesc('repol');
+  setTransp('na', ''); setTransp('k', 'open-k');
+  setCharges(true, false);
+  setConc(130, 16, 26, 126);
+
+  const p3 = [
+    travelIon('k','k','out', 0),
+    travelIon('k','k','out', 150),
+    travelIon('k','k','out', 300),
+  ];
+  await animGraph(0.23, 0.38, 2000);
+  await Promise.all(p3);
+  await sleep(200);
+
+  /* ── 4. Hyperpolarization ────────────────── */
+  setPhase('Hiperpolarización', 'hiper');
+  setDesc('hiper');
+  setTransp('k', '');
+  setConc(130, 20, 26, 120);
+  await animGraph(0.38, 0.68, 2000);
+  await sleep(350);
+
+  /* ── 5. Restoration — pump active ────────── */
+  setPhase('Restauración', 'reposo');
+  setDesc('restaur');
+  setTransp('pump', 'open-pump');
+
+  const p5 = [
+    travelIon('na','pump','out', 0),
+    travelIon('na','pump','out', 240),
+    travelIon('na','pump','out', 480),
+  ];
+  await sleep(300);
+  p5.push(
+    travelIon('k','pump','in', 0),
+    travelIon('k','pump','in', 260),
+  );
+  setConc(143, 5, 14, 138);
+  await animGraph(0.68, 1.0, 3000);
+  await Promise.all(p5);
+
+  /* done */
+  setConc(145, 4, 12, 140);
+  setCharges(true, false);
+  setPhase('Reposo', 'reposo');
+  setDesc('intro');
+  $('mv-num').textContent = '−70';
+  $('mv-num').style.color = 'var(--text)';
+
+  running = false;
+  $('btn-fire').disabled = false;
+}
+</script>
+
+</body>
+</html>
