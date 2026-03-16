@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ecuaciones de Primer Grado</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Lora:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #0e1117;
+  --surface: #161b27;
+  --card:    #1c2233;
+  --border:  #2a3249;
+  --text:    #e8eaf0;
+  --muted:   #6b7594;
+  --cyan:    #00d4aa;
+  --cyan-dim:#00d4aa22;
+  --amber:   #f5a623;
+  --amber-dim:#f5a62320;
+  --rose:    #ff6b8a;
+  --rose-dim:#ff6b8a1a;
+  --blue:    #5b8df5;
+  --blue-dim:#5b8df51a;
+  --green:   #4ade80;
+  --green-dim:#4ade8018;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Lora',serif;
+  font-size:16px;
+  line-height:1.75;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ── GRID BACKGROUND ── */
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  background-image:
+    linear-gradient(rgba(0,212,170,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,170,.04) 1px, transparent 1px);
+  background-size:40px 40px;
+  pointer-events:none;
+  z-index:0;
+}
+
+/* ── HERO ── */
+.hero{
+  position:relative;
+  z-index:1;
+  padding:80px 40px 56px;
+  text-align:center;
+  overflow:hidden;
+}
+.hero::after{
+  content:'';
+  position:absolute;
+  bottom:0;left:50%;
+  transform:translateX(-50%);
+  width:600px;height:1px;
+  background:linear-gradient(90deg,transparent,var(--cyan),transparent);
+}
+
+.hero-eyebrow{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:.7rem;
+  letter-spacing:.2em;
+  text-transform:uppercase;
+  color:var(--cyan);
+  border:1px solid var(--cyan);
+  padding:5px 16px;
+  border-radius:2px;
+  margin-bottom:28px;
+}
+.hero-eyebrow::before,
+.hero-eyebrow::after{content:'//'; opacity:.5;}
+
+.hero h1{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(3rem,8vw,6rem);
+  font-weight:800;
+  line-height:1;
+  letter-spacing:-.02em;
+  margin-bottom:18px;
+}
+.hero h1 .word1{color:var(--text);}
+.hero h1 .word2{
+  color:transparent;
+  -webkit-text-stroke:2px var(--cyan);
+}
+
+.hero p{
+  font-family:'Lora',serif;
+  font-style:italic;
+  color:var(--muted);
+  font-size:1.05rem;
+  max-width:520px;
+  margin:0 auto;
+}
+
+/* ── GLOW ORBS ── */
+.orb{
+  position:absolute;
+  border-radius:50%;
+  filter:blur(80px);
+  pointer-events:none;
+}
+.orb1{width:400px;height:400px;background:rgba(0,212,170,.06);top:-100px;left:-100px;}
+.orb2{width:350px;height:350px;background:rgba(91,141,245,.06);top:-50px;right:-80px;}
+
+/* ── NAV ── */
+.nav-wrap{
+  position:sticky;top:0;z-index:100;
+  background:rgba(14,17,23,.92);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+}
+.nav-tabs{
+  display:flex;overflow-x:auto;scrollbar-width:none;
+  max-width:960px;margin:0 auto;padding:0 24px;gap:2px;
+}
+.nav-tabs::-webkit-scrollbar{display:none;}
+.tab-btn{
+  flex-shrink:0;
+  background:none;border:none;cursor:pointer;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);
+  padding:16px 18px 13px;
+  border-bottom:2px solid transparent;
+  transition:all .22s;
+  white-space:nowrap;
+}
+.tab-btn:hover{color:var(--text);}
+.tab-btn.active{color:var(--cyan);border-bottom-color:var(--cyan);}
+
+/* ── MAIN ── */
+.main{
+  position:relative;z-index:1;
+  max-width:960px;margin:0 auto;
+  padding:52px 24px 80px;
+}
+
+.section{display:none;animation:fadeUp .35s ease;}
+.section.active{display:block;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+
+/* ── SEC HEADER ── */
+.sec-header{margin-bottom:40px;}
+.sec-tag{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--cyan);margin-bottom:10px;
+}
+.sec-header h2{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(1.8rem,4vw,2.8rem);
+  font-weight:700;letter-spacing:-.02em;
+  line-height:1.15;
+}
+.sec-header p{color:var(--muted);margin-top:8px;font-style:italic;}
+
+/* ── CARDS ── */
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:28px 32px;
+  margin-bottom:20px;
+  position:relative;
+  overflow:hidden;
+  transition:border-color .2s;
+}
+.card:hover{border-color:rgba(0,212,170,.25);}
+
+.card.cyan  {border-left:3px solid var(--cyan);}
+.card.amber {border-left:3px solid var(--amber);}
+.card.rose  {border-left:3px solid var(--rose);}
+.card.blue  {border-left:3px solid var(--blue);}
+.card.green {border-left:3px solid var(--green);}
+
+.card h3{
+  font-family:'Syne',sans-serif;
+  font-size:1.1rem;font-weight:700;
+  margin-bottom:14px;
+  color:var(--text);
+}
+
+/* ── FORMULA ── */
+.formula{
+  background:#0a0d15;
+  border:1px solid var(--border);
+  border-top:2px solid var(--cyan);
+  font-family:'IBM Plex Mono',monospace;
+  font-size:1.05rem;
+  color:var(--cyan);
+  padding:18px 24px;
+  border-radius:0 0 10px 10px;
+  margin:14px 0;
+  text-align:center;
+  letter-spacing:.06em;
+}
+
+/* ── STEPS (resolución paso a paso) ── */
+.steps{
+  counter-reset:step;
+  margin:16px 0;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.step{
+  display:flex;
+  align-items:flex-start;
+  gap:14px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:14px 18px;
+  font-size:.9rem;
+  animation:fadeUp .4s ease both;
+}
+.step-num{
+  flex-shrink:0;
+  width:26px;height:26px;
+  border-radius:50%;
+  background:var(--cyan);
+  color:var(--bg);
+  font-family:'IBM Plex Mono',monospace;
+  font-size:.7rem;font-weight:500;
+  display:flex;align-items:center;justify-content:center;
+  margin-top:1px;
+}
+.step-body{flex:1;}
+.step-body .op{
+  font-family:'IBM Plex Mono',monospace;
+  color:var(--amber);
+  font-size:.92rem;
+}
+.step.amber .step-num{background:var(--amber);}
+.step.rose  .step-num{background:var(--rose);}
+.step.green .step-num{background:var(--green);}
+
+/* ── TABLE ── */
+.styled-table{width:100%;border-collapse:collapse;font-size:.88rem;margin-top:8px;}
+.styled-table th{
+  background:#0a0d15;
+  color:var(--cyan);
+  font-family:'IBM Plex Mono',monospace;
+  font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;
+  padding:10px 14px;text-align:left;
+  border-bottom:1px solid var(--cyan);
+}
+.styled-table td{
+  padding:10px 14px;
+  border-bottom:1px solid var(--border);
+  color:var(--text);
+}
+.styled-table tr:hover td{background:rgba(0,212,170,.04);}
+code{
+  font-family:'IBM Plex Mono',monospace;
+  background:rgba(0,212,170,.1);
+  color:var(--cyan);
+  padding:1px 6px;border-radius:3px;
+  font-size:.9em;
+}
+
+/* ── CALLOUT ── */
+.callout{
+  display:flex;gap:14px;align-items:flex-start;
+  border-radius:10px;
+  padding:16px 20px;
+  margin:16px 0;
+  font-size:.9rem;
+  font-style:italic;
+}
+.callout.cyan  {background:var(--cyan-dim);border:1px solid rgba(0,212,170,.2);}
+.callout.amber {background:var(--amber-dim);border:1px solid rgba(245,166,35,.2);}
+.callout.rose  {background:var(--rose-dim); border:1px solid rgba(255,107,138,.2);}
+.callout.green {background:var(--green-dim);border:1px solid rgba(74,222,128,.2);}
+.callout-icon{font-size:1.2rem;flex-shrink:0;margin-top:1px;}
+.callout strong{font-style:normal;}
+
+/* ── TWO COLUMNS ── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:640px){.two-col{grid-template-columns:1fr;}}
+
+/* ── BALANCE VISUAL ── */
+.balance{
+  display:flex;align-items:center;justify-content:center;
+  gap:12px;flex-wrap:wrap;
+  margin:20px 0;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:1rem;
+}
+.bal-side{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:16px 24px;
+  text-align:center;
+  min-width:120px;
+  transition:background .3s;
+}
+.bal-eq{font-size:1.5rem;color:var(--cyan);font-weight:700;}
+.bal-label{font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-top:4px;}
+
+/* ── EXERCISES ── */
+.score-wrap{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:20px 26px;
+  margin-bottom:28px;
+  display:flex;align-items:center;gap:20px;flex-wrap:wrap;
+}
+.score-label{font-family:'IBM Plex Mono',monospace;font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);}
+.score-num{font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:var(--cyan);}
+.score-bar-track{flex:1;min-width:120px;height:6px;background:var(--border);border-radius:3px;overflow:hidden;}
+.score-bar-fill{height:100%;background:linear-gradient(90deg,var(--cyan),#00ffcc);border-radius:3px;transition:width .5s ease;}
+.reset-btn{
+  font-family:'IBM Plex Mono',monospace;font-size:.72rem;
+  letter-spacing:.1em;text-transform:uppercase;
+  padding:8px 16px;border:1px solid var(--border);
+  border-radius:6px;background:none;color:var(--muted);cursor:pointer;
+  transition:all .2s;
+}
+.reset-btn:hover{border-color:var(--rose);color:var(--rose);}
+
+/* ── EX CARDS ── */
+.ex-section-title{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--muted);
+  margin:32px 0 14px;
+  display:flex;align-items:center;gap:12px;
+}
+.ex-section-title::after{content:'';flex:1;height:1px;background:var(--border);}
+
+.ex-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px;margin-bottom:10px;}
+
+.ex-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:22px;
+  transition:border-color .2s,transform .2s,box-shadow .2s;
+}
+.ex-card:hover{border-color:rgba(0,212,170,.3);transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,.3);}
+
+.ex-num{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:10px;
+}
+.ex-q{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:1.05rem;color:var(--cyan);
+  margin-bottom:16px;line-height:1.5;
+}
+.ex-q.problem{
+  font-family:'Lora',serif;
+  font-style:italic;
+  font-size:.92rem;
+  color:var(--text);
+  margin-bottom:8px;
+}
+.ex-hint{font-size:.8rem;color:var(--muted);font-style:italic;margin-bottom:12px;}
+
+.ex-input{
+  width:100%;
+  background:#0a0d15;
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:9px 14px;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:.95rem;
+  color:var(--text);
+  outline:none;
+  transition:border-color .2s,background .2s;
+}
+.ex-input::placeholder{color:var(--muted);opacity:.6;}
+.ex-input:focus{border-color:var(--cyan);background:#0d1120;}
+.ex-input.correct{border-color:var(--green);background:#0d1f14;}
+.ex-input.wrong  {border-color:var(--rose);background:#1a0d12;}
+
+.check-btn{
+  margin-top:10px;width:100%;
+  padding:9px;border:none;border-radius:6px;
+  background:rgba(0,212,170,.12);
+  color:var(--cyan);
+  font-family:'IBM Plex Mono',monospace;
+  font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;
+  cursor:pointer;transition:background .2s;
+}
+.check-btn:hover{background:rgba(0,212,170,.22);}
+
+.feedback{
+  margin-top:8px;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:.78rem;min-height:18px;
+}
+.feedback.ok {color:var(--green);}
+.feedback.err{color:var(--rose);}
+
+/* ── DIVIDER ── */
+hr.div{border:none;border-top:1px solid var(--border);margin:22px 0;}
+
+/* ── SCROLL REVEAL ── */
+.reveal{
+  opacity:0;transform:translateY(18px);
+  animation:fadeUp .5s ease forwards;
+}
+
+@media(max-width:600px){
+  .hero{padding:60px 20px 40px;}
+  .card{padding:20px;}
+  .balance{flex-direction:column;}
+}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+  <div class="hero-eyebrow">Matemáticas · 1º ESO</div>
+  <h1>
+    <span class="word1">Ecuaciones</span><br>
+    <span class="word2">de Primer Grado</span>
+  </h1>
+  <p>Aprende a resolver ecuaciones lineales paso a paso: suma, resta, multiplicación y división.</p>
+</div>
+
+<!-- NAV -->
+<div class="nav-wrap">
+  <div class="nav-tabs">
+    <button class="tab-btn active" onclick="show('teoria',this)">01 · Qué es</button>
+    <button class="tab-btn" onclick="show('propiedades',this)">02 · Propiedades</button>
+    <button class="tab-btn" onclick="show('suma',this)">03 · Suma/Resta</button>
+    <button class="tab-btn" onclick="show('multi',this)">04 · Mult/Div</button>
+    <button class="tab-btn" onclick="show('mixtas',this)">05 · Mixtas</button>
+    <button class="tab-btn" onclick="show('ejercicios',this)">06 · Ejercicios</button>
+    <button class="tab-btn" onclick="show('problemas',this)">07 · Problemas</button>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- ═══════════ 01 QUÉ ES ═══════════ -->
+<div id="teoria" class="section active">
+  <div class="sec-header">
+    <div class="sec-tag">// sección 01</div>
+    <h2>¿Qué es una ecuación<br>de primer grado?</h2>
+    <p>Una igualdad con una incógnita elevada a la primera potencia.</p>
+  </div>
+
+  <div class="card cyan">
+    <h3>Definición</h3>
+    <p>Una <strong>ecuación de primer grado</strong> (o ecuación lineal) es una igualdad matemática en la que aparece una incógnita —habitualmente <code>x</code>— con exponente 1.</p>
+    <div class="formula">ax + b = c &nbsp;&nbsp; (a ≠ 0)</div>
+    <p>Resolver la ecuación significa encontrar el valor de <code>x</code> que hace verdadera la igualdad. A ese valor se le llama <strong>solución</strong> o <strong>raíz</strong>.</p>
+  </div>
+
+  <div class="two-col">
+    <div class="card amber">
+      <h3>Partes de una ecuación</h3>
+      <table class="styled-table">
+        <thead><tr><th>Término</th><th>Qué es</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Miembro izquierdo</strong></td><td>Todo lo que está a la izquierda del <code>=</code></td></tr>
+          <tr><td><strong>Miembro derecho</strong></td><td>Todo lo que está a la derecha del <code>=</code></td></tr>
+          <tr><td><strong>Incógnita</strong></td><td>La letra cuyo valor buscamos (p.ej. <code>x</code>)</td></tr>
+          <tr><td><strong>Coeficiente</strong></td><td>El número que multiplica la incógnita</td></tr>
+          <tr><td><strong>Término independiente</strong></td><td>El número sin letra</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card rose">
+      <h3>¿Es ecuación o expresión?</h3>
+      <table class="styled-table">
+        <thead><tr><th>Ejemplo</th><th>Tipo</th></tr></thead>
+        <tbody>
+          <tr><td><code>3x + 5</code></td><td>Expresión ✗</td></tr>
+          <tr><td><code>3x + 5 = 20</code></td><td>Ecuación ✓</td></tr>
+          <tr><td><code>x² + 1 = 0</code></td><td>2º grado ✗</td></tr>
+          <tr><td><code>2x − 1 = 7</code></td><td>Ecuación ✓</td></tr>
+        </tbody>
+      </table>
+      <div class="callout rose" style="margin-top:12px">
+        <span class="callout-icon">⚠️</span>
+        <span>Si la incógnita aparece al cuadrado (<code>x²</code>) ya no es de primer grado.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card blue">
+    <h3>La metáfora de la balanza</h3>
+    <p>Una ecuación es como una balanza en equilibrio. Lo que hagas en un lado, <strong>debes hacerlo en el otro</strong> para mantener la igualdad.</p>
+    <div class="balance">
+      <div class="bal-side"><div style="font-size:1.3rem">3x + 2</div><div class="bal-label">Miembro izq.</div></div>
+      <div class="bal-eq">=</div>
+      <div class="bal-side"><div style="font-size:1.3rem">11</div><div class="bal-label">Miembro der.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ 02 PROPIEDADES ═══════════ -->
+<div id="propiedades" class="section">
+  <div class="sec-header">
+    <div class="sec-tag">// sección 02</div>
+    <h2>Propiedades de las ecuaciones</h2>
+    <p>Las herramientas que usamos para despejar la incógnita.</p>
+  </div>
+
+  <div class="card cyan">
+    <h3>Principio de igualdad</h3>
+    <p>Podemos realizar <strong>cualquier operación</strong> en ambos miembros sin romper la igualdad:</p>
+    <table class="styled-table" style="margin-top:14px">
+      <thead><tr><th>Operación</th><th>Regla</th><th>Ejemplo</th></tr></thead>
+      <tbody>
+        <tr><td>Suma</td><td>Si <code>a = b</code> → <code>a + c = b + c</code></td><td><code>x − 3 = 7 → x = 10</code></td></tr>
+        <tr><td>Resta</td><td>Si <code>a = b</code> → <code>a − c = b − c</code></td><td><code>x + 5 = 9 → x = 4</code></td></tr>
+        <tr><td>Multiplicación</td><td>Si <code>a = b</code> → <code>a·c = b·c</code></td><td><code>x/3 = 4 → x = 12</code></td></tr>
+        <tr><td>División</td><td>Si <code>a = b</code> → <code>a/c = b/c</code></td><td><code>2x = 8 → x = 4</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card amber">
+    <h3>Transposición de términos</h3>
+    <p>Cuando <em>pasamos un término al otro lado</em> del signo <code>=</code>, <strong>cambia de signo</strong>. Es una consecuencia directa del principio de igualdad.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">Ecuación original: <span class="op">x + 4 = 10</span></div>
+      </div>
+      <div class="step amber">
+        <div class="step-num">2</div>
+        <div class="step-body">Pasamos el +4 al otro lado: <span class="op">x = 10 − 4</span></div>
+      </div>
+      <div class="step green">
+        <div class="step-num">3</div>
+        <div class="step-body">Resultado: <span class="op">x = 6</span></div>
+      </div>
+    </div>
+    <div class="callout amber">
+      <span class="callout-icon">💡</span>
+      <span><strong>Lo que suma pasa restando, y lo que multiplica pasa dividiendo.</strong></span>
+    </div>
+  </div>
+
+  <div class="card rose">
+    <h3>Verificación de la solución</h3>
+    <p>Siempre podemos comprobar si nuestra solución es correcta <strong>sustituyendo</strong> el valor en la ecuación original.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">Ecuación: <span class="op">2x − 3 = 7</span> &nbsp;→&nbsp; solución obtenida: <span class="op">x = 5</span></div>
+      </div>
+      <div class="step amber">
+        <div class="step-num">2</div>
+        <div class="step-body">Sustituimos: <span class="op">2·(5) − 3 = 10 − 3 = 7</span> ✓</div>
+      </div>
+      <div class="step green">
+        <div class="step-num">3</div>
+        <div class="step-body">La igualdad se cumple, <span class="op">x = 5</span> es correcto.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ 03 SUMA / RESTA ═══════════ -->
+<div id="suma" class="section">
+  <div class="sec-header">
+    <div class="sec-tag">// sección 03</div>
+    <h2>Ecuaciones con suma y resta</h2>
+    <p>El tipo más sencillo: solo hay que trasladar términos.</p>
+  </div>
+
+  <div class="card cyan">
+    <h3>Tipo: x + b = c</h3>
+    <div class="formula">x + b = c &nbsp;→&nbsp; x = c − b</div>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-body">Ecuación: <span class="op">x + 7 = 15</span></div></div>
+      <div class="step amber"><div class="step-num">2</div><div class="step-body">Pasamos el +7: <span class="op">x = 15 − 7</span></div></div>
+      <div class="step green"><div class="step-num">3</div><div class="step-body">Solución: <span class="op">x = 8</span></div></div>
+    </div>
+  </div>
+
+  <div class="card amber">
+    <h3>Tipo: x − b = c</h3>
+    <div class="formula">x − b = c &nbsp;→&nbsp; x = c + b</div>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-body">Ecuación: <span class="op">x − 4 = 9</span></div></div>
+      <div class="step amber"><div class="step-num">2</div><div class="step-body">Pasamos el −4: <span class="op">x = 9 + 4</span></div></div>
+      <div class="step green"><div class="step-num">3</div><div class="step-body">Solución: <span class="op">x = 13</span></div></div>
+    </div>
+  </div>
+
+  <div class="card rose">
+    <h3>Incógnita en el miembro derecho</h3>
+    <div class="formula">b = x + c &nbsp;→&nbsp; x = b − c</div>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-body">Ecuación: <span class="op">12 = x + 5</span></div></div>
+      <div class="step amber"><div class="step-num">2</div><div class="step-body">Pasamos el +5: <span class="op">12 − 5 = x</span></div></div>
+      <div class="step green"><div class="step-num">3</div><div class="step-body">Solución: <span class="op">x = 7</span></div></div>
+    </div>
+  </div>
+
+  <div class="card blue">
+    <h3>Con términos en ambos miembros</h3>
+    <div class="formula">x + 3 = 2x − 5 &nbsp;→&nbsp; agrupa las x a un lado</div>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-body">Ecuación: <span class="op">x + 3 = 2x − 5</span></div></div>
+      <div class="step amber"><div class="step-num">2</div><div class="step-body">Pasamos la 2x: <span class="op">x − 2x = −5 − 3</span></div></div>
+      <div class="step amber"><div class="step-num">3</div><div class="step-body">Simplificamos: <span class="op">−x = −8</span></div></div>
+      <div class="step green"><div class="step-num">4</div><div class="step-body">Multiplicamos por −1: <span class="op">x = 8</span></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ 04 MULT / DIV ═══════════ -->
+<div id="multi" class="section">
+  <div class="sec-header">
+    <div class="sec-tag">// sección 04</div>
+    <h2>Ecuaciones con multiplicación y división</h2>
+    <p>Cuando la incógnita lleva un coeficiente o está en el denominador.</p>
+  </div>
+
+  <div class="card cyan">
+    <h3>Tipo: ax = c</h3>
+    <div class="formula">ax = c &nbsp;→&nbsp; x = c / a</div>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-body">Ecuación: <span class="op">3x = 21</span></div></div>
+      <div class="step amber"><div class="step-num">2</div><div class="step-body">Dividimos por 3: <span class="op">x = 21 / 3</span></div></div>
+      <div class="step green"><div class="step-num">3</div><div class="step-body">Solución: <span class="op">x = 7</span></div></div>
+    </div>
+  </div>
+
+  <div class="card amber">
+    <h3>Tipo: x / a = c</h3>
+    <div class="formula">x / a = c &nbsp;→&nbsp; x = c · a</div>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-body">Ecuación: <span class="op">x / 4 = 6</span></div></div>
+      <div class="step amber"><div class="step-num">2</div><div class="step-body">Multiplicamos por 4: <span class="op">x = 6 · 4</span></div></div>
+      <div class="step green"><div class="step-num">3</div><div class="step-body">Solución: <span class="op">x = 24</span></div></div>
+    </div>
+  </div>
+
+  <div class="card rose">
+    <h3>Coeficiente fraccionario: (a/b)x = c</h3>
+    <div class="formula">(a/b)x = c &nbsp;→&nbsp; x = c · (b/a)</div>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-body">Ecuación: <span class="op">(2/3)x = 8</span></div></div>
+      <div class="step amber"><div class="step-num">2</div><div class="step-body">Multiplicamos por 3/2: <span class="op">x = 8 · (3/2)</span></div></div>
+      <div class="step green"><div class="step-num">3</div><div class="step-body">Solución: <span class="op">x = 12</span></div></div>
+    </div>
+    <div class="callout cyan" style="margin-top:14px">
+      <span class="callout-icon">💡</span>
+      <span><strong>Truco:</strong> para eliminar una fracción en un coeficiente, multiplica por su inverso: <code>(2/3)x = 8 → x = 8 · 3/2</code>.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ 05 MIXTAS ═══════════ -->
+<div id="mixtas" class="section">
+  <div class="sec-header">
+    <div class="sec-tag">// sección 05</div>
+    <h2>Ecuaciones mixtas</h2>
+    <p>Combinan suma/resta y multiplicación/división. Estrategia: agrupar y despejar.</p>
+  </div>
+
+  <div class="card cyan">
+    <h3>Estrategia general</h3>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><strong>Quita paréntesis</strong> aplicando la distributiva si los hay.</div></div>
+      <div class="step amber"><div class="step-num">2</div><div class="step-body"><strong>Agrupa</strong> todos los términos con <code>x</code> en el miembro izquierdo.</div></div>
+      <div class="step amber"><div class="step-num">3</div><div class="step-body"><strong>Pasa</strong> los números al miembro derecho.</div></div>
+      <div class="step green"><div class="step-num">4</div><div class="step-body"><strong>Despeja</strong> <code>x</code> dividiendo por su coeficiente.</div></div>
+    </div>
+  </div>
+
+  <div class="card amber">
+    <h3>Ejemplo 1: ax + b = c</h3>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-body">Ecuación: <span class="op">2x + 5 = 13</span></div></div>
+      <div class="step amber"><div class="step-num">2</div><div class="step-body">Pasamos el +5: <span class="op">2x = 13 − 5 = 8</span></div></div>
+      <div class="step green"><div class="step-num">3</div><div class="step-body">Dividimos por 2: <span class="op">x = 4</span></div></div>
+    </div>
+  </div>
+
+  <div class="card rose">
+    <h3>Ejemplo 2: con paréntesis</h3>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-body">Ecuación: <span class="op">3(x − 2) = 9</span></div></div>
+      <div class="step amber"><div class="step-num">2</div><div class="step-body">Distributiva: <span class="op">3x − 6 = 9</span></div></div>
+      <div class="step amber"><div class="step-num">3</div><div class="step-body">Pasamos el −6: <span class="op">3x = 9 + 6 = 15</span></div></div>
+      <div class="step green"><div class="step-num">4</div><div class="step-body">Dividimos por 3: <span class="op">x = 5</span></div></div>
+    </div>
+  </div>
+
+  <div class="card blue">
+    <h3>Ejemplo 3: incógnita en ambos miembros</h3>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-body">Ecuación: <span class="op">5x − 3 = 2x + 9</span></div></div>
+      <div class="step amber"><div class="step-num">2</div><div class="step-body">Agrupamos las x: <span class="op">5x − 2x = 9 + 3</span></div></div>
+      <div class="step amber"><div class="step-num">3</div><div class="step-body">Simplificamos: <span class="op">3x = 12</span></div></div>
+      <div class="step green"><div class="step-num">4</div><div class="step-body">Dividimos por 3: <span class="op">x = 4</span></div></div>
+    </div>
+  </div>
+
+  <div class="card green">
+    <h3>Ejemplo 4: con fracciones</h3>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-body">Ecuación: <span class="op">x/2 + 3 = 7</span></div></div>
+      <div class="step amber"><div class="step-num">2</div><div class="step-body">Pasamos el +3: <span class="op">x/2 = 4</span></div></div>
+      <div class="step green"><div class="step-num">3</div><div class="step-body">Multiplicamos por 2: <span class="op">x = 8</span></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ 06 EJERCICIOS ═══════════ -->
+<div id="ejercicios" class="section">
+  <div class="sec-header">
+    <div class="sec-tag">// sección 06</div>
+    <h2>Ejercicios</h2>
+    <p>Encuentra el valor de x en cada ecuación. Escribe solo el número.</p>
+  </div>
+
+  <div class="score-wrap">
+    <div>
+      <div class="score-label">Puntuación</div>
+      <div class="score-num" id="scoreValE">0 / 0</div>
+    </div>
+    <div class="score-bar-track">
+      <div class="score-bar-fill" id="scoreBarE" style="width:0%"></div>
+    </div>
+    <button class="reset-btn" onclick="resetEx()">↺ Reiniciar</button>
+  </div>
+
+  <div id="exContainer"></div>
+</div>
+
+<!-- ═══════════ 07 PROBLEMAS ═══════════ -->
+<div id="problemas" class="section">
+  <div class="sec-header">
+    <div class="sec-tag">// sección 07</div>
+    <h2>Problemas de contexto</h2>
+    <p>Lee el enunciado, tradúcelo a una ecuación y resuélvela.</p>
+  </div>
+
+  <div class="score-wrap">
+    <div>
+      <div class="score-label">Puntuación</div>
+      <div class="score-num" id="scoreValP">0 / 0</div>
+    </div>
+    <div class="score-bar-track">
+      <div class="score-bar-fill" id="scoreBarP" style="width:0%"></div>
+    </div>
+    <button class="reset-btn" onclick="resetProb()">↺ Reiniciar</button>
+  </div>
+
+  <div id="probContainer"></div>
+</div>
+
+</div><!-- end main -->
+
+<script>
+/* ══════════ TAB NAV ══════════ */
+function show(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+/* ══════════ EXERCISES DATA ══════════ */
+const exData = [
+  // SUMA / RESTA
+  { group:"Suma y Resta", eq:"x + 5 = 12",     ans:7  },
+  { group:"Suma y Resta", eq:"x + 8 = 20",     ans:12 },
+  { group:"Suma y Resta", eq:"x − 3 = 10",     ans:13 },
+  { group:"Suma y Resta", eq:"x − 7 = 4",      ans:11 },
+  { group:"Suma y Resta", eq:"15 = x + 6",     ans:9  },
+  { group:"Suma y Resta", eq:"x + 11 = 11",    ans:0  },
+
+  // MULTIPLICACIÓN / DIVISIÓN
+  { group:"Multiplicación y División", eq:"3x = 18",    ans:6  },
+  { group:"Multiplicación y División", eq:"5x = 35",    ans:7  },
+  { group:"Multiplicación y División", eq:"x / 4 = 5",  ans:20 },
+  { group:"Multiplicación y División", eq:"x / 3 = 9",  ans:27 },
+  { group:"Multiplicación y División", eq:"2x = 14",    ans:7  },
+  { group:"Multiplicación y División", eq:"x / 6 = 4",  ans:24 },
+
+  // MIXTAS
+  { group:"Ecuaciones Mixtas", eq:"2x + 3 = 11",        ans:4  },
+  { group:"Ecuaciones Mixtas", eq:"3x − 4 = 11",        ans:5  },
+  { group:"Ecuaciones Mixtas", eq:"4x + 1 = 17",        ans:4  },
+  { group:"Ecuaciones Mixtas", eq:"5x − 10 = 20",       ans:6  },
+  { group:"Ecuaciones Mixtas", eq:"x/2 + 3 = 7",        ans:8  },
+  { group:"Ecuaciones Mixtas", eq:"x/3 − 1 = 4",        ans:15 },
+  { group:"Ecuaciones Mixtas", eq:"3x + 2 = 2x + 9",    ans:7  },
+  { group:"Ecuaciones Mixtas", eq:"5x − 3 = 3x + 7",    ans:5  },
+];
+
+const probData = [
+  {
+    text: "Pienso en un número, le sumo 8 y obtengo 23. ¿Cuál es el número?",
+    hint: "Ecuación: x + 8 = 23",
+    ans: 15
+  },
+  {
+    text: "El doble de un número es 36. ¿Cuál es el número?",
+    hint: "Ecuación: 2x = 36",
+    ans: 18
+  },
+  {
+    text: "Ana tiene x euros. Gasta 12 y le quedan 25. ¿Cuánto tenía?",
+    hint: "Ecuación: x − 12 = 25",
+    ans: 37
+  },
+  {
+    text: "Repartimos x caramelos en 5 grupos iguales y salen 7 por grupo. ¿Cuántos caramelos había?",
+    hint: "Ecuación: x / 5 = 7",
+    ans: 35
+  },
+  {
+    text: "Un número multiplicado por 3 y aumentado en 4 da 22. ¿Cuál es el número?",
+    hint: "Ecuación: 3x + 4 = 22",
+    ans: 6
+  },
+  {
+    text: "La mitad de un número menos 5 es igual a 3. ¿Cuál es el número?",
+    hint: "Ecuación: x/2 − 5 = 3",
+    ans: 16
+  },
+  {
+    text: "Un libro cuesta x euros. Si su precio aumenta en 7 euros, costaría lo mismo que 3 libros de 10 euros. ¿Cuánto cuesta el libro?",
+    hint: "Ecuación: x + 7 = 30",
+    ans: 23
+  },
+  {
+    text: "Carlos tiene el doble de años que María. Si entre los dos suman 36, ¿cuántos años tiene María?",
+    hint: "Ecuación: x + 2x = 36 → 3x = 36",
+    ans: 12
+  },
+];
+
+/* ══════════ SCORE STATE ══════════ */
+let answeredEx   = {};
+let answeredProb = {};
+
+function buildExercises() {
+  const container = document.getElementById('exContainer');
+  container.innerHTML = '';
+
+  const groups = [...new Set(exData.map(e => e.group))];
+  groups.forEach(grp => {
+    const title = document.createElement('div');
+    title.className = 'ex-section-title';
+    title.textContent = grp;
+    container.appendChild(title);
+
+    const grid = document.createElement('div');
+    grid.className = 'ex-grid';
+
+    exData.forEach((ex, i) => {
+      if (ex.group !== grp) return;
+      const card = document.createElement('div');
+      card.className = 'ex-card';
+      card.innerHTML = `
+        <div class="ex-num">Ejercicio ${i+1}</div>
+        <div class="ex-q">${ex.eq}</div>
+        <input class="ex-input" id="exInp${i}" placeholder="x = ?" autocomplete="off">
+        <button class="check-btn" onclick="checkEx(${i})">Comprobar</button>
+        <div class="feedback" id="exFb${i}"></div>`;
+      grid.appendChild(card);
+      setTimeout(() => {
+        document.getElementById(`exInp${i}`)?.addEventListener('keydown', e => {
+          if (e.key === 'Enter') checkEx(i);
+        });
+      }, 0);
+    });
+    container.appendChild(grid);
+  });
+  updateScoreEx();
+}
+
+function checkEx(i) {
+  const inp = document.getElementById(`exInp${i}`);
+  const fb  = document.getElementById(`exFb${i}`);
+  if (!inp || !fb) return;
+  const val = parseFloat(inp.value.replace(',','.'));
+  if (isNaN(val)) { fb.className='feedback err'; fb.textContent='↑ Escribe un número.'; return; }
+  if (val === exData[i].ans) {
+    inp.classList.add('correct'); inp.classList.remove('wrong');
+    fb.className='feedback ok'; fb.textContent=`✓ ¡Correcto! x = ${exData[i].ans}`;
+    answeredEx[i] = true;
+  } else {
+    inp.classList.add('wrong'); inp.classList.remove('correct');
+    fb.className='feedback err'; fb.textContent=`✗ No es correcto. Inténtalo de nuevo.`;
+    answeredEx[i] = false;
+  }
+  updateScoreEx();
+}
+
+function updateScoreEx() {
+  const total   = exData.length;
+  const correct = Object.values(answeredEx).filter(Boolean).length;
+  document.getElementById('scoreValE').textContent = `${correct} / ${total}`;
+  document.getElementById('scoreBarE').style.width = total ? Math.round(correct/total*100)+'%' : '0%';
+}
+
+function resetEx() { answeredEx = {}; buildExercises(); }
+
+/* ══════════ PROBLEMS ══════════ */
+function buildProblems() {
+  const container = document.getElementById('probContainer');
+  container.innerHTML = '';
+  const grid = document.createElement('div');
+  grid.className = 'ex-grid';
+
+  probData.forEach((pb, i) => {
+    const card = document.createElement('div');
+    card.className = 'ex-card';
+    card.innerHTML = `
+      <div class="ex-num">Problema ${i+1}</div>
+      <div class="ex-q problem">${pb.text}</div>
+      <div class="ex-hint">${pb.hint}</div>
+      <input class="ex-input" id="pbInp${i}" placeholder="x = ?" autocomplete="off">
+      <button class="check-btn" onclick="checkProb(${i})">Comprobar</button>
+      <div class="feedback" id="pbFb${i}"></div>`;
+    grid.appendChild(card);
+    setTimeout(() => {
+      document.getElementById(`pbInp${i}`)?.addEventListener('keydown', e => {
+        if (e.key === 'Enter') checkProb(i);
+      });
+    }, 0);
+  });
+  container.appendChild(grid);
+  updateScoreProb();
+}
+
+function checkProb(i) {
+  const inp = document.getElementById(`pbInp${i}`);
+  const fb  = document.getElementById(`pbFb${i}`);
+  const val = parseFloat(inp.value.replace(',','.'));
+  if (isNaN(val)) { fb.className='feedback err'; fb.textContent='↑ Escribe un número.'; return; }
+  if (val === probData[i].ans) {
+    inp.classList.add('correct'); inp.classList.remove('wrong');
+    fb.className='feedback ok'; fb.textContent=`✓ ¡Correcto! x = ${probData[i].ans}`;
+    answeredProb[i] = true;
+  } else {
+    inp.classList.add('wrong'); inp.classList.remove('correct');
+    fb.className='feedback err'; fb.textContent=`✗ Revisa tu cálculo. Pista: ${probData[i].hint}`;
+    answeredProb[i] = false;
+  }
+  updateScoreProb();
+}
+
+function updateScoreProb() {
+  const total   = probData.length;
+  const correct = Object.values(answeredProb).filter(Boolean).length;
+  document.getElementById('scoreValP').textContent = `${correct} / ${total}`;
+  document.getElementById('scoreBarP').style.width = total ? Math.round(correct/total*100)+'%' : '0%';
+}
+
+function resetProb() { answeredProb = {}; buildProblems(); }
+
+/* ══════════ INIT ══════════ */
+buildExercises();
+buildProblems();
+</script>
+</body>
+</html>
