@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ecuaciones en la Vida Diaria</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f13;
+    --surface: #18181f;
+    --surface2: #21212b;
+    --border: #2e2e3e;
+    --text: #e8e8f0;
+    --muted: #7a7a9a;
+    --accent-density: #f7c948;
+    --accent-move: #4ecdc4;
+    --accent-conc: #ff6b9d;
+    --accent-price: #a8ff78;
+    --accent-energy: #ff9f43;
+    --correct: #4ecdc4;
+    --wrong: #ff6b6b;
+    --formula-bg: #1e1e28;
+    --tag-radius: 4px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ─── HEADER ─── */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 2.5rem 2rem 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    top: -60px; left: -40px;
+    width: 320px; height: 320px;
+    background: radial-gradient(circle, rgba(247,201,72,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: -80px; right: 5%;
+    width: 250px; height: 250px;
+    background: radial-gradient(circle, rgba(78,205,196,0.07) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .header-tag {
+    display: inline-block;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent-density);
+    border: 1px solid var(--accent-density);
+    padding: 2px 10px;
+    border-radius: var(--tag-radius);
+    margin-bottom: 1rem;
+  }
+  header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    max-width: 700px;
+  }
+  header h1 span { color: var(--accent-density); }
+  header p {
+    margin-top: 0.75rem;
+    color: var(--muted);
+    font-size: 0.85rem;
+    max-width: 520px;
+  }
+
+  /* ─── NAV ─── */
+  nav {
+    display: flex;
+    gap: 0.5rem;
+    padding: 1rem 2rem;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    position: sticky;
+    top: 0;
+    background: rgba(15,15,19,0.95);
+    backdrop-filter: blur(10px);
+    z-index: 100;
+  }
+  nav a {
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    transition: all 0.2s;
+  }
+  nav a:hover { color: var(--text); border-color: var(--muted); }
+  nav a.density { border-color: var(--accent-density); color: var(--accent-density); }
+  nav a.move    { border-color: var(--accent-move);    color: var(--accent-move); }
+  nav a.conc    { border-color: var(--accent-conc);    color: var(--accent-conc); }
+  nav a.price   { border-color: var(--accent-price);   color: var(--accent-price); }
+  nav a.energy  { border-color: var(--accent-energy);  color: var(--accent-energy); }
+
+  /* ─── MAIN LAYOUT ─── */
+  main { max-width: 960px; margin: 0 auto; padding: 2rem; }
+
+  /* ─── THEORY CARD ─── */
+  .theory-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 3rem;
+  }
+  .theory-section h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: var(--text);
+  }
+  .formula-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1.75rem;
+  }
+  .formula-pill {
+    background: var(--formula-bg);
+    border-radius: 8px;
+    padding: 0.85rem 1rem;
+    border-left: 3px solid;
+  }
+  .formula-pill.d  { border-color: var(--accent-density); }
+  .formula-pill.v  { border-color: var(--accent-move); }
+  .formula-pill.c  { border-color: var(--accent-conc); }
+  .formula-pill.p  { border-color: var(--accent-price); }
+  .formula-pill.e  { border-color: var(--accent-energy); }
+  .formula-pill .icon {
+    font-size: 1.1rem;
+    margin-bottom: 0.3rem;
+    display: block;
+  }
+  .formula-pill .expr {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .formula-pill .label {
+    font-size: 0.68rem;
+    color: var(--muted);
+    margin-top: 0.2rem;
+  }
+
+  .method-box {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+  }
+  .method-step {
+    background: var(--formula-bg);
+    border-radius: 8px;
+    padding: 0.9rem 1rem;
+    text-align: center;
+  }
+  .method-step .step-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 0.4rem;
+    opacity: 0.25;
+  }
+  .method-step h4 {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .method-step p {
+    font-size: 0.72rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .method-step:nth-child(1) .step-num { color: var(--accent-density); }
+  .method-step:nth-child(2) .step-num { color: var(--accent-move); }
+  .method-step:nth-child(3) .step-num { color: var(--accent-conc); }
+
+  /* ─── SECTION HEADERS ─── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-header .icon-big { font-size: 1.6rem; }
+  .section-header h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  .section-header .badge {
+    margin-left: auto;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 3px 12px;
+    border-radius: 20px;
+    border: 1px solid;
+  }
+
+  /* ─── PROBLEMS ─── */
+  .problems-block { margin-bottom: 3.5rem; }
+
+  .problem-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .problem-card:hover { border-color: var(--muted); }
+
+  .problem-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.1rem 1.25rem;
+    cursor: pointer;
+    user-select: none;
+  }
+  .problem-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .problem-text {
+    flex: 1;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: var(--text);
+  }
+  .problem-text .question {
+    font-weight: 700;
+    margin-top: 0.3rem;
+  }
+  .toggle-arrow {
+    color: var(--muted);
+    font-size: 0.8rem;
+    transition: transform 0.25s;
+    flex-shrink: 0;
+    margin-top: 4px;
+  }
+  .problem-card.open .toggle-arrow { transform: rotate(180deg); }
+
+  /* ─── SOLUTION PANEL ─── */
+  .solution-panel {
+    display: none;
+    border-top: 1px solid var(--border);
+    padding: 1.25rem;
+    background: var(--surface2);
+  }
+  .problem-card.open .solution-panel { display: block; }
+
+  .sol-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+  @media (max-width: 580px) { .sol-grid { grid-template-columns: 1fr; } }
+  .sol-block {
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--border);
+  }
+  .sol-block h4 {
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+  }
+  .sol-block .content {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8rem;
+    line-height: 1.7;
+  }
+  .sol-block .content .hl {
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .result-line {
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 0.85rem 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border: 1px solid var(--border);
+  }
+  .result-line .res-label {
+    font-size: 0.7rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .result-line .res-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 800;
+    margin-left: auto;
+  }
+
+  /* ─── INTERACTIVE INPUT ─── */
+  .try-box {
+    margin-top: 0.9rem;
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .try-box label {
+    font-size: 0.72rem;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .try-box input {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem;
+    padding: 6px 12px;
+    width: 110px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .try-box input:focus { border-color: var(--muted); }
+  .try-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    padding: 7px 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .try-btn:hover { background: var(--surface2); border-color: var(--muted); }
+  .feedback {
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 5px 12px;
+    border-radius: 5px;
+    display: none;
+  }
+  .feedback.correct {
+    background: rgba(78,205,196,0.12);
+    color: var(--correct);
+    border: 1px solid rgba(78,205,196,0.3);
+    display: inline-block;
+  }
+  .feedback.wrong {
+    background: rgba(255,107,107,0.12);
+    color: var(--wrong);
+    border: 1px solid rgba(255,107,107,0.3);
+    display: inline-block;
+  }
+
+  /* ─── COLOR PER SECTION ─── */
+  .density .problem-num  { background: rgba(247,201,72,0.12);  color: var(--accent-density); }
+  .move    .problem-num  { background: rgba(78,205,196,0.12);  color: var(--accent-move); }
+  .conc    .problem-num  { background: rgba(255,107,157,0.12); color: var(--accent-conc); }
+  .price   .problem-num  { background: rgba(168,255,120,0.12); color: var(--accent-price); }
+  .energy  .problem-num  { background: rgba(255,159,67,0.12);  color: var(--accent-energy); }
+  .density .result-line .res-value { color: var(--accent-density); }
+  .move    .result-line .res-value { color: var(--accent-move); }
+  .conc    .result-line .res-value { color: var(--accent-conc); }
+  .price   .result-line .res-value { color: var(--accent-price); }
+  .energy  .result-line .res-value { color: var(--accent-energy); }
+
+  .density .section-header h2 { color: var(--accent-density); }
+  .density .badge { border-color: var(--accent-density); color: var(--accent-density); }
+  .move    .section-header h2 { color: var(--accent-move); }
+  .move    .badge { border-color: var(--accent-move); color: var(--accent-move); }
+  .conc    .section-header h2 { color: var(--accent-conc); }
+  .conc    .badge { border-color: var(--accent-conc); color: var(--accent-conc); }
+  .price   .section-header h2 { color: var(--accent-price); }
+  .price   .badge { border-color: var(--accent-price); color: var(--accent-price); }
+  .energy  .section-header h2 { color: var(--accent-energy); }
+  .energy  .badge { border-color: var(--accent-energy); color: var(--accent-energy); }
+
+  /* ─── SCORE BAR ─── */
+  .score-bar {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0.85rem 1.2rem;
+    font-size: 0.78rem;
+    color: var(--muted);
+    z-index: 200;
+    backdrop-filter: blur(8px);
+  }
+  .score-bar span {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--accent-density);
+    margin-left: 0.4rem;
+  }
+
+  /* ─── FOOTER ─── */
+  footer {
+    text-align: center;
+    padding: 2rem;
+    font-size: 0.7rem;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    margin-top: 1rem;
+  }
+
+  @media (max-width: 480px) {
+    .method-box { grid-template-columns: 1fr; }
+    nav { padding: 0.75rem 1rem; }
+    main { padding: 1.25rem 1rem; }
+    header { padding: 1.75rem 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-tag">Física &amp; Matemáticas · Secundaria</div>
+  <h1>Ecuaciones en la<br><span>vida diaria</span></h1>
+  <p>Aprende a resolver problemas cotidianos usando fórmulas simples. Cada ejercicio sigue la misma estructura: Fórmula → Datos → Cálculo.</p>
+</header>
+
+<nav>
+  <a href="#teoria">Teoría</a>
+  <a href="#densidad" class="density">⚗️ Densidad</a>
+  <a href="#movimiento" class="move">🚗 Movimiento</a>
+  <a href="#concentracion" class="conc">🧃 Concentración</a>
+  <a href="#precio" class="price">💰 Precio</a>
+  <a href="#energia" class="energy">⚡ Energía</a>
+</nav>
+
+<main>
+
+  <!-- ───────────── TEORÍA ───────────── -->
+  <section id="teoria" class="theory-section">
+    <h2>📐 Teoría: fórmulas y método</h2>
+    <div class="formula-grid">
+      <div class="formula-pill d">
+        <span class="icon">⚗️</span>
+        <div class="expr">ρ = m / V</div>
+        <div class="label">Densidad · Masa · Volumen</div>
+      </div>
+      <div class="formula-pill v">
+        <span class="icon">🚗</span>
+        <div class="expr">v = d / t</div>
+        <div class="label">Velocidad · Distancia · Tiempo</div>
+      </div>
+      <div class="formula-pill c">
+        <span class="icon">🧃</span>
+        <div class="expr">C = m / V</div>
+        <div class="label">Concentración · Masa soluto · Volumen</div>
+      </div>
+      <div class="formula-pill p">
+        <span class="icon">💰</span>
+        <div class="expr">P = € × n</div>
+        <div class="label">Precio · €/unidad · Cantidad</div>
+      </div>
+      <div class="formula-pill e">
+        <span class="icon">⚡</span>
+        <div class="expr">E = P × t</div>
+        <div class="label">Energía · Potencia · Tiempo</div>
+      </div>
+    </div>
+
+    <div class="method-box">
+      <div class="method-step">
+        <div class="step-num">01</div>
+        <h4>Fórmula</h4>
+        <p>Escribe la fórmula general tal cual, sin sustituir ningún valor todavía.</p>
+      </div>
+      <div class="method-step">
+        <div class="step-num">02</div>
+        <h4>Datos</h4>
+        <p>Identifica qué te dan y qué te piden. Anota los valores con sus unidades.</p>
+      </div>
+      <div class="method-step">
+        <div class="step-num">03</div>
+        <h4>Cálculo</h4>
+        <p>Despeja la incógnita si hace falta y sustituye los datos. Opera y escribe el resultado con unidades.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────── DENSIDAD ───────────── -->
+  <section id="densidad" class="problems-block density">
+    <div class="section-header">
+      <span class="icon-big">⚗️</span>
+      <h2>Densidad</h2>
+      <span class="badge">ρ = m / V</span>
+    </div>
+
+    <!-- P1 -->
+    <div class="problem-card density" id="p1">
+      <div class="problem-head" onclick="toggle('p1')">
+        <span class="problem-num">#01</span>
+        <div class="problem-text">
+          Un objeto tiene una masa de 200 g y ocupa un volumen de 50 cm³.
+          <div class="question">👉 ¿Cuál es su densidad?</div>
+        </div>
+        <span class="toggle-arrow">▼</span>
+      </div>
+      <div class="solution-panel">
+        <div class="sol-grid">
+          <div class="sol-block"><h4>Fórmula</h4><div class="content"><span class="hl">ρ = m / V</span></div></div>
+          <div class="sol-block"><h4>Datos</h4><div class="content">m = <span class="hl">200 g</span><br>V = <span class="hl">50 cm³</span><br>ρ = ?</div></div>
+          <div class="sol-block"><h4>Cálculo</h4><div class="content">ρ = 200 / 50<br>ρ = <span class="hl">4 g/cm³</span></div></div>
+        </div>
+        <div class="result-line"><span class="res-label">Resultado</span><span class="res-value">ρ = 4 g/cm³</span></div>
+        <div class="try-box">
+          <label>Tu respuesta:</label>
+          <input type="number" step="any" placeholder="ej. 4" id="i1">
+          <button class="try-btn" onclick="check('i1', 4, 'f1')">Comprobar</button>
+          <span class="feedback" id="f1"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- P2 -->
+    <div class="problem-card density" id="p2">
+      <div class="problem-head" onclick="toggle('p2')">
+        <span class="problem-num">#02</span>
+        <div class="problem-text">
+          Un material tiene una densidad de 4 g/cm³ y una masa de 120 g.
+          <div class="question">👉 ¿Qué volumen ocupa?</div>
+        </div>
+        <span class="toggle-arrow">▼</span>
+      </div>
+      <div class="solution-panel">
+        <div class="sol-grid">
+          <div class="sol-block"><h4>Fórmula</h4><div class="content"><span class="hl">ρ = m / V</span><br>→ V = m / ρ</div></div>
+          <div class="sol-block"><h4>Datos</h4><div class="content">ρ = <span class="hl">4 g/cm³</span><br>m = <span class="hl">120 g</span><br>V = ?</div></div>
+          <div class="sol-block"><h4>Cálculo</h4><div class="content">V = 120 / 4<br>V = <span class="hl">30 cm³</span></div></div>
+        </div>
+        <div class="result-line"><span class="res-label">Resultado</span><span class="res-value">V = 30 cm³</span></div>
+        <div class="try-box">
+          <label>Tu respuesta:</label>
+          <input type="number" step="any" placeholder="ej. 30" id="i2">
+          <button class="try-btn" onclick="check('i2', 30, 'f2')">Comprobar</button>
+          <span class="feedback" id="f2"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- P3 -->
+    <div class="problem-card density" id="p3">
+      <div class="problem-head" onclick="toggle('p3')">
+        <span class="problem-num">#03</span>
+        <div class="problem-text">
+          Un líquido tiene una densidad de 0,8 g/cm³ y ocupa 250 cm³.
+          <div class="question">👉 ¿Cuál es su masa?</div>
+        </div>
+        <span class="toggle-arrow">▼</span>
+      </div>
+      <div class="solution-panel">
+        <div class="sol-grid">
+          <div class="sol-block"><h4>Fórmula</h4><div class="content"><span class="hl">ρ = m / V</span><br>→ m = ρ × V</div></div>
+          <div class="sol-block"><h4>Datos</h4><div class="content">ρ = <span class="hl">0,8 g/cm³</span><br>V = <span class="hl">250 cm³</span><br>m = ?</div></div>
+          <div class="sol-block"><h4>Cálculo</h4><div class="content">m = 0,8 × 250<br>m = <span class="hl">200 g</span></div></div>
+        </div>
+        <div class="result-line"><span class="res-label">Resultado</span><span class="res-value">m = 200 g</span></div>
+        <div class="try-box">
+          <label>Tu respuesta:</label>
+          <input type="number" step="any" placeholder="ej. 200" id="i3">
+          <button class="try-btn" onclick="check('i3', 200, 'f3')">Comprobar</button>
+          <span class="feedback" id="f3"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- P4 -->
+    <div class="problem-card density" id="p4">
+      <div class="problem-head" onclick="toggle('p4')">
+        <span class="problem-num">#04</span>
+        <div class="problem-text">
+          Una pieza metálica tiene masa de 780 g y volumen de 100 cm³.
+          <div class="question">👉 ¿Cuál es su densidad?</div>
+        </div>
+        <span class="toggle-arrow">▼</span>
+      </div>
+      <div class="solution-panel">
+        <div class="sol-grid">
+          <div class="sol-block"><h4>Fórmula</h4><div class="content"><span class="hl">ρ = m / V</span></div></div>
+          <div class="sol-block"><h4>Datos</h4><div class="content">m = <span class="hl">780 g</span><br>V = <span class="hl">100 cm³</span><br>ρ = ?</div></div>
+          <div class="sol-block"><h4>Cálculo</h4><div class="content">ρ = 780 / 100<br>ρ = <span class="hl">7,8 g/cm³</span></div></div>
+        </div>
+        <div class="result-line"><span class="res-label">Resultado</span><span class="res-value">ρ = 7,8 g/cm³</span></div>
+        <div class="try-box">
+          <label>Tu respuesta:</label>
+          <input type="number" step="any" placeholder="ej. 7.8" id="i4">
+          <button class="try-btn" onclick="check('i4', 7.8, 'f4')">Comprobar</button>
+          <span class="feedback" id="f4"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- P5 -->
+    <div class="problem-card density" id="p5">
+      <div class="problem-head" onclick="toggle('p5')">
+        <span class="problem-num">#05</span>
+        <div class="problem-text">
+          Un bloque de madera tiene densidad de 0,6 g/cm³ y volumen de 300 cm³.
+          <div class="question">👉 ¿Cuál es su masa?</div>
+        </div>
+        <span class="toggle-arrow">▼</span>
+      </div>
+      <div class="solution-panel">
+        <div class="sol-grid">
+          <div class="sol-block"><h4>Fórmula</h4><div class="content"><span class="hl">ρ = m / V</span><br>→ m = ρ × V</div></div>
+          <div class="sol-block"><h4>Datos</h4><div class="content">ρ = <span class="hl">0,6 g/cm³</span><br>V = <span class="hl">300 cm³</span><br>m = ?</div></div>
+          <div class="sol-block"><h4>Cálculo</h4><div class="content">m = 0,6 × 300<br>m = <span class="hl">180 g</span></div></div>
+        </div>
+        <div class="result-line"><span class="res-label">Resultado</span><span class="res-value">m = 180 g</span></div>
+        <div class="try-box">
+          <label>Tu respuesta:</label>
+          <input type="number" step="any" placeholder="ej. 180" id="i5">
+          <button class="try-btn" onclick="check('i5', 180, 'f5')">Comprobar</button>
+          <span class="feedback" id="f5"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- P6 -->
+    <div class="problem-card density" id="p6">
+      <div class="problem-head" onclick="toggle('p6')">
+        <span class="problem-num">#06</span>
+        <div class="problem-text">
+          Un gas ocupa 500 cm³ y tiene una masa de 2 g.
+          <div class="question">👉 ¿Cuál es su densidad?</div>
+        </div>
+        <span class="toggle-arrow">▼</span>
+      </div>
+      <div class="solution-panel">
+        <div class="sol-grid">
+          <div class="sol-block"><h4>Fórmula</h4><div class="content"><span class="hl">ρ = m / V</span></div></div>
+          <div class="sol-block"><h4>Datos</h4><div class="content">V = <span class="hl">500 cm³</span><br>m = <span class="hl">2 g</span><br>ρ = ?</div></div>
+          <div class="sol-block"><h4>Cálculo</h4><div class="content">ρ = 2 / 500<br>ρ = <span class="hl">0,004 g/cm³</span></div></div>
+        </div>
+        <div class="result-line"><span class="res-label">Resultado</span><span class="res-value">ρ = 0,004 g/cm³</span></div>
+        <div class="try-box">
+          <label>Tu respuesta:</label>
+          <input type="number" step="any" placeholder="ej. 0.004" id="i6">
+          <button class="try-btn" onclick="check('i6', 0.004, 'f6')">Comprobar</button>
+          <span class="feedback" id="f6"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- P7 -->
+    <div class="problem-card density" id="p7">
+      <div class="problem-head" onclick="toggle('p7')">
+        <span class="problem-num">#07</span>
+        <div class="problem-text">
+          Una sustancia tiene densidad de 2,5 g/cm³ y masa de 50 g.
+          <div class="question">👉 ¿Qué volumen ocupa?</div>
+        </div>
+        <span class="toggle-arrow">▼</span>
+      </div>
+      <div class="solution-panel">
+        <div class="sol-grid">
+          <div class="sol-block"><h4>Fórmula</h4><div class="content"><span class="hl">ρ = m / V</span><br>→ V = m / ρ</div></div>
+          <div class="sol-block"><h4>Datos</h4><div class="content">ρ = <span class="hl">2,5 g/cm³</span><br>m = <span class="hl">50 g</span><br>V = ?</div></div>
+          <div class="sol-block"><h4>Cálculo</h4><div class="content">V = 50 / 2,5<br>V = <span class="hl">20 cm³</span></div></div>
+        </div>
+        <div class="result-line"><span class="res-label">Resultado</span><span class="res-value">V = 20 cm³</span></div>
+        <div class="try-box">
+          <label>Tu respuesta:</label>
+          <input type="number" step="any" placeholder="ej. 20" id="i7">
+          <button class="try-btn" onclick="check('i7', 20, 'f7')">Comprobar</button>
+          <span class="feedback" id="f7"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- P8 -->
+    <div class="problem-card density" id="p8">
+      <div class="problem-head" onclick="toggle('p8')">
+        <span class="problem-num">#08</span>
+        <div class="problem-text">
+          Un objeto tiene volumen de 80 cm³ y densidad de 10 g/cm³.
+          <div class="question">👉 ¿Cuál es su masa?</div>
+        </div>
+        <span class="toggle-arrow">▼</span>
+      </div>
+      <div class="solution-panel">
+        <div class="sol-grid">
+          <div class="sol-block"><h4>Fórmula</h4><div class="content"><span class="hl">ρ = m / V</span><br>→ m = ρ × V</div></div>
+          <div class="sol-block"><h4>Datos</h4><div class="content">V = <span class="hl">80 cm³</span><br>ρ = <span class="hl">10 g/cm³</span><br>m = ?</div></div>
+          <div class="sol-block"><h4>Cálculo</h4><div class="content">m = 10 × 80<br>m = <span class="hl">800 g</span></div></div>
+        </div>
+        <div class="result-line"><span class="res-label">Resultado</span><span class="res-value">m = 800 g</span></div>
+        <div class="try-box">
+          <label>Tu respuesta:</label>
+          <input type="number" step="any" placeholder="ej. 800" id="i8">
+          <button class="try-btn" onclick="check('i8', 800, 'f8')">Comprobar</button>
+          <span class="feedback" id="f8"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- P9 -->
+    <div class="problem-card density" id="p9">
+      <div class="problem-head" onclick="toggle('p9')">
+        <span class="problem-num">#09</span>
+        <div class="problem-text">
+          Una roca tiene masa de 900 g y densidad de 3 g/cm³.
+          <div class="question">👉 ¿Cuál es su volumen?</div>
+        </div>
+        <span class="toggle-arrow">▼</span>
+      </div>
+      <div class="solution-panel">
+        <div class="sol-grid">
+          <div class="sol-block"><h4>Fórmula</h4><div class="content"><span class="hl">ρ = m / V</span><br>→ V = m / ρ</div></div>
+          <div class="sol-block"><h4>Datos</h4><div class="content">m = <span class="hl">900 g</span><br>ρ = <span class="hl">3 g/cm³</span><br>V = ?</div></div>
+          <div class="sol-block"><h4>Cálculo</h4><div class="content">V = 900 / 3<br>V = <span class="hl">300 cm³</span></div></div>
+        </div>
+        <div class="result-line"><span class="res-label">Resultado</span><span class="res-value">V = 300 cm³</span></div>
+        <div class="try-box">
+          <label>Tu respuesta:</label>
+          <input type="number" step="any" placeholder="ej. 300" id="i9">
+          <button class="try-btn" onclick="check('i9', 300, 'f9')">Comprobar</button>
+          <span class="feedback" id="f9"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- P10 -->
+    <div class="problem-card density" id="p10">
+      <div class="problem-head" onclick="toggle('p10')">
+        <span class="problem-num">#10</span>
+        <div class="problem-text">
+          Un líquido tiene densidad de 1,2 g/cm³ y masa de 600 g.
+          <div class="question">👉 ¿Qué volumen ocupa?</div>
+        </div>
+        <span class="toggle-arrow">▼</span>
+      </div>
+      <div class="solution-panel">
+        <div class="sol-grid">
+          <div class="sol-block"><h4>Fórmula</h4><div class="content"><span class="hl">ρ = m / V</span><br>→ V = m / ρ</div></div>
+          <div class="sol-block"><h4>Datos</h4><div class="content">ρ = <span class="hl">1,2 g/cm³</span><br>m = <span class="hl">600 g</span><br>V = ?</div></div>
+          <div class="sol-block"><h4>Cálculo</h4><div class="content">V = 600 / 1,2<br>V = <span class="hl">500 cm³</span></div></div>
+        </div>
+        <div class="result-line"><span class="res-label">Resultado</span><span class="res-value">V = 500 cm³</span></div>
+        <div class="try-box">
+          <label>Tu respuesta:</label>
+          <input type="number" step="any" placeholder="ej. 500" id="i10">
+          <button class="try-btn" onclick="check('i10', 500, 'f10')">Comprobar</button>
+          <span class="feedback" id="f10"></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────── MOVIMIENTO ───────────── -->
+  <section id="movimiento" class="problems-block move">
+    <div class="section-header">
+      <span class="icon-big">🚗</span>
+      <h2>Movimiento</h2>
+      <span class="badge">v = d / t</span>
+    </div>
+
+    <!-- P11 -->
+    <div class="problem-card move" id="p11">
+      <div class="problem-head" onclick="toggle('p11')">
+        <span class="problem-num">#11</span>
+        <div class="problem-text">
+          Un coche recorre 120 km en 2 horas.
+          <div class="question">👉 ¿Cuál es su velocidad?</div>
+        </div>
+        <span class="toggle-arrow">▼</span>
+      </div>
+      <div class="solution-panel">
+        <div class="sol-grid">
+          <div class="sol-block"><h4>Fórmula</h4><div class="content"><span class="hl">v = d / t</span></div></div>
+          <div class="sol-block"><h4>Datos</h4><div class="content">d = <span class="hl">120 km</span><br>t = <span class="hl">2 h</span><br>v = ?</div></div>
+          <div class="sol-block"><h4>Cálculo</h4><div class="content">v = 120 / 2<br>v = <span class="hl">60 km/h</span></div></div>
+        </div>
+        <div class="result-line"><span class="res-label">Resultado</span><span class="res-value">v = 60 km/h</span></div>
+        <div class="try-box">
+          <label>Tu respuesta:</label>
+          <input type="number" step="any" placeholder="ej. 60" id="i11">
+          <button class="try-btn" onclick="check('i11', 60, 'f11')">Comprobar</button>
+          <span class="feedback" id="f11"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- P12 -->
+    <div class="problem-card move" id="p12">
+      <div class="problem-head" onclick="toggle('p12')">
+        <span class="problem-num">#12</span>
+        <div class="problem-text">
+          Una bicicleta va a 15 km/h durante 4 horas.
+          <div class="question">👉 ¿Qué distancia recorre?</div>
+        </div>
+        <span class="toggle-arrow">▼</span>
+      </div>
+      <div class="solution-panel">
+        <div class="sol-grid">
+          <div class="sol-block"><h4>Fórmula</h4><div class="content"><span class="hl">v = d / t</span><br>→ d = v × t</div></div>
+          <div class="sol-block"><h4>Datos</h4><div class="content">v = <span class="hl">15 km/h</span><br>t = <span class="hl">4 h</span><br>d = ?</div></div>
+          <div class="sol-block"><h4>Cálculo</h4><div class="content">d = 15 × 4<br>d = <span class="hl">60 km</span></div></div>
+        </div>
+        <div class="result-line"><span class="res-label">Resultado</span><span class="res-value">d = 60 km</span></div>
+        <div class="try-box">
+          <label>Tu respuesta:</label>
+          <input type="number" step="any" placeholder="ej. 60" id="i12">
+          <button class="try-btn" onclick="check('i12', 60, 'f12')">Comprobar</button>
+          <span class="feedback" id="f12"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- P13 -->
+    <div class="problem-card move" id="p13">
+      <div class="problem-head" onclick="toggle('p13')">
+        <span class="problem-num">#13</span>
+        <div class="problem-text">
+          Un tren recorre 300 km a 100 km/h.
+          <div class="question">👉 ¿Cuánto tiempo tarda?</div>
+        </div>
+        <span class="toggle-arrow">▼</span>
+      </div>
+      <div class="solution-panel">
+        <div class="sol-grid">
+          <div class="sol-block"><h4>Fórmula</h4><div class="content"><span class="hl">v = d / t</span><br>→ t = d / v</div></div>
+          <div class="sol-block"><h4>Datos</h4><div class="content">d = <span class="hl">300 km</span><br>v = <span class="hl">100 km/h</span><br>t = ?</div></div>
+          <div class="sol-block"><h4>Cálculo</h4><div class="content">t = 300 / 100<br>t = <span class="hl">3 h</span></div></div>
+        </div>
+        <div class="result-line"><span class="res-label">Resultado</span><span class="res-value">t = 3 h</span></div>
+        <div class="try-box">
+          <label>Tu respuesta:</label>
+          <input type="number" step="any" placeholder="ej. 3" id="i13">
+          <button class="try-btn" onclick="check('i13', 3, 'f13')">Comprobar</button>
+          <span class="feedback" id="f13"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- P14 (extra movimiento) -->
+    <div class="problem-card move" id="p14">
+      <div class="problem-head" onclick="toggle('p14')">
+        <span class="problem-num">#14</span>
+        <div class="problem-text">
+          Un corredor completa una carrera de 10 km en 50 minutos.
+          <div class="question">👉 ¿Cuál es su velocidad media en km/h?</div>
+        </div>
+        <span class="toggle-arrow">▼</span>
+      </div>
+      <div class="solution-panel">
+        <div class="sol-grid">
+          <div class="sol-block"><h4>Fórmula</h4><div class="content"><span class="hl">v = d / t</span></div></div>
+          <div class="sol-block"><h4>Datos</h4><div class="content">d = <span class="hl">10 km</span><br>t = 50 min = <span class="hl">5/6 h</span><br>v = ?</div></div>
+          <div class="sol-block"><h4>Cálculo</h4><div class="content">v = 10 / (50/60)<br>v = <span class="hl">12 km/h</span></div></div>
+        </div>
+        <div class="result-line"><span class="res-label">Resultado</span><span class="res-value">v = 12 km/h</span></div>
+        <div class="try-box">
+          <label>Tu respuesta:</label>
+          <input type="number" step="any" placeholder="ej. 12" id="i14">
+          <button class="try-btn" onclick="check('i14', 12, 'f14')">Comprobar</button>
+          <span class="feedback" id="f14"></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────── CONCENTRACIÓN ───────────── -->
+  <section id="concentracion" class="problems-block conc">
+    <div class="section-header">
+      <span class="icon-big">🧃</span>
+      <h2>Concentración</h2>
+      <span class="badge">C = m / V</span>
+    </div>
+
+    <!-- P15 -->
+    <div class="problem-card conc" id="p15">
+      <div class="problem-head" onclick="toggle('p15')">
+        <span class="problem-num">#15</span>
+        <div class="problem-text">
+          Se disuelven 10 g de sal en 2 L de agua.
+          <div class="question">👉 ¿Cuál es la concentración (g/L)?</div>
+        </div>
+        <span class="toggle-arrow">▼</span>
+      </div>
+      <div class="solution-panel">
+        <div class="sol-grid">
+          <div class="sol-block"><h4>Fórmula</h4><div class="content"><span class="hl">C = m / V</span></div></div>
+          <div class="sol-block"><h4>Datos</h4><div class="content">m = <span class="hl">10 g</span><br>V = <span class="hl">2 L</span><br>C = ?</div></div>
+          <div class="sol-block"><h4>Cálculo</h4><div class="content">C = 10 / 2<br>C = <span class="hl">5 g/L</span></div></div>
+        </div>
+        <div class="result-line"><span class="res-label">Resultado</span><span class="res-value">C = 5 g/L</span></div>
+        <div class="try-box">
+          <label>Tu respuesta:</label>
+          <input type="number" step="any" placeholder="ej. 5" id="i15">
+          <button class="try-btn" onclick="check('i15', 5, 'f15')">Comprobar</button>
+          <span class="feedback" id="f15"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- P16 -->
+    <div class="problem-card conc" id="p16">
+      <div class="problem-head" onclick="toggle('p16')">
+        <span class="problem-num">#16</span>
+        <div class="problem-text">
+          Una bebida tiene concentración de 5 g/L y volumen de 3 L.
+          <div class="question">👉 ¿Cuánta masa de soluto contiene?</div>
+        </div>
+        <span class="toggle-arrow">▼</span>
+      </div>
+      <div class="solution-panel">
+        <div class="sol-grid">
+          <div class="sol-block"><h4>Fórmula</h4><div class="content"><span class="hl">C = m / V</span><br>→ m = C × V</div></div>
+          <div class="sol-block"><h4>Datos</h4><div class="content">C = <span class="hl">5 g/L</span><br>V = <span class="hl">3 L</span><br>m = ?</div></div>
+          <div class="sol-block"><h4>Cálculo</h4><div class="content">m = 5 × 3<br>m = <span class="hl">15 g</span></div></div>
+        </div>
+        <div class="result-line"><span class="res-label">Resultado</span><span class="res-value">m = 15 g</span></div>
+        <div class="try-box">
+          <label>Tu respuesta:</label>
+          <input type="number" step="any" placeholder="ej. 15" id="i16">
+          <button class="try-btn" onclick="check('i16', 15, 'f16')">Comprobar</button>
+          <span class="feedback" id="f16"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- P17 -->
+    <div class="problem-card conc" id="p17">
+      <div class="problem-head" onclick="toggle('p17')">
+        <span class="problem-num">#17</span>
+        <div class="problem-text">
+          Se tienen 20 g de azúcar en una disolución de concentración 4 g/L.
+          <div class="question">👉 ¿Qué volumen tiene la disolución?</div>
+        </div>
+        <span class="toggle-arrow">▼</span>
+      </div>
+      <div class="solution-panel">
+        <div class="sol-grid">
+          <div class="sol-block"><h4>Fórmula</h4><div class="content"><span class="hl">C = m / V</span><br>→ V = m / C</div></div>
+          <div class="sol-block"><h4>Datos</h4><div class="content">m = <span class="hl">20 g</span><br>C = <span class="hl">4 g/L</span><br>V = ?</div></div>
+          <div class="sol-block"><h4>Cálculo</h4><div class="content">V = 20 / 4<br>V = <span class="hl">5 L</span></div></div>
+        </div>
+        <div class="result-line"><span class="res-label">Resultado</span><span class="res-value">V = 5 L</span></div>
+        <div class="try-box">
+          <label>Tu respuesta:</label>
+          <input type="number" step="any" placeholder="ej. 5" id="i17">
+          <button class="try-btn" onclick="check('i17', 5, 'f17')">Comprobar</button>
+          <span class="feedback" id="f17"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- P18 extra -->
+    <div class="problem-card conc" id="p18">
+      <div class="problem-head" onclick="toggle('p18')">
+        <span class="problem-num">#18</span>
+        <div class="problem-text">
+          Un suero fisiológico tiene concentración de 9 g/L. Se preparan 0,5 L.
+          <div class="question">👉 ¿Cuántos gramos de sal hay?</div>
+        </div>
+        <span class="toggle-arrow">▼</span>
+      </div>
+      <div class="solution-panel">
+        <div class="sol-grid">
+          <div class="sol-block"><h4>Fórmula</h4><div class="content"><span class="hl">C = m / V</span><br>→ m = C × V</div></div>
+          <div class="sol-block"><h4>Datos</h4><div class="content">C = <span class="hl">9 g/L</span><br>V = <span class="hl">0,5 L</span><br>m = ?</div></div>
+          <div class="sol-block"><h4>Cálculo</h4><div class="content">m = 9 × 0,5<br>m = <span class="hl">4,5 g</span></div></div>
+        </div>
+        <div class="result-line"><span class="res-label">Resultado</span><span class="res-value">m = 4,5 g</span></div>
+        <div class="try-box">
+          <label>Tu respuesta:</label>
+          <input type="number" step="any" placeholder="ej. 4.5" id="i18">
+          <button class="try-btn" onclick="check('i18', 4.5, 'f18')">Comprobar</button>
+          <span class="feedback" id="f18"></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────── PRECIO ───────────── -->
+  <section id="precio" class="problems-block price">
+    <div class="section-header">
+      <span class="icon-big">💰</span>
+      <h2>Precio</h2>
+      <span class="badge">P = € × n</span>
+    </div>
+
+    <!-- P19 -->
+    <div class="problem-card price" id="p19">
+      <div class="problem-head" onclick="toggle('p19')">
+        <span class="problem-num">#19</span>
+        <div class="problem-text">
+          Un producto cuesta 3 €/kg y compras 2 kg.
+          <div class="question">👉 ¿Cuánto pagas?</div>
+        </div>
+        <span class="toggle-arrow">▼</span>
+      </div>
+      <div class="solution-panel">
+        <div class="sol-grid">
+          <div class="sol-block"><h4>Fórmula</h4><div class="content"><span class="hl">P = € × n</span></div></div>
+          <div class="sol-block"><h4>Datos</h4><div class="content">€ = <span class="hl">3 €/kg</span><br>n = <span class="hl">2 kg</span><br>P = ?</div></div>
+          <div class="sol-block"><h4>Cálculo</h4><div class="content">P = 3 × 2<br>P = <span class="hl">6 €</span></div></div>
+        </div>
+        <div class="result-line"><span class="res-label">Resultado</span><span class="res-value">P = 6 €</span></div>
+        <div class="try-box">
+          <label>Tu respuesta:</label>
+          <input type="number" step="any" placeholder="ej. 6" id="i19">
+          <button class="try-btn" onclick="check('i19', 6, 'f19')">Comprobar</button>
+          <span class="feedback" id="f19"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- P20 -->
+    <div class="problem-card price" id="p20">
+      <div class="problem-head" onclick="toggle('p20')">
+        <span class="problem-num">#20</span>
+        <div class="problem-text">
+          Pagas 12 € por 4 kg de fruta.
+          <div class="question">👉 ¿Cuál es el precio por kg?</div>
+        </div>
+        <span class="toggle-arrow">▼</span>
+      </div>
+      <div class="solution-panel">
+        <div class="sol-grid">
+          <div class="sol-block"><h4>Fórmula</h4><div class="content"><span class="hl">P = € × n</span><br>→ € = P / n</div></div>
+          <div class="sol-block"><h4>Datos</h4><div class="content">P = <span class="hl">12 €</span><br>n = <span class="hl">4 kg</span><br>€/kg = ?</div></div>
+          <div class="sol-block"><h4>Cálculo</h4><div class="content">€/kg = 12 / 4<br>€/kg = <span class="hl">3 €/kg</span></div></div>
+        </div>
+        <div class="result-line"><span class="res-label">Resultado</span><span class="res-value">3 €/kg</span></div>
+        <div class="try-box">
+          <label>Tu respuesta:</label>
+          <input type="number" step="any" placeholder="ej. 3" id="i20">
+          <button class="try-btn" onclick="check('i20', 3, 'f20')">Comprobar</button>
+          <span class="feedback" id="f20"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- P21 extra -->
+    <div class="problem-card price" id="p21">
+      <div class="problem-head" onclick="toggle('p21')">
+        <span class="problem-num">#21</span>
+        <div class="problem-text">
+          El transporte público cuesta 1,5 €/viaje. Realizas 22 viajes al mes.
+          <div class="question">👉 ¿Cuánto gastas al mes?</div>
+        </div>
+        <span class="toggle-arrow">▼</span>
+      </div>
+      <div class="solution-panel">
+        <div class="sol-grid">
+          <div class="sol-block"><h4>Fórmula</h4><div class="content"><span class="hl">P = € × n</span></div></div>
+          <div class="sol-block"><h4>Datos</h4><div class="content">€ = <span class="hl">1,5 €</span><br>n = <span class="hl">22 viajes</span><br>P = ?</div></div>
+          <div class="sol-block"><h4>Cálculo</h4><div class="content">P = 1,5 × 22<br>P = <span class="hl">33 €</span></div></div>
+        </div>
+        <div class="result-line"><span class="res-label">Resultado</span><span class="res-value">P = 33 €</span></div>
+        <div class="try-box">
+          <label>Tu respuesta:</label>
+          <input type="number" step="any" placeholder="ej. 33" id="i21">
+          <button class="try-btn" onclick="check('i21', 33, 'f21')">Comprobar</button>
+          <span class="feedback" id="f21"></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────── ENERGÍA ───────────── -->
+  <section id="energia" class="problems-block energy">
+    <div class="section-header">
+      <span class="icon-big">⚡</span>
+      <h2>Consumo eléctrico</h2>
+      <span class="badge">E = P × t</span>
+    </div>
+
+    <!-- P22 -->
+    <div class="problem-card energy" id="p22">
+      <div class="problem-head" onclick="toggle('p22')">
+        <span class="problem-num">#22</span>
+        <div class="problem-text">
+          Un aparato de 100 W funciona durante 3 horas.
+          <div class="question">👉 ¿Cuánta energía consume? (en Wh)</div>
+        </div>
+        <span class="toggle-arrow">▼</span>
+      </div>
+      <div class="solution-panel">
+        <div class="sol-grid">
+          <div class="sol-block"><h4>Fórmula</h4><div class="content"><span class="hl">E = P × t</span></div></div>
+          <div class="sol-block"><h4>Datos</h4><div class="content">P = <span class="hl">100 W</span><br>t = <span class="hl">3 h</span><br>E = ?</div></div>
+          <div class="sol-block"><h4>Cálculo</h4><div class="content">E = 100 × 3<br>E = <span class="hl">300 Wh</span></div></div>
+        </div>
+        <div class="result-line"><span class="res-label">Resultado</span><span class="res-value">E = 300 Wh</span></div>
+        <div class="try-box">
+          <label>Tu respuesta:</label>
+          <input type="number" step="any" placeholder="ej. 300" id="i22">
+          <button class="try-btn" onclick="check('i22', 300, 'f22')">Comprobar</button>
+          <span class="feedback" id="f22"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- P23 -->
+    <div class="problem-card energy" id="p23">
+      <div class="problem-head" onclick="toggle('p23')">
+        <span class="problem-num">#23</span>
+        <div class="problem-text">
+          Un dispositivo consume 500 Wh en 5 horas.
+          <div class="question">👉 ¿Cuál es su potencia?</div>
+        </div>
+        <span class="toggle-arrow">▼</span>
+      </div>
+      <div class="solution-panel">
+        <div class="sol-grid">
+          <div class="sol-block"><h4>Fórmula</h4><div class="content"><span class="hl">E = P × t</span><br>→ P = E / t</div></div>
+          <div class="sol-block"><h4>Datos</h4><div class="content">E = <span class="hl">500 Wh</span><br>t = <span class="hl">5 h</span><br>P = ?</div></div>
+          <div class="sol-block"><h4>Cálculo</h4><div class="content">P = 500 / 5<br>P = <span class="hl">100 W</span></div></div>
+        </div>
+        <div class="result-line"><span class="res-label">Resultado</span><span class="res-value">P = 100 W</span></div>
+        <div class="try-box">
+          <label>Tu respuesta:</label>
+          <input type="number" step="any" placeholder="ej. 100" id="i23">
+          <button class="try-btn" onclick="check('i23', 100, 'f23')">Comprobar</button>
+          <span class="feedback" id="f23"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- P24 extra -->
+    <div class="problem-card energy" id="p24">
+      <div class="problem-head" onclick="toggle('p24')">
+        <span class="problem-num">#24</span>
+        <div class="problem-text">
+          Una bombilla de 60 W está encendida 8 horas al día durante 30 días.
+          <div class="question">👉 ¿Cuánta energía consume en un mes? (en kWh)</div>
+        </div>
+        <span class="toggle-arrow">▼</span>
+      </div>
+      <div class="solution-panel">
+        <div class="sol-grid">
+          <div class="sol-block"><h4>Fórmula</h4><div class="content"><span class="hl">E = P × t</span></div></div>
+          <div class="sol-block"><h4>Datos</h4><div class="content">P = <span class="hl">60 W = 0,06 kW</span><br>t = 8×30 = <span class="hl">240 h</span><br>E = ?</div></div>
+          <div class="sol-block"><h4>Cálculo</h4><div class="content">E = 0,06 × 240<br>E = <span class="hl">14,4 kWh</span></div></div>
+        </div>
+        <div class="result-line"><span class="res-label">Resultado</span><span class="res-value">E = 14,4 kWh</span></div>
+        <div class="try-box">
+          <label>Tu respuesta:</label>
+          <input type="number" step="any" placeholder="ej. 14.4" id="i24">
+          <button class="try-btn" onclick="check('i24', 14.4, 'f24')">Comprobar</button>
+          <span class="feedback" id="f24"></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div class="score-bar">
+  Aciertos <span id="scoreDisplay">0</span>
+</div>
+
+<footer>
+  Física &amp; Matemáticas · Secundaria &nbsp;·&nbsp; Haz clic en cada problema para ver la solución paso a paso
+</footer>
+
+<script>
+  let score = 0;
+
+  function toggle(id) {
+    const card = document.getElementById(id);
+    card.classList.toggle('open');
+  }
+
+  function check(inputId, correct, feedbackId) {
+    const input = document.getElementById(inputId);
+    const fb = document.getElementById(feedbackId);
+    const val = parseFloat(input.value.replace(',', '.'));
+
+    if (isNaN(val)) {
+      fb.textContent = '⚠ Escribe un número';
+      fb.className = 'feedback wrong';
+      return;
+    }
+
+    const tolerance = Math.abs(correct) * 0.005 + 0.001;
+    if (Math.abs(val - correct) <= tolerance) {
+      if (!input.dataset.counted) {
+        score++;
+        document.getElementById('scoreDisplay').textContent = score;
+        input.dataset.counted = 'true';
+      }
+      fb.textContent = '✓ ¡Correcto!';
+      fb.className = 'feedback correct';
+      input.style.borderColor = 'var(--correct)';
+    } else {
+      fb.textContent = '✗ Inténtalo de nuevo';
+      fb.className = 'feedback wrong';
+      input.style.borderColor = 'var(--wrong)';
+      setTimeout(() => { input.style.borderColor = ''; }, 1200);
+    }
+  }
+
+  // Allow Enter key to submit
+  document.querySelectorAll('.try-box input').forEach(inp => {
+    inp.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        inp.nextElementSibling.click();
+      }
+    });
+  });
+</script>
+</body>
+</html>
