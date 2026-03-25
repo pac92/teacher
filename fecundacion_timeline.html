@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Línea Temporal: Gametogénesis y Desarrollo Embrionario</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #181c27;
+    --surface2: #1e2235;
+    --border: #2a2f45;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --c-e: #22d3ee; --c-e-dim: #164e63; --bg-e: #0a1820;
+    --c-o: #f472b6; --c-o-dim: #831843; --bg-o: #180a12;
+    --c-f: #a78bfa; --c-f-dim: #4c1d95; --bg-f: #100a1a;
+    --c-d: #fb923c; --c-d-dim: #7c2d12; --bg-d: #180a04;
+    --glow-e: 0 0 12px #22d3ee44;
+    --glow-o: 0 0 12px #f472b644;
+    --glow-f: 0 0 12px #a78bfa44;
+    --glow-d: 0 0 12px #fb923c44;
+    --pool-w: 190px;
+    --header-h: 88px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 9999; opacity: 0.4;
+  }
+
+  /* HEADER */
+  header {
+    flex-shrink: 0;
+    padding: 0.8rem 1.2rem;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+  }
+  header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(0.82rem, 1.6vw, 1.15rem);
+    font-weight: 800; letter-spacing: -0.02em;
+  }
+  header p { color: var(--muted); font-size: 0.62rem; }
+  #stats { margin-left: auto; display: flex; gap: 1rem; align-items: center; }
+  .stat { font-size: 0.58rem; color: var(--muted); text-align: center; }
+  .stat span { font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 700; color: var(--text); display: block; }
+  #reset-btn {
+    background: none; border: 1px solid var(--border);
+    color: var(--muted); font-family: 'DM Mono', monospace;
+    font-size: 0.62rem; padding: 0.32rem 0.75rem; border-radius: 4px;
+    cursor: pointer; transition: all 0.2s; flex-shrink: 0;
+  }
+  #reset-btn:hover { border-color: var(--text); color: var(--text); }
+
+  /* LEGEND */
+  #legend {
+    flex-shrink: 0;
+    display: flex; gap: 1rem; padding: 0.45rem 1.2rem;
+    border-bottom: 1px solid var(--border); flex-wrap: wrap;
+  }
+  .leg-item { display: flex; align-items: center; gap: 0.35rem; font-size: 0.58rem; color: var(--muted); }
+  .leg-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+  /* MAIN: pool left + timeline right */
+  #main-body {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  /* POOL COLUMN */
+  #pool-col {
+    width: var(--pool-w);
+    flex-shrink: 0;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  #pool-col-header {
+    padding: 0.65rem 0.9rem 0.5rem;
+    font-family: 'Syne', sans-serif; font-size: 0.56rem; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted);
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  #pool {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.38rem;
+  }
+  #pool::-webkit-scrollbar { width: 3px; }
+  #pool::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* CONCEPT CARDS */
+  .concept-card {
+    background: #1e2235;
+    border: 1.5px solid var(--border);
+    border-radius: 5px;
+    padding: 0.38rem 0.5rem;
+    font-size: 0.62rem;
+    color: #fff;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: space-between; gap: 0.25rem;
+    transition: all 0.15s;
+    user-select: none;
+    line-height: 1.3;
+  }
+  .concept-card:hover { border-color: #4a5280; background: #252a40; }
+  .concept-card.selected {
+    border-color: #fff !important;
+    box-shadow: 0 0 0 2px #ffffff22;
+    background: #2a2f4a !important;
+  }
+  .concept-card.col-e { border-color: var(--c-e); color: var(--c-e); background: var(--bg-e); box-shadow: var(--glow-e); }
+  .concept-card.col-o { border-color: var(--c-o); color: var(--c-o); background: var(--bg-o); box-shadow: var(--glow-o); }
+  .concept-card.col-f { border-color: var(--c-f); color: var(--c-f); background: var(--bg-f); box-shadow: var(--glow-f); }
+  .concept-card.col-d { border-color: var(--c-d); color: var(--c-d); background: var(--bg-d); box-shadow: var(--glow-d); }
+  .concept-card.col-multi {
+    border-color: var(--c-e);
+    outline: 1px solid var(--c-o);
+    outline-offset: 1px;
+    color: var(--text);
+    background: #141820;
+  }
+
+  .info-btn {
+    background: none; border: none; cursor: pointer;
+    font-size: 0.6rem; color: var(--muted);
+    padding: 0; line-height: 1; flex-shrink: 0;
+    transition: color 0.15s;
+  }
+  .info-btn:hover { color: var(--text); }
+
+  /* TIMELINE COLUMN */
+  #timeline-col {
+    flex: 1;
+    overflow: auto;
+    padding: 0.9rem 1.2rem 2.5rem;
+    min-width: 0;
+  }
+  #timeline-col::-webkit-scrollbar { width: 5px; height: 5px; }
+  #timeline-col::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* SUBCATEGORY */
+  .subcategory { margin-bottom: 1.6rem; }
+  .subcat-header {
+    display: flex; align-items: center; gap: 0.7rem; margin-bottom: 0.7rem;
+    position: sticky; left: 0; z-index: 2;
+    background: var(--bg); /* so it covers slots when sticky */
+    padding-bottom: 2px;
+  }
+  .subcat-label {
+    font-family: 'Syne', sans-serif; font-size: 0.6rem; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap;
+  }
+  .subcat-line { width: 36px; height: 1px; flex-shrink: 0; }
+
+  .slots-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 0;
+  }
+
+  /* SLOTS */
+  .slot {
+    width: 114px;
+    min-width: 114px;
+    height: 60px;
+    border-radius: 6px;
+    border: 1.5px dashed;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.58rem; text-align: center;
+    cursor: pointer;
+    transition: filter 0.15s, border-color 0.15s, transform 0.15s;
+    padding: 0.2rem 0.3rem;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .slot-num {
+    position: absolute; top: 3px; left: 5px;
+    font-size: 0.46rem; opacity: 0.32; font-family: 'Syne', sans-serif;
+  }
+  .slot-hint { color: var(--muted); font-size: 0.54rem; }
+
+  .slot-e { border-color: var(--c-e-dim); background: var(--bg-e); }
+  .slot-o { border-color: var(--c-o-dim); background: var(--bg-o); }
+  .slot-f { border-color: var(--c-f-dim); background: var(--bg-f); }
+  .slot-d { border-color: var(--c-d-dim); background: var(--bg-d); }
+
+  .slot:hover:not(.filled) { filter: brightness(1.35); border-style: solid; }
+
+  .slot.filled { border-style: solid; cursor: default; }
+  .slot.filled-e { border-color: var(--c-e); box-shadow: var(--glow-e); color: var(--c-e); }
+  .slot.filled-o { border-color: var(--c-o); box-shadow: var(--glow-o); color: var(--c-o); }
+  .slot.filled-f { border-color: var(--c-f); box-shadow: var(--glow-f); color: var(--c-f); }
+  .slot.filled-d { border-color: var(--c-d); box-shadow: var(--glow-d); color: var(--c-d); }
+
+  .slot-inner {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 0.18rem; width: 100%; overflow: hidden;
+  }
+  .slot-label {
+    font-size: 0.57rem; font-weight: 600; line-height: 1.2;
+    text-align: center; word-break: break-word;
+  }
+  .slot-info-btn {
+    background: none; border: none; cursor: pointer;
+    font-size: 0.52rem; opacity: 0.45; line-height: 1;
+    transition: opacity 0.15s; padding: 0; color: inherit;
+    font-family: 'DM Mono', monospace;
+  }
+  .slot-info-btn:hover { opacity: 1; }
+
+  .slot.wrong-flash { animation: wrongflash 0.45s ease; }
+  @keyframes wrongflash {
+    0%,100% { }
+    40% { background: #3d0a0a !important; border-color: #ef4444 !important; border-style: solid; }
+  }
+  .slot.correct-pop { animation: correctpop 0.28s ease; }
+  @keyframes correctpop {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.07); }
+  }
+
+  .arrow {
+    width: 22px; min-width: 22px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--border); font-size: 0.75rem; flex-shrink: 0;
+  }
+
+  /* MODAL */
+  #modal-overlay {
+    position: fixed; inset: 0;
+    background: #00000099; backdrop-filter: blur(4px);
+    display: none; align-items: center; justify-content: center; z-index: 500;
+  }
+  #modal-overlay.active { display: flex; }
+  #modal-box {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.7rem;
+    max-width: 440px; width: 92%; position: relative;
+    animation: mpop 0.17s ease;
+  }
+  @keyframes mpop {
+    from { opacity:0; transform: scale(0.96) translateY(5px); }
+    to   { opacity:1; transform: scale(1) translateY(0); }
+  }
+  #modal-box h3 { font-family:'Syne',sans-serif; font-size:0.95rem; font-weight:700; margin-bottom:0.65rem; }
+  #modal-box p  { font-size:0.73rem; line-height:1.75; color:#aab0c8; }
+  #modal-close {
+    position: absolute; top:0.85rem; right:0.85rem;
+    background:none; border:1px solid var(--border);
+    color:var(--muted); width:25px; height:25px;
+    border-radius:50%; cursor:pointer; font-size:0.68rem;
+    display:flex; align-items:center; justify-content:center; transition:all 0.15s;
+  }
+  #modal-close:hover { border-color:var(--text); color:var(--text); }
+  .modal-tag {
+    display:inline-block; font-size:0.55rem; font-weight:700;
+    letter-spacing:0.1em; text-transform:uppercase;
+    padding:0.15rem 0.42rem; border-radius:3px; margin-bottom:0.55rem;
+  }
+
+  /* WIN */
+  #win-overlay {
+    position:fixed; inset:0;
+    background:#000000bb; backdrop-filter:blur(6px);
+    display:none; align-items:center; justify-content:center; z-index:600;
+  }
+  #win-overlay.active { display:flex; }
+  #win-box {
+    text-align:center; padding:2.2rem 2.8rem;
+    background:var(--surface2); border:1px solid var(--border);
+    border-radius:14px; max-width:360px; width:90%;
+    animation:mpop 0.3s ease;
+  }
+  #win-box h2 {
+    font-family:'Syne',sans-serif; font-size:1.7rem; font-weight:800;
+    background:linear-gradient(135deg,var(--c-e),var(--c-f),var(--c-d));
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    margin-bottom:0.4rem;
+  }
+  #win-box p { color:var(--muted); font-size:0.73rem; margin-bottom:1.5rem; }
+  #win-box button {
+    background:var(--surface); border:1px solid var(--border);
+    color:var(--text); font-family:'DM Mono',monospace;
+    font-size:0.68rem; padding:0.55rem 1.3rem;
+    border-radius:5px; cursor:pointer; transition:all 0.2s;
+  }
+  #win-box button:hover { border-color:var(--text); }
+
+  /* TOAST */
+  #toast {
+    position:fixed; bottom:1.4rem; left:50%; transform:translateX(-50%);
+    background:var(--surface2); border:1px solid var(--border);
+    color:var(--muted); font-size:0.66rem;
+    padding:0.45rem 1rem; border-radius:5px;
+    opacity:0; transition:opacity 0.17s;
+    pointer-events:none; z-index:400; white-space:nowrap;
+  }
+  #toast.show { opacity:1; }
+  #toast.err  { border-color:#ef4444; color:#fca5a5; }
+  #toast.ok   { border-color:#22c55e; color:#86efac; }
+
+  /* MOBILE */
+  @media (max-width: 640px) {
+    body { overflow: hidden; }
+    header { padding: 0.6rem 0.8rem; }
+    header h1 { font-size: 0.78rem; }
+    #stats { gap: 0.6rem; }
+    .stat span { font-size: 0.82rem; }
+    #legend { padding: 0.38rem 0.8rem; gap: 0.6rem; }
+
+    #main-body { flex-direction: column; }
+
+    #pool-col {
+      width: 100%;
+      height: 25vh;
+      min-height: 90px;
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+    }
+    #pool {
+      flex-direction: row;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 0.5rem 0.5rem;
+      gap: 0.35rem;
+      align-items: center;
+    }
+    #pool::-webkit-scrollbar { height: 3px; width: 0; }
+    .concept-card { flex-shrink: 0; font-size: 0.58rem; padding: 0.32rem 0.45rem; }
+
+    #timeline-col { flex: 1; overflow: auto; padding: 0.7rem 0.8rem 2rem; }
+    .slot { width: 98px; min-width: 98px; height: 54px; }
+    .subcat-header { position: static; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Gametogénesis · Fecundación · Desarrollo Embrionario</h1>
+    <p>Selecciona un concepto → luego el hueco</p>
+  </div>
+  <div id="stats">
+    <div class="stat"><span id="correct-count">0</span>aciertos</div>
+    <div class="stat"><span id="error-count">0</span>errores</div>
+    <div class="stat"><span id="remaining-count">0</span>restantes</div>
+    <button id="reset-btn">↺ reiniciar</button>
+  </div>
+</header>
+
+<div id="legend">
+  <div class="leg-item"><div class="leg-dot" style="background:var(--c-e)"></div>Espermatogénesis</div>
+  <div class="leg-item"><div class="leg-dot" style="background:var(--c-o)"></div>Ovogénesis</div>
+  <div class="leg-item"><div class="leg-dot" style="background:var(--c-f)"></div>Fecundación</div>
+  <div class="leg-item"><div class="leg-dot" style="background:var(--c-d)"></div>Desarrollo embrionario</div>
+</div>
+
+<div id="main-body">
+  <div id="pool-col">
+    <div id="pool-col-header">Conceptos</div>
+    <div id="pool"></div>
+  </div>
+  <div id="timeline-col">
+    <div id="timeline"></div>
+  </div>
+</div>
+
+<div id="modal-overlay">
+  <div id="modal-box">
+    <button id="modal-close">✕</button>
+    <div id="modal-tag" class="modal-tag"></div>
+    <h3 id="modal-title"></h3>
+    <p id="modal-body"></p>
+  </div>
+</div>
+
+<div id="win-overlay">
+  <div id="win-box">
+    <h2>¡Completado!</h2>
+    <p id="win-msg"></p>
+    <button onclick="resetGame()">Jugar de nuevo</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const CATS = {
+  e: { label:'Espermatogénesis',      color:'var(--c-e)', dim:'var(--c-e-dim)' },
+  o: { label:'Ovogénesis',            color:'var(--c-o)', dim:'var(--c-o-dim)' },
+  f: { label:'Fecundación',           color:'var(--c-f)', dim:'var(--c-f-dim)' },
+  d: { label:'Desarrollo embrionario',color:'var(--c-d)', dim:'var(--c-d-dim)' },
+};
+
+const CONCEPTS = [
+  { id:'cgp',              label:'CGP',                       cat:['e','o'],
+    def:'Células Germinales Primordiales. Precursoras de todos los gametos. Migran desde el saco vitelino hasta las gónadas en desarrollo durante la embriogénesis temprana. Son el origen común de espermatogonias y ovogonias.' },
+  { id:'espermatogonia',   label:'Espermatogonia',            cat:'e',
+    def:'Célula diploide (2n) en los túbulos seminíferos. Se divide por mitosis para mantenerse como población o diferenciarse en espermatocito I. Punto de partida de la espermatogénesis activa.' },
+  { id:'ovogonia',         label:'Ovogonia',                  cat:'o',
+    def:'Célula diploide (2n) precursora de los ovocitos. Se multiplica por mitosis durante la vida fetal y después entra en meiosis I. No se renueva tras el nacimiento, a diferencia de las espermatogonias.' },
+  { id:'espermatocito_i',  label:'Espermatocito I',           cat:'e',
+    def:'Célula 2n que ha iniciado la meiosis I. La más grande de la línea espermatogénica. Sufre replicación del ADN antes de entrar en profase I y experimenta el crossing-over.' },
+  { id:'ovocito_i',        label:'Ovocito I',                 cat:'o',
+    def:'Ovogonia que ha entrado en meiosis I. Se forma durante la vida fetal y queda detenida en profase I (diploteno). Cada ciclo menstrual, uno o pocos son reclutados para continuar la meiosis.' },
+  { id:'meiosis_i',        label:'Meiosis I',                 cat:['e','o'],
+    def:'División reduccional. Separa los cromosomas homólogos, reduciendo la ploidía de 2n a n. Incluye el crossing-over en profase I, fuente clave de variabilidad genética. Ocurre en ambas líneas germinales.' },
+  { id:'arresto_profase',  label:'Arresto en profase I',      cat:'o',
+    def:'El ovocito I queda paralizado en el diploteno de la profase I desde la vida fetal hasta la pubertad (o hasta décadas después). Puede durar hasta 50 años. Es exclusivo de la ovogénesis.' },
+  { id:'espermatocito_ii', label:'Espermatocito II',          cat:'e',
+    def:'Célula haploide (n) resultante de la meiosis I. Contiene cromosomas con sus dos cromátidas aún unidas. Pasa rápidamente a la meiosis II sin replicación de ADN intermedia.' },
+  { id:'ovocito_ii',       label:'Ovocito II',                cat:'o',
+    def:'Resultado de completar la meiosis I. Célula haploide (n) que sale en la ovulación y queda detenida en metafase II. Solo completa la meiosis II si es fecundado.' },
+  { id:'arresto_metafase', label:'Arresto en metafase II',    cat:'o',
+    def:'El ovocito II queda paralizado en la metafase II hasta la fecundación. Mantenido por el factor citostático (CSF). La entrada del espermatozoide activa la liberación de Ca²⁺ que rompe el arresto.' },
+  { id:'meiosis_ii',       label:'Meiosis II',                cat:['e','o'],
+    def:'División ecuacional. Separa las cromátidas hermanas. En espermatogénesis produce 4 espermátidas. En ovogénesis produce el óvulo maduro y el segundo corpúsculo polar, solo si hay fecundación.' },
+  { id:'ovulacion',        label:'Ovulación',                 cat:'o',
+    def:'Liberación del ovocito II (no del "óvulo maduro", que aún no existe) desde el folículo de De Graaf hacia la trompa de Falopio. Desencadenada por el pico de LH a mitad del ciclo.' },
+  { id:'espermatida',      label:'Espermátida',               cat:'e',
+    def:'Célula haploide (n) resultante de la meiosis II. Redonda y no móvil. Debe sufrir la espermiogénesis para convertirse en espermatozoide funcional.' },
+  { id:'ovotida',          label:'Ovótida',                   cat:'o',
+    def:'Óvulo maduro resultante de completar la meiosis II tras la fecundación. Término técnico preciso, equivalente femenino de la espermátida. Poco usado clínicamente pero correcto.' },
+  { id:'espermiogenesis',  label:'Espermiogénesis',           cat:'e',
+    def:'Maduración morfológica de la espermátida: formación del acrosoma (del aparato de Golgi), condensación nuclear, desarrollo del flagelo y eliminación del citoplasma residual.' },
+  { id:'eyaculacion',      label:'Eyaculación',               cat:'f',
+    def:'Expulsión del semen al tracto genital femenino. Los espermatozoides se mezclan con secreciones de vesículas seminales, próstata y glándulas de Cowper. El pH alcalino neutraliza el pH ácido vaginal.' },
+  { id:'capacitacion',     label:'Capacitación',              cat:'f',
+    def:'Maduración funcional del espermatozoide en el tracto femenino. Dura 6-8 horas. Cambios en la membrana plasmática y activación del movimiento hiperactivado del flagelo necesarios para la fecundación.' },
+  { id:'quimiotaxis',      label:'Quimiotaxis',               cat:'f',
+    def:'Guía química del espermatozoide hacia el ovocito. La progesterona liberada por las células del cúmulo actúa sobre el canal CATSPER del flagelo, activando la entrada de Ca²⁺ y orientando el movimiento.' },
+  { id:'reaccion_acrosomica', label:'Reacción acrosómica',    cat:'f',
+    def:'Exocitosis del acrosoma tras la unión del espermatozoide a la ZP3 de la zona pelúcida. Libera enzimas (acrosina, hialuronidasas) que permiten atravesar la zona pelúcida.' },
+  { id:'reaccion_cortical',label:'Reacción cortical',         cat:'f',
+    def:'Respuesta inmediata del ovocito tras la fusión con el espermatozoide. Los gránulos corticales modifican la zona pelúcida (bloque lento a la polispermia). Complementa el bloque eléctrico rápido inicial.' },
+  { id:'segmentacion',     label:'Segmentación',              cat:'d',
+    def:'Divisiones mitóticas rápidas del cigoto sin crecimiento celular. Produce blastómeros cada vez más pequeños. El embrión no aumenta de tamaño total durante este proceso.' },
+  { id:'morula',           label:'Mórula',                    cat:'d',
+    def:'Estadio de 16-32 blastómeros compactados, con aspecto de mora. Los externos formarán el trofoblasto; los internos, la masa celular interna (embrioblasto).' },
+  { id:'blastocele',       label:'Blastocele',                cat:'d',
+    def:'Cavidad llena de líquido en el interior del blastocisto. Su aparición separa el trofoblasto del embrioblasto. El líquido es bombeado activamente por las células del trofoblasto.' },
+  { id:'implantacion',     label:'Implantación',              cat:'d',
+    def:'Fijación del blastocisto en el endometrio uterino, entre los días 6-10 tras la fecundación. El trofoblasto invade el endometrio. Falla en el 30-50% de los ciclos naturales.' },
+  { id:'gastrulacion',     label:'Gastrulación',              cat:'d',
+    def:'Transforma el blastocisto bilaminar en un embrión trilaminar. Las células migran a través de la línea primitiva formando las tres capas germinales. Proceso morfogenético más importante del desarrollo.' },
+  { id:'capas_germinales', label:'Tres capas germinales',     cat:'d',
+    def:'Ectodermo, mesodermo y endodermo. Ectodermo → piel y sistema nervioso; mesodermo → músculo, hueso, riñón; endodermo → epitelio digestivo y respiratorio.' },
+  { id:'neurulacion',      label:'Neurulación',               cat:'d',
+    def:'Formación del tubo neural a partir del ectodermo dorsal, inducida por la notocorda. Un defecto en este proceso causa espina bífida o anencefalia.' },
+  { id:'bucle_oxitocina',  label:'Bucle de oxitocina',        cat:'d',
+    def:'Retroalimentación positiva del parto: presión fetal sobre cérvix → oxitocina → contracciones → más presión → más oxitocina. Se interrumpe con el nacimiento. Ejemplo clásico de feedback positivo.' },
+];
+
+const SUBCATS = [
+  { id:'e', label:'Espermatogénesis', slots:[
+    { id:'e0', hint:'①', accept:['cgp'] },
+    { id:'e1', hint:'②', accept:['espermatogonia'] },
+    { id:'e2', hint:'③', accept:['espermatocito_i'] },
+    { id:'e3', hint:'④', accept:['meiosis_i'] },
+    { id:'e4', hint:'⑤', accept:['espermatocito_ii'] },
+    { id:'e5', hint:'⑥', accept:['meiosis_ii'] },
+    { id:'e6', hint:'⑦', accept:['espermatida'] },
+    { id:'e7', hint:'⑧', accept:['espermiogenesis'] },
+  ]},
+  { id:'o', label:'Ovogénesis', slots:[
+    { id:'o0', hint:'①', accept:['cgp'] },
+    { id:'o1', hint:'②', accept:['ovogonia'] },
+    { id:'o2', hint:'③', accept:['ovocito_i'] },
+    { id:'o3', hint:'④', accept:['arresto_profase'] },
+    { id:'o4', hint:'⑤', accept:['meiosis_i'] },
+    { id:'o5', hint:'⑥', accept:['ovocito_ii'] },
+    { id:'o6', hint:'⑦', accept:['arresto_metafase'] },
+    { id:'o7', hint:'⑧', accept:['meiosis_ii'] },
+    { id:'o8', hint:'⑨', accept:['ovulacion'] },
+    { id:'o9', hint:'⑩', accept:['ovotida'] },
+  ]},
+  { id:'f', label:'Fecundación', slots:[
+    { id:'f0', hint:'①', accept:['eyaculacion'] },
+    { id:'f1', hint:'②', accept:['capacitacion'] },
+    { id:'f2', hint:'③', accept:['quimiotaxis'] },
+    { id:'f3', hint:'④', accept:['reaccion_acrosomica'] },
+    { id:'f4', hint:'⑤', accept:['reaccion_cortical'] },
+  ]},
+  { id:'d', label:'Desarrollo embrionario', slots:[
+    { id:'d0', hint:'①', accept:['segmentacion'] },
+    { id:'d1', hint:'②', accept:['morula'] },
+    { id:'d2', hint:'③', accept:['blastocele'] },
+    { id:'d3', hint:'④', accept:['implantacion'] },
+    { id:'d4', hint:'⑤', accept:['gastrulacion'] },
+    { id:'d5', hint:'⑥', accept:['capas_germinales'] },
+    { id:'d6', hint:'⑦', accept:['neurulacion'] },
+    { id:'d7', hint:'⑧', accept:['bucle_oxitocina'] },
+  ]},
+];
+
+// STATE
+let selected = null;
+let placedSlots = {};   // slotId -> conceptId
+let correctCount = 0;
+let errorCount = 0;
+const totalSlots = SUBCATS.reduce((a,s) => a + s.slots.length, 0);
+
+// HELPERS
+function shuffle(arr) {
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+function getConcept(id) { return CONCEPTS.find(c=>c.id===id); }
+function getSlotInfo(slotId) {
+  for(const s of SUBCATS){const sl=s.slots.find(x=>x.id===slotId);if(sl)return{slot:sl,subcat:s};}
+  return null;
+}
+function primaryCat(c) { return Array.isArray(c.cat)?c.cat[0]:c.cat; }
+function isMulti(c)    { return Array.isArray(c.cat)&&c.cat.length>1; }
+
+// Compute which color class a pool card should have based on what's been placed
+function cardColorClass(concept) {
+  const usedCats = new Set();
+  for(const [slotId,cid] of Object.entries(placedSlots)){
+    if(cid===concept.id){
+      const r=getSlotInfo(slotId);
+      if(r) usedCats.add(r.subcat.id);
+    }
+  }
+  if(usedCats.size===0) return '';
+  if(usedCats.size>1)   return 'col-multi';
+  return 'col-'+[...usedCats][0];
+}
+
+function showToast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='show '+(type||'err');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.className='',2100);
+}
+function updateStats(){
+  document.getElementById('correct-count').textContent=correctCount;
+  document.getElementById('error-count').textContent=errorCount;
+  document.getElementById('remaining-count').textContent=totalSlots-Object.keys(placedSlots).length;
+}
+
+// MODAL
+function openModal(conceptId){
+  const c=getConcept(conceptId); if(!c) return;
+  const catId=primaryCat(c);
+  const cat=CATS[catId];
+  const catLabel=Array.isArray(c.cat)?c.cat.map(id=>CATS[id].label).join(' / '):cat.label;
+  const tag=document.getElementById('modal-tag');
+  tag.textContent=catLabel;
+  tag.style.background=cat.dim; tag.style.color=cat.color;
+  document.getElementById('modal-title').textContent=c.label;
+  document.getElementById('modal-body').textContent=c.def;
+  document.getElementById('modal-overlay').classList.add('active');
+}
+document.getElementById('modal-close').addEventListener('click',()=>
+  document.getElementById('modal-overlay').classList.remove('active'));
+document.getElementById('modal-overlay').addEventListener('click',e=>{
+  if(e.target===document.getElementById('modal-overlay'))
+    document.getElementById('modal-overlay').classList.remove('active');
+});
+
+// RENDER POOL
+function renderPool(){
+  const pool=document.getElementById('pool');
+  pool.innerHTML='';
+  shuffle(CONCEPTS).forEach(c=>{
+    const card=document.createElement('div');
+    card.className='concept-card';
+    card.id='card-'+c.id;
+
+    const lbl=document.createElement('span');
+    lbl.textContent=c.label;
+
+    const btn=document.createElement('button');
+    btn.className='info-btn'; btn.textContent='ⓘ'; btn.title='Ver definición';
+    btn.addEventListener('click',e=>{e.stopPropagation();openModal(c.id);});
+
+    card.appendChild(lbl); card.appendChild(btn);
+    card.addEventListener('click',()=>selectConcept(c.id));
+    pool.appendChild(card);
+  });
+  refreshCardColors();
+}
+
+function refreshCardColors(){
+  CONCEPTS.forEach(c=>{
+    const card=document.getElementById('card-'+c.id); if(!card) return;
+    card.classList.remove('col-e','col-o','col-f','col-d','col-multi');
+    const cls=cardColorClass(c); if(cls) card.classList.add(cls);
+    if(selected===c.id) card.classList.add('selected');
+  });
+}
+
+// SELECT
+function selectConcept(id){
+  if(selected===id){
+    document.getElementById('card-'+id)?.classList.remove('selected');
+    selected=null; return;
+  }
+  if(selected) document.getElementById('card-'+selected)?.classList.remove('selected');
+  selected=id;
+  document.getElementById('card-'+id)?.classList.add('selected');
+}
+
+// RENDER TIMELINE
+function renderTimeline(){
+  const tl=document.getElementById('timeline'); tl.innerHTML='';
+  SUBCATS.forEach(sub=>{
+    const catDiv=document.createElement('div');
+    catDiv.className='subcategory';
+
+    const hdr=document.createElement('div');
+    hdr.className='subcat-header';
+    hdr.innerHTML=`<span class="subcat-label" style="color:${CATS[sub.id].color}">${sub.label}</span>
+      <div class="subcat-line" style="background:${CATS[sub.id].dim}"></div>`;
+    catDiv.appendChild(hdr);
+
+    const row=document.createElement('div');
+    row.className='slots-row';
+
+    sub.slots.forEach((slot,idx)=>{
+      if(idx>0){
+        const arr=document.createElement('div');
+        arr.className='arrow'; arr.textContent='→'; row.appendChild(arr);
+      }
+      const slotEl=document.createElement('div');
+      slotEl.className=`slot slot-${sub.id}`;
+      slotEl.id='slot-'+slot.id;
+      slotEl.dataset.slotid=slot.id;
+
+      if(placedSlots[slot.id]){
+        fillSlot(slotEl,slot,sub,placedSlots[slot.id]);
+      } else {
+        slotEl.innerHTML=`<span class="slot-num">${slot.hint}</span><span class="slot-hint">?</span>`;
+        slotEl.addEventListener('click',()=>attemptPlace(slot.id));
+      }
+      row.appendChild(slotEl);
+    });
+
+    catDiv.appendChild(row); tl.appendChild(catDiv);
+  });
+}
+
+function fillSlot(slotEl,slotDef,subcat,conceptId){
+  const concept=getConcept(conceptId);
+  slotEl.innerHTML='';
+  slotEl.classList.add('filled',`filled-${subcat.id}`);
+
+  const numEl=document.createElement('span');
+  numEl.className='slot-num'; numEl.textContent=slotDef.hint;
+
+  const inner=document.createElement('div');
+  inner.className='slot-inner';
+
+  const lbl=document.createElement('span');
+  lbl.className='slot-label'; lbl.textContent=concept.label;
+
+  const iBtn=document.createElement('button');
+  iBtn.className='slot-info-btn'; iBtn.textContent='ⓘ def.';
+  iBtn.addEventListener('click',e=>{e.stopPropagation();openModal(conceptId);});
+
+  inner.appendChild(lbl); inner.appendChild(iBtn);
+  slotEl.appendChild(numEl); slotEl.appendChild(inner);
+}
+
+// PLACE
+function attemptPlace(slotId){
+  if(!selected){showToast('Primero selecciona un concepto');return;}
+  if(placedSlots[slotId]){showToast('Este hueco ya está ocupado');return;}
+
+  const r=getSlotInfo(slotId); if(!r) return;
+  const {slot:slotDef,subcat}=r;
+  const slotEl=document.getElementById('slot-'+slotId);
+
+  if(slotDef.accept.includes(selected)){
+    placedSlots[slotId]=selected;
+    fillSlot(slotEl,slotDef,subcat,selected);
+    slotEl.classList.add('correct-pop');
+    setTimeout(()=>slotEl.classList.remove('correct-pop'),350);
+
+    refreshCardColors();
+    document.getElementById('card-'+selected)?.classList.remove('selected');
+    selected=null;
+    correctCount++;
+    updateStats();
+    showToast('✓ Correcto','ok');
+    checkWin();
+  } else {
+    errorCount++;
+    slotEl.classList.add('wrong-flash');
+    setTimeout(()=>slotEl.classList.remove('wrong-flash'),500);
+    updateStats();
+    showToast('✗ Incorrecto — intenta de nuevo','err');
+  }
+}
+
+// WIN
+function checkWin(){
+  if(Object.keys(placedSlots).length>=totalSlots){
+    const pct=Math.round(correctCount/(correctCount+errorCount)*100);
+    document.getElementById('win-msg').textContent=
+      `${correctCount} aciertos · ${errorCount} errores · precisión ${pct}%`;
+    setTimeout(()=>document.getElementById('win-overlay').classList.add('active'),420);
+  }
+}
+
+// RESET
+function resetGame(){
+  selected=null; placedSlots={};
+  correctCount=0; errorCount=0;
+  document.getElementById('win-overlay').classList.remove('active');
+  renderPool(); renderTimeline(); updateStats();
+}
+document.getElementById('reset-btn').addEventListener('click',resetGame);
+
+// INIT
+renderPool(); renderTimeline(); updateStats();
+</script>
+</body>
+</html>
