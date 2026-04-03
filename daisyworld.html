@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daisyworld — Simulador interactivo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #0e1015;
+  --card: #16181f;
+  --card-border: rgba(255,255,255,.07);
+  --text: #e8eaed;
+  --text-dim: #9ca3af;
+  --text-muted: #6b7280;
+  --white-daisy: #f0f0f0;
+  --white-daisy-bg: rgba(240,240,240,.10);
+  --black-daisy: #4a4a4a;
+  --black-daisy-accent: #a78bfa;
+  --black-daisy-bg: rgba(167,139,250,.10);
+  --temp: #ff8b60;
+  --temp-bg: rgba(255,139,96,.12);
+  --lum: #fbbf24;
+  --lum-bg: rgba(251,191,36,.10);
+  --ground: #6b8a5e;
+  --ground-bg: rgba(107,138,94,.10);
+  --danger: #ef4444;
+  --danger-bg: rgba(239,68,68,.10);
+  --sun: #fbbf24;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 28px 16px 40px;
+}
+
+#app {
+  width: 100%;
+  max-width: 780px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ── Title ───────────────────────────────── */
+#title-bar { text-align: center; padding-bottom: 2px; }
+#title-bar h1 {
+  font-size: 23px; font-weight: 600; letter-spacing: -0.5px;
+  background: linear-gradient(135deg, var(--lum), var(--ground));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+#title-bar p { font-size: 13px; color: var(--text-dim); margin-top: 3px; }
+
+/* ── Stats strip ─────────────────────────── */
+#stats {
+  display: flex; gap: 10px; flex-wrap: wrap;
+}
+.stat-card {
+  flex: 1; min-width: 100px;
+  padding: 10px 14px;
+  background: var(--card); border: 1px solid var(--card-border); border-radius: 10px;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.stat-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; }
+.stat-value {
+  font-size: 22px; font-weight: 600; letter-spacing: -0.5px;
+  font-variant-numeric: tabular-nums; transition: color .3s;
+}
+.stat-value.temp { color: var(--temp); }
+.stat-value.lum { color: var(--lum); }
+.stat-value.white { color: var(--white-daisy); }
+.stat-value.black { color: var(--black-daisy-accent); }
+
+/* ── Feedback ────────────────────────────── */
+#feedback {
+  font-size: 13px; line-height: 1.55; color: var(--text-dim);
+  padding: 11px 16px;
+  background: var(--card); border: 1px solid var(--card-border); border-radius: 10px;
+  min-height: 46px;
+  transition: opacity .3s;
+}
+#feedback strong { color: var(--text); font-weight: 500; }
+
+/* ── Graph containers ─────────────────────── */
+.graph-wrap {
+  position: relative;
+  background: var(--card); border: 1px solid var(--card-border); border-radius: 12px;
+  overflow: hidden; padding: 10px 8px 6px;
+}
+.graph-wrap canvas { display: block; width: 100%; max-height: 200px; }
+.graph-wrap.half canvas { max-height: 120px; }
+.graph-wrap .graph-title {
+  font-size: 10px; font-weight: 500; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: .05em;
+  margin-bottom: 4px; padding-left: 4px;
+}
+.btn-download {
+  position: absolute; top: 10px; right: 10px;
+  background: rgba(255,255,255,.08); border: 1px solid var(--card-border);
+  color: var(--text-dim); font-family: 'Outfit', sans-serif;
+  font-size: 11px; padding: 5px 12px; border-radius: 8px;
+  cursor: pointer; transition: all .2s; z-index: 2;
+  display: flex; align-items: center; gap: 5px;
+}
+.btn-download:hover { background: rgba(255,255,255,.14); color: var(--text); }
+.btn-download svg { width: 14px; height: 14px; }
+
+/* ── Chart rows ──────────────────────────── */
+.chart-row {
+  display: flex; gap: 12px;
+}
+.chart-row .graph-wrap {
+  flex: 1; min-width: 0;
+}
+.chart-row .graph-wrap.half {
+  flex: 1;
+}
+
+/* ── Fitness section ─────────────────────── */
+.fitness-card {
+  flex: 1; min-width: 0;
+  background: var(--card); border: 1px solid var(--card-border); border-radius: 12px;
+  padding: 12px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.fitness-card .fitness-title {
+  font-size: 11px; font-weight: 500; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: .05em;
+  display: flex; align-items: center; gap: 6px;
+}
+.fitness-card .fitness-title .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+}
+.fitness-card canvas {
+  width: 100%; height: 120px;
+}
+.fitness-bar-wrap {
+  display: flex; align-items: center; gap: 8px;
+}
+.fitness-bar-label {
+  font-size: 10px; color: var(--text-muted); min-width: 40px;
+}
+.fitness-bar-track {
+  flex: 1; height: 8px; background: rgba(255,255,255,.06);
+  border-radius: 4px; overflow: hidden;
+}
+.fitness-bar-fill {
+  height: 100%; border-radius: 4px; transition: width .15s ease-out;
+}
+.fitness-bar-fill.white { background: linear-gradient(90deg, rgba(240,240,240,.3), #f0f0f0); }
+.fitness-bar-fill.black { background: linear-gradient(90deg, rgba(167,139,250,.3), #a78bfa); }
+.fitness-bar-value {
+  font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums;
+  min-width: 36px; text-align: right;
+}
+
+/* ── Controls ────────────────────────────── */
+.card {
+  background: var(--card); border: 1px solid var(--card-border); border-radius: 12px;
+  padding: 14px 16px;
+}
+.card-title {
+  font-size: 11px; font-weight: 500; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: .06em;
+  margin-bottom: 12px;
+}
+
+.sliders { display: flex; flex-direction: column; gap: 12px; }
+.slider-row {
+  display: flex; align-items: center; gap: 10px;
+}
+.slider-row label {
+  font-size: 12px; color: var(--text-dim); min-width: 170px; flex-shrink: 0;
+}
+.slider-row input[type="range"] {
+  flex: 1; min-width: 80px; accent-color: var(--lum); height: 4px;
+}
+.slider-row .val {
+  font-size: 12px; color: var(--text); font-variant-numeric: tabular-nums;
+  min-width: 42px; text-align: right; font-weight: 500;
+}
+
+/* ── Buttons ─────────────────────────────── */
+#main-controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; position: sticky; bottom: 0; padding: 6px; background: var(--bg); }
+.btn {
+  padding: 10px 22px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px; font-weight: 500;
+  border: none; border-radius: 10px;
+  cursor: pointer; transition: all .2s;
+  letter-spacing: .01em;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: scale(.97); }
+
+.btn-play {
+  background: linear-gradient(135deg, #4ade80, #22c55e);
+  color: #fff;
+}
+.btn-play:hover { box-shadow: 0 4px 20px rgba(74,222,128,.3); }
+.btn-play.paused {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+}
+.btn-play.paused:hover { box-shadow: 0 4px 20px rgba(251,191,36,.3); }
+
+.btn-reset {
+  background: rgba(255,255,255,.06); color: var(--text-dim);
+  border: 1px solid var(--card-border);
+}
+.btn-reset:hover { background: rgba(255,255,255,.1); color: var(--text); }
+
+.spd { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-dim); margin-left: auto; }
+#spd-range { width: 80px; accent-color: var(--lum); }
+#spd-val { font-variant-numeric: tabular-nums; min-width: 26px; }
+
+/* ── Sudden actions ──────────────────────── */
+#sudden-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn-sudden {
+  padding: 7px 14px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 11px; font-weight: 500;
+  border: 1px solid var(--card-border); border-radius: 8px;
+  background: var(--card); color: var(--text-dim);
+  cursor: pointer; transition: all .2s;
+}
+.btn-sudden:hover { background: rgba(255,255,255,.06); color: var(--text); transform: translateY(-1px); }
+.btn-sudden.danger { border-color: rgba(239,68,68,.3); color: #f87171; }
+.btn-sudden.danger:hover { background: var(--danger-bg); border-color: rgba(239,68,68,.5); }
+.btn-sudden.warn { border-color: rgba(251,191,36,.3); color: #fbbf24; }
+.btn-sudden.warn:hover { background: var(--lum-bg); border-color: rgba(251,191,36,.5); }
+.btn-sudden.sun-off { border-color: rgba(107,138,94,.3); color: var(--ground); }
+.btn-sudden.sun-off:hover { background: var(--ground-bg); }
+
+/* ── Legend ───────────────────────────────── */
+#legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 11px; color: var(--text-muted); padding: 0 4px; }
+.leg { display: flex; align-items: center; gap: 5px; }
+.leg-dot { width: 9px; height: 9px; border-radius: 50%; }
+
+/* ── Responsive ──────────────────────────── */
+@media (max-width: 640px) {
+  .chart-row { flex-direction: column; }
+}
+@media (max-width: 560px) {
+  body { padding: 16px 8px 32px; }
+  #title-bar h1 { font-size: 19px; }
+  .stat-card { min-width: 70px; padding: 8px 10px; }
+  .stat-value { font-size: 18px; }
+  .slider-row label { min-width: 130px; font-size: 11px; }
+  .btn { padding: 9px 16px; font-size: 12px; }
+  .btn-sudden { padding: 6px 10px; font-size: 10px; }
+  #sudden-actions { gap: 6px; }
+  .fitness-card canvas { height: 100px; }
+}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div id="title-bar">
+    <h1>Mundo de margaritas (Daisyworld)</h1>
+    <p>Simulador del modelo de autorregulaci&oacute;n clim&aacute;tica de Lovelock</p>
+  </div>
+
+  <!-- Stats strip -->
+  <div id="stats">
+    <div class="stat-card">
+      <span class="stat-label">Temperatura</span>
+      <span class="stat-value temp" id="s-temp">—</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Luminosidad</span>
+      <span class="stat-value lum" id="s-lum">—</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Blancas</span>
+      <span class="stat-value white" id="s-white">—</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Negras</span>
+      <span class="stat-value black" id="s-black">—</span>
+    </div>
+  </div>
+
+  <!-- Feedback -->
+  <div id="feedback">
+    Pulsa <strong>Iniciar</strong> para comenzar la simulaci&oacute;n. El sol arrancar&aacute; con luminosidad baja y aumentar&aacute; gradualmente. Observa c&oacute;mo las margaritas regulan la temperatura del planeta.
+  </div>
+
+  <!-- Coverage Chart -->
+  <div class="graph-wrap">
+    <button class="btn-download" onclick="downloadChart()" title="Descargar PNG del gr&aacute;fico">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      PNG
+    </button>
+    <div class="graph-title">Cobertura del planeta</div>
+    <canvas id="chart-coverage" height="200"></canvas>
+  </div>
+
+  <!-- Legend for coverage -->
+  <div id="legend">
+    <span class="leg"><span class="leg-dot" style="background:#f0f0f0"></span> Blancas (%)</span>
+    <span class="leg"><span class="leg-dot" style="background:#a78bfa"></span> Negras (%)</span>
+    <span class="leg"><span class="leg-dot" style="background:#6b8a5e"></span> Suelo (%)</span>
+  </div>
+
+  <!-- Temperature & Luminosity row -->
+  <div class="chart-row">
+    <div class="graph-wrap half">
+      <div class="graph-title">Temperatura planetaria</div>
+      <canvas id="chart-temp" height="120"></canvas>
+    </div>
+    <div class="graph-wrap half">
+      <div class="graph-title">Luminosidad solar</div>
+      <canvas id="chart-lum" height="120"></canvas>
+    </div>
+  </div>
+
+  <!-- Fitness / Tolerance curves row -->
+  <div class="chart-row">
+    <div class="fitness-card">
+      <div class="fitness-title"><span class="dot" style="background:#f0f0f0"></span> Curva de tolerancia — Blancas</div>
+      <canvas id="fitness-white"></canvas>
+      <div class="fitness-bar-wrap">
+        <span class="fitness-bar-label">Fitness</span>
+        <div class="fitness-bar-track"><div class="fitness-bar-fill white" id="bar-fitness-white" style="width:0%"></div></div>
+        <span class="fitness-bar-value" id="val-fitness-white" style="color:#f0f0f0">0%</span>
+      </div>
+    </div>
+    <div class="fitness-card">
+      <div class="fitness-title"><span class="dot" style="background:#a78bfa"></span> Curva de tolerancia — Negras</div>
+      <canvas id="fitness-black"></canvas>
+      <div class="fitness-bar-wrap">
+        <span class="fitness-bar-label">Fitness</span>
+        <div class="fitness-bar-track"><div class="fitness-bar-fill black" id="bar-fitness-black" style="width:0%"></div></div>
+        <span class="fitness-bar-value" id="val-fitness-black" style="color:#a78bfa">0%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fitness explanation -->
+  <div id="fitness-feedback" class="card">
+    <div class="card-title">Comprendiendo las curvas de tolerancia</div>
+    <div style="font-size: 13px; line-height: 1.6; color: var(--text-dim);">
+      <p style="margin-bottom: 10px;"><strong style="color: var(--text);">TL;DR:</strong> Ambas especies tienen la <em>misma curva de tolerancia</em> (pico en 22.5&deg;C), pero experimentan <em>temperaturas locales diferentes</em> debido a su albedo. Las negras absorben m&aacute;s radiaci&oacute;n y est&aacute;n m&aacute;s calientes; las blancas reflejan luz y est&aacute;n m&aacute;s fr&iacute;as. La l&iacute;nea vertical naranja muestra d&oacute;nde se encuentra cada especie en su curva de fitness.</p>
+      
+      <p style="margin-bottom: 8px;"><strong style="color: var(--text);">Albedo y temperatura local:</strong> El <em>albedo</em> es la fracci&oacute;n de luz solar que una superficie refleja. Las margaritas blancas (albedo ~0.75) reflejan el 75% de la radiaci&oacute;n, mientras que las negras (albedo ~0.25) solo reflejan el 25% y absorben el resto. Esta diferencia crea microclimas: las negras calientan su entorno local unos +10&deg;C respecto a la temperatura planetaria, y las blancas lo enfr&iacute;an unos -10&deg;C.</p>
+      
+      <p style="margin-bottom: 8px;"><strong style="color: var(--text);">Valencia o tolerancia t&eacute;rmica:</strong> La curva parab&oacute;lica representa la <em>valencia ecol&oacute;gica</em> — la capacidad de crecimiento en funci&oacute;n de la temperatura. Ambas especies comparten la misma curva porque son biol&oacute;gicamente id&eacute;nticas, solo difieren en color. El fitness es m&aacute;ximo (100%) a 22.5&deg;C y cae a cero fuera del rango ~5&deg;C a ~40&deg;C.</p>
+      
+      <p style="margin-bottom: 0;"><strong style="color: var(--text);">Homeostasis emergente:</strong> Cuando el sol es d&eacute;bil, las negras prosperan porque su calor local las acerca al &oacute;ptimo. Cuando el sol es intenso, las blancas dominan porque su enfriamiento las mantiene en la zona viable. Este equilibrio din&aacute;mico estabiliza la temperatura global cerca de 22.5&deg;C — un fen&oacute;meno de <em>autorregulaci&oacute;n planetaria</em> sin inteligencia ni dise&ntilde;o, solo selecci&oacute;n natural actuando sobre el albedo.</p>
+    </div>
+  </div>
+
+  <!-- Main controls -->
+  <div id="main-controls">
+    <button class="btn btn-play" id="btn-play" onclick="togglePlay()">Iniciar</button>
+    <button class="btn btn-reset" onclick="resetSim()">Reiniciar</button>
+    <div class="spd">
+      <span>Velocidad</span>
+      <input type="range" id="spd-range" min="0.1" max="2" value="1" oninput="updateSpeed(this.value)">
+      <span id="spd-val">1</span>
+    </div>
+  </div>
+
+  <!-- Parameters -->
+  <div class="card">
+    <div class="card-title">Par&aacute;metros del modelo</div>
+    <div class="sliders">
+      <div class="slider-row">
+        <label>Tasa de luminosidad solar</label>
+        <input type="range" min="0.0001" max="0.01" step="0.0001" value="0.005" id="sl-lum-rate" oninput="updateParam()">
+        <span class="val" id="v-lum-rate">0.005</span>
+      </div>
+      <div class="slider-row">
+        <label>Albedo margaritas blancas</label>
+        <input type="range" min="0.5" max="0.95" step="0.01" value="0.75" id="sl-albedo-w" oninput="updateParam()">
+        <span class="val" id="v-albedo-w">0.75</span>
+      </div>
+      <div class="slider-row">
+        <label>Albedo margaritas negras</label>
+        <input type="range" min="0.05" max="0.5" step="0.01" value="0.25" id="sl-albedo-b" oninput="updateParam()">
+        <span class="val" id="v-albedo-b">0.25</span>
+      </div>
+      <div class="slider-row">
+        <label>Tasa de mortalidad</label>
+        <input type="range" min="0.05" max="0.8" step="0.01" value="0.30" id="sl-death" oninput="updateParam()">
+        <span class="val" id="v-death">0.30</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sudden actions -->
+  <div class="card">
+    <div class="card-title">Acciones s&uacute;bitas</div>
+    <div id="sudden-actions">
+      <button class="btn-sudden danger" onclick="killWhite()">Extinguir blancas</button>
+      <button class="btn-sudden danger" onclick="killBlack()">Extinguir negras</button>
+      <button class="btn-sudden danger" onclick="killAll()">Extinguir todas</button>
+      <button class="btn-sudden warn" onclick="solarFlare()">Explosi&oacute;n solar</button>
+      <button class="btn-sudden sun-off" id="btn-sun" onclick="toggleSun()">Apagar sol</button>
+    </div>
+  </div>
+</div>
+
+<!-- Offscreen canvas for high-res PNG export -->
+<canvas id="export-canvas" width="1600" height="700" style="display:none"></canvas>
+
+<script>
+/* ================================================================
+   DAISYWORLD – Lovelock Model Simulator
+   ================================================================ */
+
+// ── Physical constants ──────────────────────────────────────────
+const STEFAN_BOLTZMANN = 5.67e-8;
+const SOLAR_FLUX = 917;        // W/m² base solar constant
+const Q_HEAT = 20;              // local heat redistribution (°C)
+const T_OPTIMAL = 22.5;         // optimal growth temperature (°C)
+const ALBEDO_GROUND = 0.50;     // bare ground albedo
+const MIN_POP = 0.001;          // minimum seed population
+const SEED = 0.01;              // initial daisy coverage
+
+// ── Simulation state ────────────────────────────────────────────
+let state, history, playing, timer, stepsPerTick;
+let sunOn = true;
+
+// Charts
+let chartCoverage, chartTemp, chartLum, chartFitnessWhite, chartFitnessBlack, exportChart;
+
+function defaultState() {
+  return {
+    step: 0,
+    luminosity: 0.60,
+    areaWhite: SEED,
+    areaBlack: SEED,
+    tempPlanet: -273.15,
+    lumRate: 0.005,
+    albedoWhite: 0.75,
+    albedoBlack: 0.25,
+    deathRate: 0.30
+  };
+}
+
+function resetHistory() {
+  return { steps: [], white: [], black: [], ground: [], temp: [], lum: [] };
+}
+
+// ── Model equations (Watson & Lovelock 1983) ────────────────────
+function computeStep(s) {
+  const L = sunOn ? s.luminosity : 0;
+  const aG = Math.max(0, 1 - s.areaWhite - s.areaBlack);
+
+  // Planetary albedo
+  const albedoPlanet = s.areaWhite * s.albedoWhite
+                     + s.areaBlack * s.albedoBlack
+                     + aG * ALBEDO_GROUND;
+
+  // Effective temperature (Stefan-Boltzmann)
+  const absorbed = SOLAR_FLUX * L * (1 - albedoPlanet);
+  const tempEff = absorbed > 0
+    ? Math.pow(absorbed / STEFAN_BOLTZMANN, 0.25) - 273.15
+    : -273.15;
+
+  // Local temperatures
+  const tempWhite = Q_HEAT * (albedoPlanet - s.albedoWhite) + tempEff;
+  const tempBlack = Q_HEAT * (albedoPlanet - s.albedoBlack) + tempEff;
+
+  // Growth rates (parabolic, peak at T_OPTIMAL)
+  let betaWhite = 1 - 0.003265 * Math.pow(T_OPTIMAL - tempWhite, 2);
+  let betaBlack = 1 - 0.003265 * Math.pow(T_OPTIMAL - tempBlack, 2);
+  betaWhite = Math.max(0, betaWhite);
+  betaBlack = Math.max(0, betaBlack);
+
+  // Population dynamics
+  let dWhite = s.areaWhite * (aG * betaWhite - s.deathRate);
+  let dBlack = s.areaBlack * (aG * betaBlack - s.deathRate);
+
+  let newWhite = s.areaWhite + dWhite;
+  let newBlack = s.areaBlack + dBlack;
+
+  // Clamp
+  newWhite = Math.max(0, Math.min(1, newWhite));
+  newBlack = Math.max(0, Math.min(1, newBlack));
+  if (newWhite + newBlack > 1) {
+    const total = newWhite + newBlack;
+    newWhite /= total;
+    newBlack /= total;
+  }
+
+  // Keep a tiny seed so populations can recover
+  if (newWhite > 0 && newWhite < MIN_POP) newWhite = MIN_POP;
+  if (newBlack > 0 && newBlack < MIN_POP) newBlack = MIN_POP;
+
+  // Advance luminosity (cap at 2.0 — beyond this life is impossible)
+  let newLum = s.luminosity;
+  if (sunOn && newLum < 2.0) newLum = Math.min(2.0, newLum + s.lumRate);
+
+  return {
+    ...s,
+    step: s.step + 1,
+    luminosity: newLum,
+    areaWhite: newWhite,
+    areaBlack: newBlack,
+    tempPlanet: tempEff
+  };
+}
+
+// ── Feedback text ───────────────────────────────────────────────
+function getFeedback(s) {
+  const aG = Math.max(0, 1 - s.areaWhite - s.areaBlack);
+  const T = s.tempPlanet;
+  const L = sunOn ? s.luminosity : 0;
+
+  if (!sunOn) {
+    return '<p style="margin-bottom:8px"><strong>TL;DR:</strong> Sin sol, no hay energ&iacute;a. El planeta se congela instant&aacute;neamente.</p>' +
+           '<p style="margin:0"><strong>Detalle:</strong> La temperatura planetaria depende del balance entre radiaci&oacute;n solar absorbida y radiaci&oacute;n infrarroja emitida (ley de Stefan-Boltzmann). Sin flujo solar (L=0), la temperatura cae a -273.15&deg;C (cero absoluto). Las margaritas, como toda vida conocida, requieren energ&iacute;a externa para mantener procesos metab&oacute;licos. Este escenario ilustra la dependencia absoluta de la biosfera respecto a su estrella.</p>';
+  }
+
+  if (s.areaWhite < MIN_POP * 1.1 && s.areaBlack < MIN_POP * 1.1) {
+    return '<p style="margin-bottom:8px"><strong>TL;DR:</strong> Planeta sin vida. La temperatura fluctúa sin control seg&uacute;n la luminosidad solar.</p>' +
+           '<p style="margin:0"><strong>Detalle:</strong> En ausencia de margaritas, el <em>albedo planetario</em> es constante (0.50, suelo desnudo). La temperatura sigue pasivamente la luminosidad solar sin ning&uacute;n mecanismo de regulaci&oacute;n. Este es el estado de referencia — un mundo abi&oacute;tico donde la f&iacute;sica dicta el clima sin intervenci&oacute;n biol&oacute;gica. Comp&aacute;ralo con las fases donde hay vida: la diferencia es la <em>homeostasis emergente</em>.</p>';
+  }
+
+  if (L < 0.75) {
+    return '<p style="margin-bottom:8px"><strong>TL;DR:</strong> Sol d&eacute;bil. Las margaritas negras dominan porque calientan el planeta.</p>' +
+           '<p style="margin:0"><strong>Detalle:</strong> Con baja luminosidad, la temperatura planetaria ser&iacute;a demasiado fr&iacute;a para la vida. Las margaritas negras (albedo bajo) absorben m&aacute;s radiaci&oacute;n, creando microclimas c&aacute;lidos (+10&deg;C local). Esto es <em>retroalimentaci&oacute;n positiva</em>: al crecer, reducen el albedo global, el planeta absorbe m&aacute;s energ&iacute;a, y la temperatura sube. Este calentamiento biol&oacute;gico hace habitable un mundo que de otro modo estar&iacute;a congelado.</p>';
+  }
+
+  if (L < 1.1) {
+    if (s.areaWhite > 0.05 && s.areaBlack > 0.05) {
+      return '<p style="margin-bottom:8px"><strong>TL;DR:</strong> Coexistencia. Ambas especies regulan la temperatura cerca del &oacute;ptimo (22.5&deg;C).</p>' +
+             '<p style="margin:0"><strong>Detalle:</strong> Esta es la fase de <em>homeostasis</em> — el coraz&oacute;n del modelo Daisyworld. Las negras calientan, las blancas enfr&iacute;an, y su competencia din&aacute;mica estabiliza la temperatura global. Si el planeta se calienta, las blancas prosperan (retroalimentaci&oacute;n negativa); si se enfr&iacute;a, las negras avanzan. Este equilibrio emergente no requiere inteligencia ni planificaci&oacute;n — surge espont&aacute;neamente de la selecci&oacute;n natural actuando sobre el albedo. Es la esencia de la <em>hip&oacute;tesis Gaia</em>: la vida como regulador clim&aacute;tico.</p>';
+    }
+    if (s.areaWhite > s.areaBlack) {
+      return '<p style="margin-bottom:8px"><strong>TL;DR:</strong> Las blancas dominan. Reflejan radiaci&oacute;n para compensar el sol creciente.</p>' +
+             '<p style="margin:0"><strong>Detalle:</strong> A medida que la luminosidad aumenta, las margaritas blancas tienen ventaja competitiva. Su alto albedo (0.75) crea microclimas frescos (-10&deg;C local), manteni&eacute;ndolas en la zona de fitness &oacute;ptimo mientras las negras sufren sobrecalentamiento. Este es un ejemplo de <em>retroalimentaci&oacute;n negativa</em>: al expandirse, aumentan el albedo global, el planeta refleja m&aacute;s luz, y la temperatura se estabiliza. La vida act&uacute;a como termostato.</p>';
+    }
+    return '<p style="margin-bottom:8px"><strong>TL;DR:</strong> Transici&oacute;n ecol&oacute;gica. Las negras ceden terreno a las blancas.</p>' +
+           '<p style="margin:0"><strong>Detalle:</strong> La luminosidad creciente desplaza el equilibrio competitivo. Las margaritas negras, antes dominantes, ahora experimentan temperaturas locales excesivas que reducen su fitness. Las blancas, con su capacidad de enfriamiento, comienzan a colonizar el espacio disponible. Este es un proceso de <em>sucesi&oacute;n ecol&oacute;gica</em> impulsado por cambio ambiental externo (el sol) y mediado por diferencias fisiol&oacute;gicas (albedo).</p>';
+  }
+
+  if (L < 1.5) {
+    if (s.areaWhite > 0.05) {
+      return '<p style="margin-bottom:8px"><strong>TL;DR:</strong> Solo las blancas sobreviven. Luchan por enfriar un planeta abrasador.</p>' +
+             '<p style="margin:0"><strong>Detalle:</strong> Con luminosidad extrema, incluso las margaritas blancas operan al l&iacute;mite de su tolerancia t&eacute;rmica. Su alto albedo ya no basta para mantener temperaturas locales en el rango viable (~5-40&deg;C). Las negras est&aacute;n extintas — sus microclimas superan los 50&deg;C. Este escenario muestra los <em>l&iacute;mites de la regulaci&oacute;n biol&oacute;gica</em>: la vida puede amortiguar perturbaciones, pero no puede vencer fuerzas f&iacute;sicas arbitrariamente grandes.</p>';
+    }
+    return '<p style="margin-bottom:8px"><strong>TL;DR:</strong> Colapso total. Ni siquiera las blancas pueden sobrevivir.</p>' +
+           '<p style="margin:0"><strong>Detalle:</strong> La luminosidad ha superado el umbral de habitabilidad. Las temperaturas locales, incluso para las margaritas blancas con m&aacute;ximo albedo, exceden los 40&deg;C (fitness = 0). Sin vida, el albedo vuelve a 0.50 (suelo desnudo) y la temperatura se dispara sin control. Este es el <em>punto de no retorno</em> — una vez perdida la biosfera, el planeta no puede recuperar la homeostasis. Ilustra la fragilidad de los sistemas autorregulados.</p>';
+  }
+
+  return '<p style="margin-bottom:8px"><strong>TL;DR:</strong> Infierno planetario. La vida es imposible.</p>' +
+         '<p style="margin:0"><strong>Detalle:</strong> Con L &gt; 1.5, la radiaci&oacute;n solar es tan intensa que ning&uacute;n albedo biol&oacute;gicamente plausible puede mantener temperaturas habitables. El planeta es un desierto ardiente, similar a Venus. Este escenario extremo demuestra que la <em>zona de habitabilidad</em> no es solo una cuesti&oacute;n de distancia a la estrella, sino de la capacidad de la vida para modular el clima. Sin margaritas, Daisyworld es indistinguible de un planeta muerto.</p>';
+}
+
+// ── Fitness calculation (same parabolic curve used in model) ────
+function calcFitness(localTemp) {
+  const beta = 1 - 0.003265 * Math.pow(T_OPTIMAL - localTemp, 2);
+  return Math.max(0, Math.min(1, beta));
+}
+
+// Calculate local temperatures for each species
+function calcLocalTemps(s) {
+  const L = sunOn ? s.luminosity : 0;
+  const aG = Math.max(0, 1 - s.areaWhite - s.areaBlack);
+  const albedoPlanet = s.areaWhite * s.albedoWhite + s.areaBlack * s.albedoBlack + aG * ALBEDO_GROUND;
+  const absorbed = SOLAR_FLUX * L * (1 - albedoPlanet);
+  const tempEff = absorbed > 0 ? Math.pow(absorbed / STEFAN_BOLTZMANN, 0.25) - 273.15 : -273.15;
+  
+  return {
+    tempWhite: Q_HEAT * (albedoPlanet - s.albedoWhite) + tempEff,
+    tempBlack: Q_HEAT * (albedoPlanet - s.albedoBlack) + tempEff,
+    tempPlanet: tempEff
+  };
+}
+
+// ── Chart setup ─────────────────────────────────────────────────
+const chartDefaults = {
+  responsive: true,
+  maintainAspectRatio: true,
+  animation: { duration: 0 },
+  interaction: { mode: 'index', intersect: false },
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      backgroundColor: '#1e1e2e',
+      titleColor: '#e8eaed',
+      bodyColor: '#9ca3af',
+      borderColor: 'rgba(255,255,255,.1)',
+      borderWidth: 1,
+      titleFont: { family: 'Outfit' },
+      bodyFont: { family: 'Outfit' }
+    }
+  }
+};
+
+function createCoverageChart(canvas) {
+  return new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [
+        { label: 'Blancas (%)', data: [], borderColor: '#f0f0f0', backgroundColor: 'rgba(240,240,240,.08)', borderWidth: 2, fill: true, tension: 0.3, pointRadius: 0 },
+        { label: 'Negras (%)', data: [], borderColor: '#a78bfa', backgroundColor: 'rgba(167,139,250,.08)', borderWidth: 2, fill: true, tension: 0.3, pointRadius: 0 },
+        { label: 'Suelo (%)', data: [], borderColor: '#6b8a5e', backgroundColor: 'rgba(107,138,94,.06)', borderWidth: 1.5, borderDash: [4, 3], fill: false, tension: 0.3, pointRadius: 0 }
+      ]
+    },
+    options: {
+      ...chartDefaults,
+      scales: {
+        x: { ticks: { color: '#4b5563', font: { family: 'Outfit', size: 10 }, maxTicksLimit: 12 }, grid: { color: 'rgba(255,255,255,.04)' } },
+        y: { min: 0, max: 100, ticks: { color: '#4b5563', font: { family: 'Outfit', size: 10 } }, grid: { color: 'rgba(255,255,255,.04)' } }
+      }
+    }
+  });
+}
+
+function createTempChart(canvas) {
+  return new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [{ label: 'Temperatura (°C)', data: [], borderColor: '#ff8b60', borderWidth: 2, fill: false, tension: 0.3, pointRadius: 0 }]
+    },
+    options: {
+      ...chartDefaults,
+      scales: {
+        x: { ticks: { color: '#4b5563', font: { family: 'Outfit', size: 9 }, maxTicksLimit: 8 }, grid: { color: 'rgba(255,255,255,.04)' } },
+        y: { ticks: { color: '#4b5563', font: { family: 'Outfit', size: 9 }, callback: v => v + '°C' }, grid: { color: 'rgba(255,255,255,.04)' } }
+      }
+    }
+  });
+}
+
+function createLumChart(canvas) {
+  return new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [{ label: 'Luminosidad', data: [], borderColor: '#fbbf24', borderWidth: 2, fill: false, tension: 0.3, pointRadius: 0 }]
+    },
+    options: {
+      ...chartDefaults,
+      scales: {
+        x: { ticks: { color: '#4b5563', font: { family: 'Outfit', size: 9 }, maxTicksLimit: 8 }, grid: { color: 'rgba(255,255,255,.04)' } },
+        y: { min: 0, max: 2.2, ticks: { color: '#4b5563', font: { family: 'Outfit', size: 9 } }, grid: { color: 'rgba(255,255,255,.04)' } }
+      }
+    }
+  });
+}
+
+// Generate tolerance curve data points
+function generateToleranceCurve() {
+  const points = [];
+  for (let t = -10; t <= 50; t += 1) {
+    points.push({ x: t, y: calcFitness(t) * 100 });
+  }
+  return points;
+}
+
+function createFitnessChart(canvas, color, bgColor) {
+  const toleranceData = generateToleranceCurve();
+  return new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: {
+      datasets: [
+        {
+          label: 'Tolerancia',
+          data: toleranceData,
+          borderColor: color,
+          backgroundColor: bgColor,
+          borderWidth: 2,
+          fill: true,
+          tension: 0.4,
+          pointRadius: 0
+        },
+        {
+          label: 'Temp. actual',
+          data: [{ x: 0, y: 0 }, { x: 0, y: 100 }],
+          borderColor: '#ff8b60',
+          borderWidth: 2,
+          borderDash: [4, 4],
+          pointRadius: 0,
+          fill: false
+        }
+      ]
+    },
+    options: {
+      ...chartDefaults,
+      scales: {
+        x: {
+          type: 'linear',
+          min: -10, max: 50,
+          title: { display: true, text: 'Temp. local (°C)', color: '#6b7280', font: { family: 'Outfit', size: 9 } },
+          ticks: { color: '#4b5563', font: { family: 'Outfit', size: 9 }, stepSize: 10 },
+          grid: { color: 'rgba(255,255,255,.04)' }
+        },
+        y: {
+          min: 0, max: 100,
+          title: { display: true, text: 'Fitness (%)', color: '#6b7280', font: { family: 'Outfit', size: 9 } },
+          ticks: { color: '#4b5563', font: { family: 'Outfit', size: 9 } },
+          grid: { color: 'rgba(255,255,255,.04)' }
+        }
+      },
+      plugins: {
+        ...chartDefaults.plugins,
+        annotation: {
+          annotations: {}
+        }
+      }
+    }
+  });
+}
+
+// Export chart (combined view)
+function createExportChart(canvas) {
+  return new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [
+        { label: 'Blancas (%)', data: [], borderColor: '#f0f0f0', backgroundColor: 'rgba(240,240,240,.08)', borderWidth: 3, fill: true, tension: 0.3, pointRadius: 0, yAxisID: 'y' },
+        { label: 'Negras (%)', data: [], borderColor: '#a78bfa', backgroundColor: 'rgba(167,139,250,.08)', borderWidth: 3, fill: true, tension: 0.3, pointRadius: 0, yAxisID: 'y' },
+        { label: 'Suelo (%)', data: [], borderColor: '#6b8a5e', borderWidth: 2, borderDash: [4, 3], fill: false, tension: 0.3, pointRadius: 0, yAxisID: 'y' },
+        { label: 'Temperatura (°C)', data: [], borderColor: '#ff8b60', borderWidth: 3, fill: false, tension: 0.3, pointRadius: 0, yAxisID: 'y1' },
+        { label: 'Luminosidad', data: [], borderColor: '#fbbf24', borderWidth: 2, borderDash: [6, 3], fill: false, tension: 0.3, pointRadius: 0, yAxisID: 'y1' }
+      ]
+    },
+    options: {
+      responsive: false,
+      maintainAspectRatio: false,
+      animation: false,
+      plugins: {
+        legend: { display: true, labels: { color: '#ccc', font: { family: 'Outfit', size: 14 }, padding: 16 } },
+        title: { display: true, text: 'Daisyworld — Simulación', color: '#e8eaed', font: { family: 'Outfit', size: 18, weight: 600 }, padding: { bottom: 12 } }
+      },
+      scales: {
+        x: { title: { display: true, text: 'Paso de simulación', color: '#6b7280', font: { family: 'Outfit', size: 14 } }, ticks: { color: '#4b5563', font: { family: 'Outfit', size: 13 }, maxTicksLimit: 12 }, grid: { color: 'rgba(255,255,255,.06)' } },
+        y: { type: 'linear', position: 'left', title: { display: true, text: 'Cobertura (%)', color: '#6b7280', font: { family: 'Outfit', size: 14 } }, min: 0, max: 100, ticks: { color: '#4b5563', font: { family: 'Outfit', size: 13 } }, grid: { color: 'rgba(255,255,255,.06)' } },
+        y1: { type: 'linear', position: 'right', title: { display: true, text: 'Temp (°C) / Luminosidad', color: '#6b7280', font: { family: 'Outfit', size: 14 } }, ticks: { color: '#4b5563', font: { family: 'Outfit', size: 13 } }, grid: { drawOnChartArea: false } }
+      }
+    }
+  });
+}
+
+function pushHistory(s) {
+  const aG = Math.max(0, 1 - s.areaWhite - s.areaBlack);
+  history.steps.push(s.step);
+  history.white.push(+(s.areaWhite * 100).toFixed(2));
+  history.black.push(+(s.areaBlack * 100).toFixed(2));
+  history.ground.push(+(aG * 100).toFixed(2));
+  history.temp.push(+s.tempPlanet.toFixed(2));
+  history.lum.push(+(sunOn ? s.luminosity : 0).toFixed(4));
+}
+
+function syncAllCharts() {
+  // Coverage chart
+  chartCoverage.data.labels = history.steps;
+  chartCoverage.data.datasets[0].data = history.white;
+  chartCoverage.data.datasets[1].data = history.black;
+  chartCoverage.data.datasets[2].data = history.ground;
+  chartCoverage.update();
+
+  // Temperature chart
+  chartTemp.data.labels = history.steps;
+  chartTemp.data.datasets[0].data = history.temp;
+  chartTemp.update();
+
+  // Luminosity chart
+  chartLum.data.labels = history.steps;
+  chartLum.data.datasets[0].data = history.lum;
+  chartLum.update();
+
+  // Update fitness charts with current temperature line
+  updateFitnessCharts();
+}
+
+function updateFitnessCharts() {
+  const temps = calcLocalTemps(state);
+  const fitnessWhite = calcFitness(temps.tempWhite) * 100;
+  const fitnessBlack = calcFitness(temps.tempBlack) * 100;
+
+  // Update vertical line for white daisies (local temp)
+  chartFitnessWhite.data.datasets[1].data = [
+    { x: temps.tempWhite, y: 0 },
+    { x: temps.tempWhite, y: 100 }
+  ];
+  chartFitnessWhite.update();
+
+  // Update vertical line for black daisies (local temp)
+  chartFitnessBlack.data.datasets[1].data = [
+    { x: temps.tempBlack, y: 0 },
+    { x: temps.tempBlack, y: 100 }
+  ];
+  chartFitnessBlack.update();
+
+  // Update progress bars
+  document.getElementById('bar-fitness-white').style.width = fitnessWhite + '%';
+  document.getElementById('val-fitness-white').textContent = fitnessWhite.toFixed(0) + '%';
+  document.getElementById('bar-fitness-black').style.width = fitnessBlack + '%';
+  document.getElementById('val-fitness-black').textContent = fitnessBlack.toFixed(0) + '%';
+}
+
+// ── UI updates ──────────────────────────────────────────────────
+function updateUI() {
+  document.getElementById('s-temp').textContent = state.tempPlanet.toFixed(1) + '°C';
+  document.getElementById('s-lum').textContent = (sunOn ? state.luminosity : 0).toFixed(3);
+  document.getElementById('s-white').textContent = (state.areaWhite * 100).toFixed(1) + '%';
+  document.getElementById('s-black').textContent = (state.areaBlack * 100).toFixed(1) + '%';
+  document.getElementById('feedback').innerHTML = getFeedback(state);
+}
+
+function updateParam() {
+  state.lumRate = +document.getElementById('sl-lum-rate').value;
+  state.albedoWhite = +document.getElementById('sl-albedo-w').value;
+  state.albedoBlack = +document.getElementById('sl-albedo-b').value;
+  state.deathRate = +document.getElementById('sl-death').value;
+
+  document.getElementById('v-lum-rate').textContent = state.lumRate.toFixed(3);
+  document.getElementById('v-albedo-w').textContent = state.albedoWhite.toFixed(2);
+  document.getElementById('v-albedo-b').textContent = state.albedoBlack.toFixed(2);
+  document.getElementById('v-death').textContent = state.deathRate.toFixed(2);
+}
+
+function updateSpeed(v) {
+  stepsPerTick = +v;
+  document.getElementById('spd-val').textContent = v;
+}
+
+// ── Simulation loop ─────────────────────────────────────────────
+function tick() {
+  for (let i = 0; i < stepsPerTick; i++) {
+    state = computeStep(state);
+    pushHistory(state);
+  }
+  syncAllCharts();
+  updateUI();
+}
+
+function togglePlay() {
+  const btn = document.getElementById('btn-play');
+  if (playing) {
+    clearInterval(timer);
+    playing = false;
+    btn.textContent = 'Reanudar';
+    btn.classList.add('paused');
+  } else {
+    timer = setInterval(tick, 80);
+    playing = true;
+    btn.textContent = 'Pausa';
+    btn.classList.remove('paused');
+  }
+}
+
+function resetSim() {
+  if (playing) { clearInterval(timer); playing = false; }
+  const btn = document.getElementById('btn-play');
+  btn.textContent = 'Iniciar';
+  btn.classList.remove('paused');
+
+  sunOn = true;
+  document.getElementById('btn-sun').textContent = 'Apagar sol';
+  document.getElementById('btn-sun').classList.remove('active');
+
+  state = defaultState();
+  updateParam();   // read current slider values into state
+  state.luminosity = 0.60;
+  // Compute initial temperature
+  state = computeStep({ ...state, step: -1 });
+  state.step = 0;
+  state.luminosity = 0.60;
+  history = resetHistory();
+  pushHistory(state);
+  syncAllCharts();
+  updateUI();
+  // Restore intro message
+  document.getElementById('feedback').innerHTML = 'Pulsa <strong>Iniciar</strong> para comenzar la simulación. El sol arrancará con luminosidad baja y aumentará gradualmente. Observa cómo las margaritas regulan la temperatura del planeta.';
+}
+
+// ── Sudden actions ──────────────────────────────────────────────
+function killWhite() { state.areaWhite = 0; }
+function killBlack() { state.areaBlack = 0; }
+function killAll()   { state.areaWhite = 0; state.areaBlack = 0; }
+
+function solarFlare() {
+  state.luminosity = Math.min(state.luminosity + 0.35, 3.0);
+}
+
+function toggleSun() {
+  sunOn = !sunOn;
+  const btn = document.getElementById('btn-sun');
+  btn.textContent = sunOn ? 'Apagar sol' : 'Encender sol';
+}
+
+// ── PNG download ────────────────────────────────────────────────
+function downloadChart() {
+  const expCanvas = document.getElementById('export-canvas');
+  if (exportChart) exportChart.destroy();
+  exportChart = createExportChart(expCanvas);
+  
+  // Sync export chart data
+  exportChart.data.labels = history.steps;
+  exportChart.data.datasets[0].data = history.white;
+  exportChart.data.datasets[1].data = history.black;
+  exportChart.data.datasets[2].data = history.ground;
+  exportChart.data.datasets[3].data = history.temp;
+  exportChart.data.datasets[4].data = history.lum;
+  exportChart.update();
+
+  // Render to transparent PNG
+  const link = document.createElement('a');
+  link.download = 'daisyworld_step_' + state.step + '.png';
+  link.href = expCanvas.toDataURL('image/png');
+  link.click();
+}
+
+// ── Init ────────────────────────────────────────────────────────
+(function init() {
+  playing = false;
+  stepsPerTick = 1;
+  state = defaultState();
+  // Compute the real initial temperature
+  state = computeStep({ ...state, step: -1 });
+  state.step = 0;
+  state.luminosity = 0.60;
+  history = resetHistory();
+  pushHistory(state);
+
+  // Create all charts
+  chartCoverage = createCoverageChart(document.getElementById('chart-coverage'));
+  chartTemp = createTempChart(document.getElementById('chart-temp'));
+  chartLum = createLumChart(document.getElementById('chart-lum'));
+  chartFitnessWhite = createFitnessChart(document.getElementById('fitness-white'), '#f0f0f0', 'rgba(240,240,240,.12)');
+  chartFitnessBlack = createFitnessChart(document.getElementById('fitness-black'), '#a78bfa', 'rgba(167,139,250,.12)');
+
+  syncAllCharts();
+  updateUI();
+  // Restore intro message
+  document.getElementById('feedback').innerHTML = 'Pulsa <strong>Iniciar</strong> para comenzar la simulación. El sol arrancará con luminosidad baja y aumentará gradualmente. Observa cómo las margaritas regulan la temperatura del planeta.';
+})();
+</script>
+</body>
+</html>
