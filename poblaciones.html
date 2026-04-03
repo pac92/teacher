@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Simulador de Crecimiento Poblacional</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0b0e14;
+  --surface: #12161f;
+  --surface2: #1a1f2e;
+  --border: #252b3b;
+  --accent: #4af2a1;
+  --accent2: #f2a14a;
+  --purple: #a08cf2;
+  --text: #e8ecf4;
+  --text-dim: #6b7491;
+  --text-mid: #a0a8c0;
+  --danger: #f25a5a;
+  --header-h: 54px;
+  --sidebar-w: 298px;
+  --font-mono: 'Space Mono', monospace;
+  --font-body: 'DM Sans', sans-serif;
+}
+
+html { height: 100%; }
+body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── HEADER ── */
+header {
+  height: var(--header-h);
+  min-height: var(--header-h);
+  flex-shrink: 0;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface);
+  z-index: 10;
+}
+.header-icon {
+  width: 30px; height: 30px;
+  background: var(--accent);
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; flex-shrink: 0;
+}
+.header-titles h1 {
+  font-family: var(--font-mono);
+  font-size: 12px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase; line-height: 1;
+}
+.header-titles p {
+  font-size: 10px; color: var(--text-dim);
+  font-family: var(--font-mono); margin-top: 3px;
+}
+.header-eq {
+  margin-left: auto;
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--text-dim); background: var(--surface2);
+  border: 1px solid var(--border); padding: 5px 12px; border-radius: 6px;
+}
+.header-eq span { color: var(--accent); }
+.btn-drawer-toggle {
+  display: none;
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text-mid); border-radius: 7px;
+  width: 34px; height: 34px;
+  align-items: center; justify-content: center;
+  cursor: pointer; flex-shrink: 0; font-size: 16px;
+  transition: border-color 0.15s, color 0.15s;
+}
+.btn-drawer-toggle:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── APP BODY ── */
+.app-body {
+  flex: 1; display: flex; overflow: hidden; min-height: 0;
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: var(--sidebar-w); flex-shrink: 0;
+  background: var(--surface); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  overflow-y: auto; overflow-x: hidden;
+}
+
+/* ── MAIN ── */
+.main-area {
+  flex: 1; display: flex; flex-direction: column;
+  min-width: 0; min-height: 0;
+  padding: 14px; gap: 10px; overflow: hidden;
+}
+.chart-wrapper {
+  flex: 1; min-height: 0;
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px; overflow: hidden;
+}
+canvas#populationChart { display: block; width: 100% !important; height: 100% !important; }
+.bottom-bar {
+  display: flex; align-items: center;
+  justify-content: space-between; gap: 10px; flex-shrink: 0;
+}
+.chart-info {
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--text-dim); display: flex; gap: 14px; flex-wrap: wrap;
+}
+.chart-info .hl { color: var(--accent); }
+.btn-download {
+  font-family: var(--font-mono); font-size: 10px;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  background: transparent; color: var(--text-mid);
+  border: 1px solid var(--border); padding: 7px 14px; border-radius: 6px;
+  cursor: pointer; font-weight: 700;
+  display: flex; align-items: center; gap: 6px; white-space: nowrap;
+  transition: border-color 0.15s, color 0.15s, background 0.15s; flex-shrink: 0;
+}
+.btn-download:hover { border-color: var(--accent); color: var(--accent); background: rgba(74,242,161,0.05); }
+
+/* ── SIDEBAR INTERNALS ── */
+.sidebar-section {
+  padding: 15px; border-bottom: 1px solid var(--border);
+}
+.sidebar-section:last-child { border-bottom: none; flex: 1; }
+.section-label {
+  font-family: var(--font-mono); font-size: 9px;
+  text-transform: uppercase; letter-spacing: 0.14em;
+  color: var(--text-dim); margin-bottom: 11px;
+}
+.current-preview {
+  display: flex; background: rgba(74,242,161,0.04);
+  border: 1px solid rgba(74,242,161,0.15); border-radius: 8px; overflow: hidden;
+}
+.preview-val {
+  flex: 1; display: flex; flex-direction: column;
+  padding: 8px 10px; gap: 2px;
+  border-right: 1px solid rgba(74,242,161,0.1);
+}
+.preview-val:last-child { border-right: none; }
+.preview-val .lbl {
+  font-family: var(--font-mono); font-size: 8px;
+  text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-dim);
+}
+.preview-val .val {
+  font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: var(--accent);
+}
+.param-group { margin-bottom: 13px; }
+.param-group:last-child { margin-bottom: 0; }
+.param-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.param-label { font-family: var(--font-mono); font-size: 11px; color: var(--text-mid); display: flex; align-items: center; gap: 6px; }
+.param-label .sym { color: var(--accent); font-weight: 700; font-size: 14px; }
+.param-label .desc { font-size: 9px; color: var(--text-dim); }
+.param-val-input {
+  font-family: var(--font-mono); font-size: 12px; color: var(--text);
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 5px; padding: 3px 7px; width: 68px; text-align: right;
+  outline: none; transition: border-color 0.15s;
+}
+.param-val-input:focus { border-color: var(--accent); }
+input[type="range"] {
+  -webkit-appearance: none; width: 100%; height: 3px;
+  background: var(--surface2); border-radius: 2px; outline: none; cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 14px; height: 14px;
+  background: var(--accent); border-radius: 50%; cursor: pointer;
+  transition: transform 0.1s; box-shadow: 0 0 7px rgba(74,242,161,0.45);
+}
+input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.3); }
+.param-n0 input[type="range"]::-webkit-slider-thumb { background: var(--accent2); box-shadow: 0 0 7px rgba(242,161,74,0.45); }
+.param-t  input[type="range"]::-webkit-slider-thumb { background: var(--purple); box-shadow: 0 0 7px rgba(160,140,242,0.45); }
+.color-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 11px; }
+.color-dot {
+  width: 20px; height: 20px; border-radius: 50%; cursor: pointer;
+  border: 2px solid transparent; transition: transform 0.15s, border-color 0.15s; flex-shrink: 0;
+}
+.color-dot:hover { transform: scale(1.2); }
+.color-dot.selected { border-color: var(--text); transform: scale(1.15); }
+.name-row { display: flex; gap: 7px; align-items: center; margin-bottom: 11px; }
+.species-name-input {
+  flex: 1; font-family: var(--font-body); font-size: 12px; color: var(--text);
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 6px;
+  padding: 7px 10px; outline: none; transition: border-color 0.15s; min-width: 0;
+}
+.species-name-input:focus { border-color: var(--accent); }
+.btn-save {
+  font-family: var(--font-mono); font-size: 10px; text-transform: uppercase;
+  letter-spacing: 0.07em; background: var(--accent); color: #0b0e14;
+  border: none; padding: 8px 11px; border-radius: 6px; cursor: pointer;
+  font-weight: 700; transition: opacity 0.15s, transform 0.1s; white-space: nowrap; flex-shrink: 0;
+}
+.btn-save:hover { opacity: 0.85; transform: translateY(-1px); }
+.btn-save:active { transform: translateY(0); }
+.species-list { display: flex; flex-direction: column; gap: 7px; }
+.species-item {
+  display: flex; align-items: center; gap: 9px; padding: 9px 10px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; transition: border-color 0.15s;
+}
+.species-item:hover { border-color: #333a52; }
+.species-color-bar { width: 3px; height: 34px; border-radius: 2px; flex-shrink: 0; }
+.species-info { flex: 1; min-width: 0; }
+.species-name { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
+.species-params { font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); display: flex; gap: 8px; flex-wrap: wrap; }
+.species-params .pv { color: var(--text-mid); }
+.species-controls { display: flex; gap: 5px; align-items: center; flex-shrink: 0; }
+.toggle-vis {
+  background: none; border: 1px solid var(--border); border-radius: 5px;
+  color: var(--text-mid); font-size: 12px; width: 27px; height: 27px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: border-color 0.15s, color 0.15s;
+}
+.toggle-vis:hover { border-color: var(--accent); color: var(--accent); }
+.toggle-vis.hidden { color: var(--text-dim); border-color: transparent; }
+.btn-del {
+  background: none; border: 1px solid transparent; border-radius: 5px;
+  color: var(--text-dim); font-size: 12px; width: 27px; height: 27px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: border-color 0.15s, color 0.15s;
+}
+.btn-del:hover { border-color: var(--danger); color: var(--danger); }
+.empty-list {
+  text-align: center; padding: 16px 0; font-size: 11px;
+  color: var(--text-dim); font-family: var(--font-mono); line-height: 2;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* ── DRAWER ── */
+.drawer-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6); z-index: 100;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.25s;
+}
+.drawer-backdrop.open { opacity: 1; pointer-events: all; }
+.drawer {
+  position: fixed; top: 0; left: 0; bottom: 0;
+  width: min(88vw, 340px); background: var(--surface);
+  z-index: 101; display: flex; flex-direction: column; overflow-y: auto;
+  transform: translateX(-100%);
+  transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+  border-right: 1px solid var(--border);
+}
+.drawer.open { transform: translateX(0); }
+.drawer-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 13px 15px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.drawer-header span {
+  font-family: var(--font-mono); font-size: 10px;
+  text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-dim);
+}
+.btn-drawer-close {
+  background: none; border: 1px solid var(--border); border-radius: 6px;
+  color: var(--text-mid); width: 30px; height: 30px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 14px; transition: border-color 0.15s, color 0.15s;
+}
+.btn-drawer-close:hover { border-color: var(--danger); color: var(--danger); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 680px) {
+  .sidebar { display: none; }
+  .btn-drawer-toggle { display: flex; }
+  .header-eq { display: none; }
+  .main-area { padding: 10px; gap: 8px; }
+}
+@media (min-width: 681px) {
+  .drawer { display: none !important; }
+  .drawer-backdrop { display: none !important; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <button class="btn-drawer-toggle" id="btnDrawerOpen" aria-label="Parámetros">☰</button>
+  <div class="header-icon">📈</div>
+  <div class="header-titles">
+    <h1>Crecimiento Poblacional</h1>
+    <p>Modelo logístico · Verhulst</p>
+  </div>
+  <div class="header-eq">dN/dt = r·N·<span>(1 − N/K)</span></div>
+</header>
+
+<div class="app-body">
+  <aside class="sidebar" id="desktopSidebar"></aside>
+  <main class="main-area">
+    <div class="chart-wrapper">
+      <canvas id="populationChart"></canvas>
+    </div>
+    <div class="bottom-bar">
+      <div class="chart-info">
+        <span>Logístico · Euler Δt=0.1</span>
+        <span id="infoSeries">Series: <span class="hl">1</span></span>
+      </div>
+      <button class="btn-download" id="btnDownload">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M6 1v7M3 5.5l3 3 3-3M1 10h10"/>
+        </svg>
+        Descargar PNG
+      </button>
+    </div>
+  </main>
+</div>
+
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <span>Parámetros</span>
+    <button class="btn-drawer-close" id="btnDrawerClose">✕</button>
+  </div>
+  <div id="drawerContent"></div>
+</div>
+
+<script>
+// ── PALETTE ──────────────────────────────────────────────────────────────────
+const PALETTE = [
+  '#4af2a1','#f2a14a','#a08cf2','#f25a5a','#4ac8f2',
+  '#f2e44a','#f24ab4','#4af24a','#c8f24a','#f2914a',
+  '#5af2e0','#e05af2','#f2c45a','#5a7af2','#f2564a',
+];
+let selectedColor = PALETTE[0];
+let savedSpecies = [];
+let currentSpeciesId = 0;
+
+// ── BUILD SIDEBAR HTML ───────────────────────────────────────────────────────
+function buildSidebarHTML() {
+  const dots = PALETTE.map(c =>
+    `<div class="color-dot${c===selectedColor?' selected':''}" data-color="${c}" style="background:${c}"></div>`
+  ).join('');
+  return `
+    <div class="sidebar-section">
+      <div class="section-label">Valores actuales</div>
+      <div class="current-preview">
+        <div class="preview-val"><span class="lbl">r</span><span class="val" id="prevR">0.30</span></div>
+        <div class="preview-val"><span class="lbl">K</span><span class="val" id="prevK">1000</span></div>
+        <div class="preview-val"><span class="lbl">N₀</span><span class="val" id="prevN0">50</span></div>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="section-label">Parámetros</div>
+      <div class="param-group">
+        <div class="param-header">
+          <div class="param-label"><span class="sym">r</span><span class="desc">Tasa intrínseca</span></div>
+          <input class="param-val-input" type="number" id="rInput" min="0.01" max="3" step="0.01" value="0.30">
+        </div>
+        <input type="range" id="rSlider" min="0.01" max="3" step="0.01" value="0.30">
+      </div>
+      <div class="param-group">
+        <div class="param-header">
+          <div class="param-label"><span class="sym">K</span><span class="desc">Capacidad de carga</span></div>
+          <input class="param-val-input" type="number" id="KInput" min="50" max="10000" step="50" value="1000">
+        </div>
+        <input type="range" id="KSlider" min="50" max="10000" step="50" value="1000">
+      </div>
+      <div class="param-group param-n0">
+        <div class="param-header">
+          <div class="param-label"><span class="sym" style="color:var(--accent2)">N₀</span><span class="desc">Población inicial</span></div>
+          <input class="param-val-input" type="number" id="N0Input" min="1" max="5000" step="1" value="50">
+        </div>
+        <input type="range" id="N0Slider" min="1" max="5000" step="1" value="50">
+      </div>
+      <div class="param-group param-t">
+        <div class="param-header">
+          <div class="param-label"><span class="sym" style="color:var(--purple)">T</span><span class="desc">Tiempo (años)</span></div>
+          <input class="param-val-input" type="number" id="TInput" min="10" max="500" step="10" value="100">
+        </div>
+        <input type="range" id="TSlider" min="10" max="500" step="10" value="100">
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="section-label">Guardar configuración</div>
+      <div class="name-row">
+        <input class="species-name-input" id="speciesName" type="text" placeholder="Ej: Especie A" maxlength="24">
+        <button class="btn-save" id="btnSave">+ Guardar</button>
+      </div>
+      <div class="color-grid" id="colorGrid">${dots}</div>
+    </div>
+    <div class="sidebar-section">
+      <div class="section-label">Configuraciones guardadas</div>
+      <div class="species-list" id="speciesList">
+        <div class="empty-list">Sin configuraciones.<br>Guarda una especie.</div>
+      </div>
+    </div>
+  `;
+}
+
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+const $all = id => [...document.querySelectorAll('#'+id)];
+const getVal = id => parseFloat(document.querySelector('#'+id).value);
+
+// ── MOUNT ────────────────────────────────────────────────────────────────────
+function mountSidebars() {
+  const html = buildSidebarHTML();
+  document.getElementById('desktopSidebar').innerHTML = html;
+  document.getElementById('drawerContent').innerHTML   = html;
+  bindControls();
+}
+mountSidebars();
+
+function syncAll(sid, iid) {
+  $all(sid).forEach(s => s.addEventListener('input', () => {
+    $all(iid).forEach(i => i.value = s.value);
+    updatePreview(); renderChart();
+  }));
+  $all(iid).forEach(inp => {
+    inp.addEventListener('input', () => {
+      const v = parseFloat(inp.value);
+      if (isNaN(v)) return;
+      $all(sid).forEach(s => s.value = Math.min(Math.max(v, +s.min), +s.max));
+      $all(iid).forEach(i => { if (i!==inp) i.value = inp.value; });
+      updatePreview(); renderChart();
+    });
+    inp.addEventListener('blur', () => {
+      const v = parseFloat($all(sid)[0].value);
+      $all(iid).forEach(i => i.value = v);
+      updatePreview(); renderChart();
+    });
+  });
+}
+
+function bindControls() {
+  // Color dots
+  document.querySelectorAll('.color-dot').forEach(d => {
+    d.onclick = () => {
+      document.querySelectorAll('.color-dot').forEach(x => x.classList.remove('selected'));
+      document.querySelectorAll(`.color-dot[data-color="${d.dataset.color}"]`).forEach(x => x.classList.add('selected'));
+      selectedColor = d.dataset.color;
+    };
+  });
+  syncAll('rSlider','rInput');
+  syncAll('KSlider','KInput');
+  syncAll('N0Slider','N0Input');
+  syncAll('TSlider','TInput');
+  $all('btnSave').forEach(b => b.onclick = saveSpecies);
+}
+
+function updatePreview() {
+  const r  = getVal('rSlider'), K = getVal('KSlider'), N0 = getVal('N0Slider');
+  $all('prevR').forEach(e => e.textContent = r.toFixed(2));
+  $all('prevK').forEach(e => e.textContent = Math.round(K).toLocaleString('es-ES'));
+  $all('prevN0').forEach(e => e.textContent = Math.round(N0).toLocaleString('es-ES'));
+}
+updatePreview();
+
+// ── SAVE SPECIES ─────────────────────────────────────────────────────────────
+function saveSpecies() {
+  const nameEl = document.querySelector('#speciesName');
+  const name = nameEl?.value.trim() || `Especie ${String.fromCharCode(64+savedSpecies.length+1)}`;
+  savedSpecies.push({
+    id: ++currentSpeciesId, name,
+    r: getVal('rSlider'), K: getVal('KSlider'),
+    N0: getVal('N0Slider'), T: getVal('TSlider'),
+    color: selectedColor, visible: true,
+  });
+  $all('speciesName').forEach(e => e.value = '');
+  const ni = (PALETTE.indexOf(selectedColor)+1) % PALETTE.length;
+  document.querySelectorAll(`.color-dot[data-color="${PALETTE[ni]}"]`).forEach(d => d.click());
+  renderSpeciesList(); renderChart();
+}
+
+// ── SPECIES LIST ─────────────────────────────────────────────────────────────
+function renderSpeciesList() {
+  $all('speciesList').forEach(list => {
+    list.innerHTML = '';
+    if (!savedSpecies.length) {
+      list.innerHTML = '<div class="empty-list">Sin configuraciones.<br>Guarda una especie.</div>';
+      return;
+    }
+    savedSpecies.forEach(sp => {
+      const item = document.createElement('div');
+      item.className = 'species-item';
+      item.innerHTML = `
+        <div class="species-color-bar" style="background:${sp.color}"></div>
+        <div class="species-info">
+          <div class="species-name" style="color:${sp.color}">${sp.name}</div>
+          <div class="species-params">
+            <span>r=<span class="pv">${sp.r.toFixed(2)}</span></span>
+            <span>K=<span class="pv">${Math.round(sp.K).toLocaleString('es-ES')}</span></span>
+            <span>N₀=<span class="pv">${Math.round(sp.N0)}</span></span>
+            <span>T=<span class="pv">${Math.round(sp.T)}</span></span>
+          </div>
+        </div>
+        <div class="species-controls">
+          <button class="toggle-vis${sp.visible?'':' hidden'}" title="${sp.visible?'Ocultar':'Mostrar'}">${sp.visible?'👁':'🚫'}</button>
+          <button class="btn-del" title="Eliminar">✕</button>
+        </div>`;
+      item.querySelector('.toggle-vis').onclick = () => { sp.visible=!sp.visible; renderSpeciesList(); renderChart(); };
+      item.querySelector('.btn-del').onclick    = () => { savedSpecies=savedSpecies.filter(s=>s.id!==sp.id); renderSpeciesList(); renderChart(); };
+      list.appendChild(item);
+    });
+  });
+  const vis = savedSpecies.filter(s=>s.visible).length;
+  document.getElementById('infoSeries').innerHTML = `Series: <span class="hl">${vis+1}</span>`;
+}
+
+// ── DRAWER ───────────────────────────────────────────────────────────────────
+const drawerEl  = document.getElementById('drawer');
+const backdropEl = document.getElementById('drawerBackdrop');
+const openDrawer  = () => { drawerEl.classList.add('open'); backdropEl.classList.add('open'); };
+const closeDrawer = () => { drawerEl.classList.remove('open'); backdropEl.classList.remove('open'); };
+document.getElementById('btnDrawerOpen').addEventListener('click', openDrawer);
+document.getElementById('btnDrawerClose').addEventListener('click', closeDrawer);
+backdropEl.addEventListener('click', closeDrawer);
+
+// ── SIMULATION ───────────────────────────────────────────────────────────────
+function simulateLogistic(r, K, N0, T) {
+  const dt = 0.1, steps = Math.round(T/dt);
+  const ts=[], ns=[];
+  let N = N0;
+  for (let i=0; i<=steps; i++) {
+    if (i%10===0) { ts.push(i*dt); ns.push(Math.max(0,N)); }
+    N += r*N*(1-N/K)*dt;
+  }
+  return {ts,ns};
+}
+
+// ── CANVAS ───────────────────────────────────────────────────────────────────
+const canvas = document.getElementById('populationChart');
+const ctx    = canvas.getContext('2d');
+const FM     = "'Space Mono', monospace";
+
+function hexToRgba(hex, a) {
+  const r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+function formatN(n) {
+  if (n>=1e6) return (n/1e6).toFixed(1)+'M';
+  if (n>=1000) return (n/1000).toFixed(n>=10000?0:1)+'k';
+  return Math.round(n).toString();
+}
+
+// Core drawing — forExport: true → transparent bg, dark labels
+function drawChart(C, W, H, series, forExport) {
+  const pad = {top:38, right:44, bottom:62, left:78};
+  const plotW = W-pad.left-pad.right;
+  const plotH = H-pad.top-pad.bottom;
+
+  const GRID   = forExport ? 'rgba(0,0,0,0.08)'  : '#1e2436';
+  const AXIS   = forExport ? 'rgba(0,0,0,0.22)'  : '#2d3448';
+  const LABEL  = forExport ? '#6b7896'            : '#6b7491';
+  const LBMD   = forExport ? '#2e3750'            : '#a0a8c0';
+
+  if (!forExport) { C.fillStyle='#12161f'; C.fillRect(0,0,W,H); }
+
+  if (!series.length) return;
+  const maxT = Math.max(...series.map(s=>s.ts[s.ts.length-1]),10);
+  const maxN = Math.max(...series.map(s=>Math.max(...s.ns)), ...series.map(s=>s.K), 100)*1.1;
+
+  const tx = t => pad.left+(t/maxT)*plotW;
+  const ty = n => pad.top+(1-n/maxN)*plotH;
+
+  // Horizontal grid + Y labels
+  const nT=6;
+  C.font=`${forExport?13:11}px ${FM}`;
+  C.textAlign='right'; C.textBaseline='middle';
+  for (let i=0;i<=nT;i++) {
+    const n=(maxN/nT)*i, y=ty(n);
+    C.strokeStyle=GRID; C.lineWidth=1;
+    C.beginPath(); C.moveTo(pad.left,y); C.lineTo(pad.left+plotW,y); C.stroke();
+    C.fillStyle=LABEL; C.fillText(formatN(n),pad.left-9,y);
+  }
+  // Vertical grid + X labels
+  const tT=6;
+  C.textAlign='center'; C.textBaseline='top';
+  for (let i=0;i<=tT;i++) {
+    const t=(maxT/tT)*i, x=tx(t);
+    C.strokeStyle=GRID; C.lineWidth=1;
+    C.beginPath(); C.moveTo(x,pad.top); C.lineTo(x,pad.top+plotH); C.stroke();
+    C.fillStyle=LABEL; C.fillText(Math.round(t),x,pad.top+plotH+9);
+  }
+  // Axes
+  C.strokeStyle=AXIS; C.lineWidth=1.5;
+  C.beginPath(); C.moveTo(pad.left,pad.top); C.lineTo(pad.left,pad.top+plotH); C.lineTo(pad.left+plotW,pad.top+plotH); C.stroke();
+
+  // K reference lines
+  series.forEach(s=>{
+    const y=ty(s.K);
+    if (y<pad.top||y>pad.top+plotH) return;
+    C.strokeStyle=hexToRgba(s.color,forExport?0.45:0.28);
+    C.lineWidth=1; C.setLineDash([5,7]);
+    C.beginPath(); C.moveTo(pad.left,y); C.lineTo(pad.left+plotW,y); C.stroke();
+    C.setLineDash([]);
+    C.font=`${forExport?10:9}px ${FM}`;
+    C.fillStyle=hexToRgba(s.color,0.7);
+    C.textAlign='right'; C.textBaseline='bottom';
+    C.fillText('K='+formatN(s.K), pad.left+plotW-3, y-3);
+  });
+
+  // Curves
+  series.forEach(s=>{
+    C.save();
+    C.beginPath(); C.rect(pad.left,pad.top,plotW,plotH); C.clip();
+    C.setLineDash(s.dashed?[7,5]:[]);
+    C.strokeStyle=s.color;
+    C.lineWidth=s.dashed?2:2.8;
+    C.lineJoin='round'; C.lineCap='round';
+    if (!forExport) { C.shadowColor=s.color; C.shadowBlur=9; }
+    C.beginPath();
+    s.ts.forEach((t,i)=>{ const x=tx(t),y=ty(s.ns[i]); i===0?C.moveTo(x,y):C.lineTo(x,y); });
+    C.stroke();
+    if (!s.dashed) {
+      const g=C.createLinearGradient(0,pad.top,0,pad.top+plotH);
+      g.addColorStop(0,hexToRgba(s.color,forExport?0.14:0.18));
+      g.addColorStop(1,hexToRgba(s.color,0.01));
+      C.fillStyle=g; C.shadowBlur=0;
+      C.lineTo(tx(s.ts[s.ts.length-1]),pad.top+plotH);
+      C.lineTo(tx(s.ts[0]),pad.top+plotH);
+      C.closePath(); C.fill();
+    }
+    C.restore(); C.setLineDash([]);
+  });
+
+  // Axis labels
+  C.save();
+  C.font=`${forExport?13:11}px ${FM}`; C.fillStyle=LBMD; C.textAlign='center';
+  C.fillText('Tiempo (t)', pad.left+plotW/2, H-14);
+  C.translate(17, pad.top+plotH/2); C.rotate(-Math.PI/2);
+  C.fillText('Población N(t)', 0, 0);
+  C.restore();
+
+  // Legend
+  const lgX=pad.left+plotW-16;
+  let lgY=pad.top+16;
+  const lsz = forExport?12:10;
+  series.slice().reverse().forEach(s=>{
+    C.fillStyle=hexToRgba(s.color,0.9);
+    C.fillRect(lgX-100,lgY,lsz,lsz);
+    C.font=`${lsz}px ${FM}`; C.fillStyle=LBMD; C.textAlign='left';
+    C.fillText(s.label, lgX-84, lgY+lsz);
+    lgY+=lsz+10;
+  });
+}
+
+// ── RENDER (screen) ──────────────────────────────────────────────────────────
+function buildSeries() {
+  const r=getVal('rSlider'), K=getVal('KSlider'), N0=getVal('N0Slider'), T=getVal('TSlider');
+  const all=[];
+  savedSpecies.forEach(sp=>{
+    if (!sp.visible) return;
+    const {ts,ns}=simulateLogistic(sp.r,sp.K,sp.N0,sp.T);
+    all.push({ts,ns,color:sp.color,label:sp.name,dashed:false,K:sp.K});
+  });
+  const {ts,ns}=simulateLogistic(r,K,N0,T);
+  all.push({ts,ns,color:'#4af2a1',label:'Actual',dashed:true,K});
+  return all;
+}
+
+function renderChart() {
+  const W=canvas.parentElement.clientWidth, H=canvas.parentElement.clientHeight;
+  canvas.width=W*devicePixelRatio; canvas.height=H*devicePixelRatio;
+  canvas.style.width=W+'px'; canvas.style.height=H+'px';
+  ctx.scale(devicePixelRatio,devicePixelRatio);
+  drawChart(ctx, W, H, buildSeries(), false);
+}
+
+// ── DOWNLOAD (fixed 1400×800, transparent) ───────────────────────────────────
+document.getElementById('btnDownload').addEventListener('click', () => {
+  const EW=1400, EH=800;
+  const ec=document.createElement('canvas');
+  ec.width=EW; ec.height=EH;
+  drawChart(ec.getContext('2d'), EW, EH, buildSeries(), true);
+  const a=document.createElement('a');
+  a.download='poblacion_'+Date.now()+'.png';
+  a.href=ec.toDataURL('image/png');
+  a.style.display='none';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+});
+
+// ── RESIZE ───────────────────────────────────────────────────────────────────
+new ResizeObserver(renderChart).observe(canvas.parentElement);
+renderChart();
+</script>
+</body>
+</html>
