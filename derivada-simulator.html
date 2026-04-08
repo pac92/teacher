@@ -1,0 +1,1531 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La Derivada — Simulador Interactivo</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@300;400;500&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #13161d;
+    --surface2: #1a1e28;
+    --border: #252a38;
+    --border2: #2e3446;
+    --accent: #f0a500;
+    --accent2: #e05c3a;
+    --blue: #4a9eff;
+    --green: #3ecf6a;
+    --purple: #9b6dff;
+    --text: #e8eaf0;
+    --text2: #8890a8;
+    --text3: #545c74;
+    --grid: rgba(255,255,255,0.04);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Lato', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* === HEADER === */
+  header {
+    padding: 0.9rem 1.2rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: nowrap;
+    background: linear-gradient(180deg, #0a0c11 0%, var(--bg) 100%);
+    min-height: 0;
+  }
+
+  .title-block {
+    flex-shrink: 1;
+    min-width: 0;
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+
+  .title-block h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.02em;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .title-block h1 span {
+    color: var(--accent);
+    font-style: italic;
+  }
+
+  .title-block p {
+    font-size: 0.7rem;
+    color: var(--text3);
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .tab-nav {
+    display: flex;
+    gap: 0.4rem;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  .tab-btn {
+    padding: 0.45rem 1rem;
+    border: 1px solid var(--border2);
+    background: transparent;
+    color: var(--text2);
+    font-family: 'Lato', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .tab-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .tab-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #000;
+  }
+
+  /* === MAIN LAYOUT === */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* === SIMULATOR PAGE === */
+  .sim-layout {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    grid-template-rows: 1fr auto auto;
+    gap: 0;
+    height: calc(100vh - 56px);
+    min-height: 560px;
+  }
+
+  /* Graph area */
+  .graph-area {
+    position: relative;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+    cursor: grab;
+  }
+
+  .graph-area:active { cursor: grabbing; }
+
+  /* Slider bar below graph */
+  .slider-bar {
+    grid-column: 1;
+    background: var(--surface2);
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 0.7rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .slider-bar .bar-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--text3);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 0.1rem;
+  }
+
+  #mainCanvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .graph-controls {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .btn-icon {
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--border2);
+    background: var(--surface2);
+    color: var(--text2);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+
+  .btn-icon:hover { border-color: var(--accent); color: var(--accent); }
+
+  .btn-new-fn {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    padding: 0.5rem 1.1rem;
+    border: 1px solid var(--accent);
+    background: rgba(240,165,0,0.08);
+    color: var(--accent);
+    font-family: 'Lato', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+  }
+
+  .btn-new-fn:hover {
+    background: rgba(240,165,0,0.18);
+  }
+
+  .fn-label {
+    position: absolute;
+    bottom: 1rem;
+    left: 1rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text3);
+  }
+
+  .fn-label span { color: var(--accent); }
+
+  /* Zoom hint */
+  .zoom-hint {
+    position: absolute;
+    bottom: 1rem;
+    right: 1rem;
+    font-size: 0.7rem;
+    color: var(--text3);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* === SIDE PANEL === */
+  .side-panel {
+    grid-row: 1 / 4;
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid var(--border);
+    overflow-y: auto;
+  }
+
+  .panel-section {
+    padding: 1.4rem 1.6rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .panel-section:last-child { border-bottom: none; }
+
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text3);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  /* Sliders */
+  .slider-group {
+    margin-bottom: 1.2rem;
+  }
+
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .slider-var {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    font-weight: 500;
+    min-width: 20px;
+  }
+
+  .slider-var.x1 { color: var(--blue); }
+  .slider-var.x2 { color: var(--accent2); }
+
+  input[type=range] {
+    -webkit-appearance: none;
+    flex: 1;
+    height: 3px;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type=range].blue-slider {
+    background: linear-gradient(to right, var(--blue) var(--pct, 30%), var(--border2) var(--pct, 30%));
+  }
+
+  input[type=range].orange-slider {
+    background: linear-gradient(to right, var(--accent2) var(--pct, 70%), var(--border2) var(--pct, 70%));
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid var(--bg);
+    transition: transform 0.15s;
+  }
+
+  input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+  input[type=range].blue-slider::-webkit-slider-thumb { background: var(--blue); }
+  input[type=range].orange-slider::-webkit-slider-thumb { background: var(--accent2); }
+
+  .slider-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--text2);
+    min-width: 42px;
+    text-align: right;
+  }
+
+  /* Delta display */
+  .delta-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+    margin-top: 0.3rem;
+  }
+
+  .delta-card {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    padding: 0.8rem;
+    text-align: center;
+  }
+
+  .delta-card .d-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text3);
+    margin-bottom: 0.3rem;
+    letter-spacing: 0.05em;
+  }
+
+  .delta-card .d-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.1rem;
+    font-weight: 500;
+  }
+
+  .d-dx { color: var(--blue); }
+  .d-dy { color: var(--accent2); }
+  .d-slope { color: var(--accent); }
+
+  .slope-card {
+    background: var(--surface2);
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    padding: 0.9rem;
+    margin-top: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .slope-card .formula {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    color: var(--text2);
+    flex: 1;
+    text-align: center;
+  }
+
+  .slope-card .formula em {
+    color: var(--accent);
+    font-style: italic;
+  }
+
+  .slope-card .s-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.6rem;
+    font-weight: 500;
+    color: var(--accent);
+    min-width: 80px;
+    text-align: right;
+  }
+
+  /* Insight text */
+  .insight-box {
+    background: var(--surface2);
+    border-left: 3px solid var(--purple);
+    border-radius: 0 6px 6px 0;
+    padding: 0.9rem 1rem;
+    margin-top: 0.5rem;
+  }
+
+  .insight-box p {
+    font-size: 0.8rem;
+    color: var(--text2);
+    line-height: 1.55;
+  }
+
+  .insight-box p strong {
+    color: var(--text);
+    font-weight: 700;
+  }
+
+  /* === INFO PANEL BELOW === */
+  .info-bar {
+    grid-column: 1 / 2;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    border-top: 1px solid var(--border);
+  }
+
+  .info-card {
+    padding: 1.4rem 2rem;
+    border-right: 1px solid var(--border);
+  }
+
+  .info-card:last-child { border-right: none; }
+
+  .info-card h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--text);
+  }
+
+  .info-card h3 .num {
+    display: inline-block;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #000;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-align: center;
+    line-height: 22px;
+    margin-right: 0.4rem;
+  }
+
+  .info-card p {
+    font-size: 0.78rem;
+    color: var(--text2);
+    line-height: 1.6;
+  }
+
+  .info-card p strong { color: var(--accent); }
+
+  /* === GAME PAGE === */
+  .game-layout {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    height: calc(100vh - 100px);
+    min-height: 600px;
+  }
+
+  .game-graph {
+    position: relative;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  #gameCanvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .game-panel {
+    display: flex;
+    flex-direction: column;
+    padding: 2rem;
+    gap: 1.4rem;
+    overflow-y: auto;
+  }
+
+  .game-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 0.4rem;
+  }
+
+  .game-header h2 em {
+    color: var(--accent);
+    font-style: italic;
+  }
+
+  .game-header p {
+    font-size: 0.78rem;
+    color: var(--text2);
+    line-height: 1.55;
+  }
+
+  .score-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    padding: 0.8rem 1.1rem;
+  }
+
+  .score-item { text-align: center; }
+
+  .score-item .s-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.2rem;
+  }
+
+  .score-item .s-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.3rem;
+    font-weight: 500;
+  }
+
+  .s-correct { color: var(--green); }
+  .s-wrong { color: var(--accent2); }
+  .s-total { color: var(--text); }
+
+  .question-box {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 1.2rem;
+  }
+
+  .question-box .q-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text3);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 0.7rem;
+  }
+
+  .question-box .q-text {
+    font-size: 0.88rem;
+    color: var(--text);
+    line-height: 1.55;
+  }
+
+  .question-box .q-text strong {
+    color: var(--accent);
+  }
+
+  .choice-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.7rem;
+  }
+
+  .choice-btn {
+    padding: 0.9rem;
+    border: 1px solid var(--border2);
+    background: var(--surface2);
+    color: var(--text);
+    font-family: 'Lato', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.15s;
+    text-align: center;
+    line-height: 1.3;
+  }
+
+  .choice-btn:hover:not(:disabled) {
+    border-color: var(--accent);
+    background: rgba(240,165,0,0.08);
+    color: var(--accent);
+  }
+
+  .choice-btn.correct {
+    border-color: var(--green);
+    background: rgba(62,207,106,0.12);
+    color: var(--green);
+  }
+
+  .choice-btn.wrong {
+    border-color: var(--accent2);
+    background: rgba(224,92,58,0.12);
+    color: var(--accent2);
+  }
+
+  .choice-btn:disabled { cursor: default; }
+
+  .feedback-box {
+    background: var(--surface2);
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+    border-left: 3px solid var(--purple);
+    font-size: 0.8rem;
+    color: var(--text2);
+    line-height: 1.6;
+    min-height: 60px;
+    transition: all 0.3s;
+  }
+
+  .feedback-box.correct { border-color: var(--green); }
+  .feedback-box.wrong { border-color: var(--accent2); }
+
+  .btn-next {
+    width: 100%;
+    padding: 0.9rem;
+    background: var(--accent);
+    border: none;
+    color: #000;
+    font-family: 'Lato', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s;
+    display: none;
+  }
+
+  .btn-next:hover { background: #ffc125; }
+  .btn-next.visible { display: block; }
+
+  .game-complete {
+    text-align: center;
+    display: none;
+  }
+
+  .game-complete.visible { display: block; }
+
+  .game-complete h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+    color: var(--accent);
+  }
+
+  .game-complete p {
+    color: var(--text2);
+    font-size: 0.85rem;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+  }
+
+  .btn-restart {
+    padding: 0.7rem 2rem;
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-family: 'Lato', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+  }
+
+  .btn-restart:hover { background: rgba(240,165,0,0.15); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+  /* Responsive small fix */
+  @media (max-width: 900px) {
+    .sim-layout {
+      grid-template-columns: 1fr;
+      grid-template-rows: 45vh auto auto auto;
+      height: auto;
+    }
+    .graph-area { border-right: none; }
+    .slider-bar { border-right: none; }
+    .side-panel { grid-row: auto; border-right: none; }
+    .info-bar { grid-column: 1; grid-template-columns: 1fr; }
+    .game-layout { grid-template-columns: 1fr; grid-template-rows: 380px auto; height: auto; }
+    .game-graph { border-right: none; border-bottom: 1px solid var(--border); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title-block">
+    <h1>La <span>Derivada</span></h1>
+    <p>∂f/∂x — simulador interactivo de la tasa de cambio</p>
+  </div>
+  <nav class="tab-nav">
+    <button class="tab-btn active" onclick="switchPage('sim')">Explorador</button>
+    <button class="tab-btn" onclick="switchPage('game')">Minijuego</button>
+  </nav>
+</header>
+
+<!-- ===== SIMULATOR PAGE ===== -->
+<div id="page-sim" class="page active">
+  <div class="sim-layout">
+
+    <!-- Graph -->
+    <div class="graph-area" id="graphArea">
+      <canvas id="mainCanvas"></canvas>
+      <button class="btn-new-fn" onclick="newFunction()">↻ Nueva función</button>
+      <div class="graph-controls">
+        <button class="btn-icon" onclick="zoom(1.25)" title="Zoom in">+</button>
+        <button class="btn-icon" onclick="zoom(0.8)" title="Zoom out">−</button>
+        <button class="btn-icon" onclick="resetView()" title="Reset">⊙</button>
+      </div>
+      <div class="fn-label">f(x) = <span id="fnLabel">...</span></div>
+      <div class="zoom-hint">pinch = zoom · 2 dedos = mover</div>
+    </div><!-- /graph-area -->
+
+    <!-- Slider bar below graph -->
+    <div class="slider-bar">
+      <div class="bar-label">Intervalo — arrastra para acercar x₁ y x₂ hasta que Δx → 0</div>
+      <div class="slider-row">
+        <span class="slider-var x1">x₁</span>
+        <input type="range" id="slider1" class="blue-slider" min="-500" max="500" value="-100">
+        <span class="slider-val" id="val1">−1.0</span>
+      </div>
+      <div class="slider-row">
+        <span class="slider-var x2">x₂</span>
+        <input type="range" id="slider2" class="orange-slider" min="-500" max="500" value="100">
+        <span class="slider-val" id="val2">1.0</span>
+      </div>
+    </div>
+    <div class="side-panel">
+      <!-- Delta display -->
+      <div class="panel-section">
+        <div class="section-label">Incrementos</div>
+        <div class="delta-grid">
+          <div class="delta-card">
+            <div class="d-label">Δx = x₂ − x₁</div>
+            <div class="d-value d-dx" id="dxVal">2.000</div>
+          </div>
+          <div class="delta-card">
+            <div class="d-label">Δy = f(x₂) − f(x₁)</div>
+            <div class="d-value d-dy" id="dyVal">—</div>
+          </div>
+        </div>
+        <div class="slope-card">
+          <div class="formula"><em>m</em> = Δy/Δx</div>
+          <div class="s-number" id="slopeVal">—</div>
+        </div>
+        <div class="insight-box" id="insightBox" style="margin-top:0.8rem;">
+          <p>Mueve los sliders para ver el cálculo de la pendiente de la <strong>recta secante</strong> entre los dos puntos.</p>
+        </div>
+      </div>
+
+      <!-- Derivative concept -->
+      <div class="panel-section">
+        <div class="section-label">¿Qué es la derivada?</div>
+        <div style="font-size:0.79rem; color: var(--text2); line-height:1.6;">
+          <p>Cuando Δx → 0, la pendiente de la <strong style="color:var(--blue)">recta secante</strong> se convierte en la pendiente de la <strong style="color:var(--accent)">recta tangente</strong>.</p>
+          <p style="margin-top:0.6rem;">Ese valor límite es lo que llamamos <strong style="color:var(--accent)">derivada</strong>:</p>
+          <div style="text-align:center; margin: 0.8rem 0; font-family:'Playfair Display',serif; font-size:1.1rem; color:var(--text);">
+            f′(x) = lím<sub style="font-size:0.6rem">Δx→0</sub> Δy/Δx
+          </div>
+          <p>Prueba a acercar al máximo los dos sliders: la pendiente se aproximará a la derivada en ese punto.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Info bar -->
+    <div class="info-bar">
+      <div class="info-card">
+        <h3><span class="num">1</span>Recta secante</h3>
+        <p>Toma <strong>dos puntos</strong> de la curva y los une con una recta. La pendiente de esa recta es el cociente incremental: Δy/Δx. No representa el cambio instantáneo, sino el cambio <em>medio</em> en ese intervalo.</p>
+      </div>
+      <div class="info-card">
+        <h3><span class="num">2</span>El límite</h3>
+        <p>Al reducir Δx → 0, los dos puntos se acercan hasta <em>casi</em> coincidir. La recta secante pivota y en el límite se convierte en la <strong>tangente</strong>. Ese proceso de paso al límite es la esencia del cálculo diferencial.</p>
+      </div>
+      <div class="info-card">
+        <h3><span class="num">3</span>Pendiente ≈ derivada</h3>
+        <p>Cuando Δx es muy pequeño, Δy/Δx ≈ f′(x₁). Una pendiente <strong>positiva</strong> indica que la función crece; <strong>negativa</strong>, que decrece. Una pendiente cercana a 0 indica máximo o mínimo local.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== GAME PAGE ===== -->
+<div id="page-game" class="page">
+  <div class="game-layout">
+    <div class="game-graph">
+      <canvas id="gameCanvas"></canvas>
+    </div>
+    <div class="game-panel">
+      <div class="game-header">
+        <h2>¿Positiva o <em>negativa</em>?</h2>
+        <p>Se marcará un punto sobre la gráfica. Analiza la curva justo en ese punto y decide cómo es la pendiente de la tangente.</p>
+      </div>
+
+      <div class="score-bar">
+        <div class="score-item">
+          <div class="s-label">Correctas</div>
+          <div class="s-val s-correct" id="gCorrect">0</div>
+        </div>
+        <div class="score-item">
+          <div class="s-label">Errores</div>
+          <div class="s-val s-wrong" id="gWrong">0</div>
+        </div>
+        <div class="score-item">
+          <div class="s-label">Pregunta</div>
+          <div class="s-val s-total"><span id="gCurrent">1</span>/8</div>
+        </div>
+      </div>
+
+      <div class="question-box" id="questionBox">
+        <div class="q-title">Pregunta <span id="qNum">1</span> de 8</div>
+        <div class="q-text" id="qText">En el punto marcado con <strong>✦</strong>, ¿cómo es la pendiente de la curva?</div>
+      </div>
+
+      <div class="choice-grid" id="choiceGrid">
+        <button class="choice-btn" onclick="gameAnswer('pos-steep')">📈 Positiva<br><small>pronunciada</small></button>
+        <button class="choice-btn" onclick="gameAnswer('pos-flat')">↗ Positiva<br><small>suave</small></button>
+        <button class="choice-btn" onclick="gameAnswer('neg-steep')">📉 Negativa<br><small>pronunciada</small></button>
+        <button class="choice-btn" onclick="gameAnswer('neg-flat')">↘ Negativa<br><small>suave</small></button>
+      </div>
+
+      <div class="feedback-box" id="feedbackBox">Observa bien el punto marcado ✦ en la gráfica. Fíjate en hacia dónde "apunta" la curva justo en ese lugar.</div>
+
+      <button class="btn-next" id="btnNext" onclick="nextQuestion()">Siguiente pregunta →</button>
+
+      <div class="game-complete" id="gameComplete">
+        <h3 id="finalTitle">¡Bien hecho!</h3>
+        <p id="finalText">Has completado el minijuego.</p>
+        <button class="btn-restart" onclick="restartGame()">Jugar de nuevo</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// ==============================
+// UTILITY
+// ==============================
+function switchPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  event.target.classList.add('active');
+  if (id === 'game') {
+    setTimeout(() => { resizeGameCanvas(); drawGame(); }, 50);
+  } else {
+    setTimeout(() => { resizeCanvas(); drawAll(); }, 50);
+  }
+}
+
+// ==============================
+// FUNCTION GENERATOR
+// ==============================
+const FUNCTIONS = [
+  { label: 'a·sin(x) + b·cos(cx)', fn: (x, p) => p[0]*Math.sin(x) + p[1]*Math.cos(p[2]*x) },
+  { label: 'a·x³ + b·x² + c·x + d', fn: (x, p) => p[0]*Math.pow(x,3) + p[1]*Math.pow(x,2) + p[2]*x + p[3] },
+  { label: 'a·sin(bx) + c·x', fn: (x, p) => p[0]*Math.sin(p[1]*x) + p[2]*x },
+  { label: 'a·cos(x)·e^(−|x|/b)', fn: (x, p) => p[0]*Math.cos(x)*Math.exp(-Math.abs(x)/p[1]) },
+  { label: 'a·sin(x²/b)', fn: (x, p) => p[0]*Math.sin(x*x/p[1]) },
+  { label: 'a·sin(x) + b·sin(2x) + c·sin(3x)', fn: (x, p) => p[0]*Math.sin(x) + p[1]*Math.sin(2*x) + p[2]*Math.sin(3*x) },
+];
+
+let currentFn = null;
+let fnParams = [];
+let fnLabel = '';
+
+function rand(a, b) { return a + Math.random() * (b - a); }
+
+function newFunction() {
+  const pick = FUNCTIONS[Math.floor(Math.random() * FUNCTIONS.length)];
+  const params = [
+    rand(0.5, 2.5) * (Math.random() < 0.5 ? 1 : -1),
+    rand(0.3, 2.0) * (Math.random() < 0.5 ? 1 : -1),
+    rand(0.5, 2.0),
+    rand(-1, 1)
+  ];
+  currentFn = (x) => pick.fn(x, params);
+  fnLabel = pick.label;
+  document.getElementById('fnLabel').textContent = fnLabel;
+
+  // Auto-scale
+  let maxY = 0;
+  for (let xv = -5; xv <= 5; xv += 0.1) {
+    const y = Math.abs(currentFn(xv));
+    if (isFinite(y)) maxY = Math.max(maxY, y);
+  }
+  viewScale = Math.min(80, 220 / (maxY || 1));
+  viewOffsetX = 0; viewOffsetY = 0;
+
+  drawAll();
+  updateDeltaDisplay();
+}
+
+// ==============================
+// CANVAS & VIEW
+// ==============================
+const canvas = document.getElementById('mainCanvas');
+const ctx = canvas.getContext('2d');
+let viewScale = 60;   // px per unit
+let viewOffsetX = 0;  // units
+let viewOffsetY = 0;
+
+function resizeCanvas() {
+  const area = document.getElementById('graphArea');
+  canvas.width = area.clientWidth;
+  canvas.height = area.clientHeight;
+}
+
+function toCanvas(x, y) {
+  return {
+    cx: canvas.width / 2 + (x - viewOffsetX) * viewScale,
+    cy: canvas.height / 2 - (y - viewOffsetY) * viewScale
+  };
+}
+
+function fromCanvas(cx, cy) {
+  return {
+    x: (cx - canvas.width / 2) / viewScale + viewOffsetX,
+    y: -(cy - canvas.height / 2) / viewScale + viewOffsetY
+  };
+}
+
+function zoom(factor) {
+  viewScale *= factor;
+  viewScale = Math.max(10, Math.min(500, viewScale));
+  drawAll();
+}
+
+function resetView() {
+  viewScale = 60; viewOffsetX = 0; viewOffsetY = 0;
+  drawAll();
+}
+
+// Scroll zoom
+canvas.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const factor = e.deltaY < 0 ? 1.12 : 0.89;
+  viewScale *= factor;
+  viewScale = Math.max(10, Math.min(500, viewScale));
+  drawAll();
+}, { passive: false });
+
+// Pinch zoom + 2-finger pan
+let lastDist = null;
+let lastTouchMid = null;
+
+canvas.addEventListener('touchstart', (e) => {
+  if (e.touches.length === 2) {
+    lastDist = Math.hypot(
+      e.touches[0].clientX - e.touches[1].clientX,
+      e.touches[0].clientY - e.touches[1].clientY
+    );
+    lastTouchMid = {
+      x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
+      y: (e.touches[0].clientY + e.touches[1].clientY) / 2
+    };
+    e.preventDefault();
+  }
+}, { passive: false });
+
+canvas.addEventListener('touchmove', (e) => {
+  if (e.touches.length === 2) {
+    e.preventDefault();
+    const d = Math.hypot(
+      e.touches[0].clientX - e.touches[1].clientX,
+      e.touches[0].clientY - e.touches[1].clientY
+    );
+    const mid = {
+      x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
+      y: (e.touches[0].clientY + e.touches[1].clientY) / 2
+    };
+
+    // Zoom
+    if (lastDist !== null) {
+      const factor = d / lastDist;
+      viewScale *= factor;
+      viewScale = Math.max(10, Math.min(500, viewScale));
+    }
+
+    // Pan (2-finger drag)
+    if (lastTouchMid !== null) {
+      const rect = canvas.getBoundingClientRect();
+      const dx = (mid.x - lastTouchMid.x) / viewScale;
+      const dy = (mid.y - lastTouchMid.y) / viewScale;
+      viewOffsetX -= dx;
+      viewOffsetY += dy;
+    }
+
+    lastDist = d;
+    lastTouchMid = mid;
+    drawAll();
+  }
+}, { passive: false });
+
+canvas.addEventListener('touchend', (e) => {
+  if (e.touches.length < 2) {
+    lastDist = null;
+    lastTouchMid = null;
+  }
+});
+
+// Pan
+let panStart = null;
+canvas.addEventListener('mousedown', (e) => {
+  panStart = { mx: e.clientX, my: e.clientY, ox: viewOffsetX, oy: viewOffsetY };
+});
+canvas.addEventListener('mousemove', (e) => {
+  if (!panStart) return;
+  viewOffsetX = panStart.ox - (e.clientX - panStart.mx) / viewScale;
+  viewOffsetY = panStart.oy + (e.clientY - panStart.my) / viewScale;
+  drawAll();
+});
+canvas.addEventListener('mouseup', () => { panStart = null; });
+canvas.addEventListener('mouseleave', () => { panStart = null; });
+
+// ==============================
+// DRAW
+// ==============================
+function drawAll() {
+  if (!ctx || !currentFn) return;
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  drawGrid(ctx, W, H);
+  drawAxes(ctx, W, H);
+  drawCurve(ctx, W, H);
+  drawSecant(ctx, W, H);
+  drawPoints(ctx);
+}
+
+function drawGrid(ctx, W, H) {
+  // Determine step
+  const unitsW = W / viewScale;
+  const rawStep = unitsW / 10;
+  const exp = Math.floor(Math.log10(rawStep));
+  let step = Math.pow(10, exp);
+  if (rawStep / step > 5) step *= 5;
+  else if (rawStep / step > 2) step *= 2;
+
+  const xMin = viewOffsetX - W / (2 * viewScale);
+  const xMax = viewOffsetX + W / (2 * viewScale);
+  const yMin = viewOffsetY - H / (2 * viewScale);
+  const yMax = viewOffsetY + H / (2 * viewScale);
+
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 1;
+
+  for (let x = Math.ceil(xMin / step) * step; x <= xMax; x += step) {
+    const {cx} = toCanvas(x, 0);
+    ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, H); ctx.stroke();
+  }
+  for (let y = Math.ceil(yMin / step) * step; y <= yMax; y += step) {
+    const {cy} = toCanvas(0, y);
+    ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(W, cy); ctx.stroke();
+  }
+
+  // Labels
+  ctx.fillStyle = 'rgba(84,92,116,0.8)';
+  ctx.font = '10px JetBrains Mono, monospace';
+  ctx.textAlign = 'center';
+  for (let x = Math.ceil(xMin / step) * step; x <= xMax; x += step) {
+    if (Math.abs(x) < step * 0.1) continue;
+    const {cx, cy: cy0} = toCanvas(x, 0);
+    let labelY = Math.max(12, Math.min(H - 4, cy0 + 14));
+    ctx.fillText(x.toFixed(Math.max(0, -exp)), cx, labelY);
+  }
+  ctx.textAlign = 'right';
+  for (let y = Math.ceil(yMin / step) * step; y <= yMax; y += step) {
+    if (Math.abs(y) < step * 0.1) continue;
+    const {cx: cx0, cy} = toCanvas(0, y);
+    let labelX = Math.max(30, Math.min(W - 4, cx0 - 6));
+    ctx.fillText(y.toFixed(Math.max(0, -exp)), labelX, cy + 4);
+  }
+}
+
+function drawAxes(ctx, W, H) {
+  const {cx: x0} = toCanvas(0, 0);
+  const {cy: y0} = toCanvas(0, 0);
+
+  ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(0, y0); ctx.lineTo(W, y0); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x0, 0); ctx.lineTo(x0, H); ctx.stroke();
+}
+
+function drawCurve(ctx, W, H) {
+  ctx.strokeStyle = '#4a9eff';
+  ctx.lineWidth = 2.5;
+  ctx.shadowColor = 'rgba(74,158,255,0.3)';
+  ctx.shadowBlur = 6;
+  ctx.beginPath();
+  let first = true;
+  const steps = W * 2;
+  for (let i = 0; i <= steps; i++) {
+    const cx = i * W / steps;
+    const x = fromCanvas(cx, 0).x;
+    const y = currentFn(x);
+    if (!isFinite(y) || Math.abs(y) > 1e6) { first = true; continue; }
+    const {cy} = toCanvas(x, y);
+    if (first) { ctx.moveTo(cx, cy); first = false; }
+    else ctx.lineTo(cx, cy);
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+}
+
+let x1Val = -1, x2Val = 1;
+
+function drawSecant(ctx, W, H) {
+  const y1 = currentFn(x1Val);
+  const y2 = currentFn(x2Val);
+  if (!isFinite(y1) || !isFinite(y2)) return;
+
+  // Extend secant line across canvas
+  const dx = x2Val - x1Val;
+  const dy = y2 - y1;
+  const slope = dx !== 0 ? dy / dx : 0;
+
+  const xLeft = fromCanvas(0, 0).x;
+  const xRight = fromCanvas(W, 0).x;
+  const yLeft = y1 + slope * (xLeft - x1Val);
+  const yRight = y1 + slope * (xRight - x1Val);
+
+  const {cx: lx, cy: ly} = toCanvas(xLeft, yLeft);
+  const {cx: rx, cy: ry} = toCanvas(xRight, yRight);
+
+  ctx.strokeStyle = 'rgba(240,165,0,0.55)';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([6, 4]);
+  ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(rx, ry); ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+function drawPoints() {
+  const y1 = currentFn(x1Val);
+  const y2 = currentFn(x2Val);
+  if (!isFinite(y1) || !isFinite(y2)) return;
+
+  const {cx: cx1, cy: cy1} = toCanvas(x1Val, y1);
+  const {cx: cx2, cy: cy2} = toCanvas(x2Val, y2);
+
+  // Delta lines
+  const {cx: cx2b, cy: cy1b} = toCanvas(x2Val, y1);
+  ctx.strokeStyle = 'rgba(74,158,255,0.4)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3, 3]);
+  ctx.beginPath(); ctx.moveTo(cx1, cy1); ctx.lineTo(cx2b, cy1b); ctx.stroke(); // Δx
+  ctx.strokeStyle = 'rgba(224,92,58,0.4)';
+  ctx.beginPath(); ctx.moveTo(cx2b, cy1b); ctx.lineTo(cx2, cy2); ctx.stroke(); // Δy
+  ctx.setLineDash([]);
+
+  // Δx label
+  ctx.fillStyle = 'rgba(74,158,255,0.8)';
+  ctx.font = '11px JetBrains Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText('Δx', (cx1 + cx2b) / 2, cy1 + 16);
+
+  // Δy label
+  ctx.fillStyle = 'rgba(224,92,58,0.8)';
+  ctx.textAlign = 'left';
+  ctx.fillText('Δy', cx2 + 6, (cy1b + cy2) / 2);
+
+  // Points
+  [[cx1, cy1, '#4a9eff'], [cx2, cy2, '#e05c3a']].forEach(([cx, cy, color]) => {
+    ctx.beginPath();
+    ctx.arc(cx, cy, 6, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.strokeStyle = '#0d0f14';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  });
+}
+
+// ==============================
+// SLIDERS
+// ==============================
+const slider1 = document.getElementById('slider1');
+const slider2 = document.getElementById('slider2');
+
+function sliderToX(v) { return v / 100; }
+
+function updateSliderStyle(slider, cls) {
+  const min = +slider.min, max = +slider.max, val = +slider.value;
+  const pct = ((val - min) / (max - min) * 100).toFixed(1) + '%';
+  slider.style.setProperty('--pct', pct);
+}
+
+function updateDeltaDisplay() {
+  if (!currentFn) return;
+
+  x1Val = sliderToX(+slider1.value);
+  x2Val = sliderToX(+slider2.value);
+
+  // Ensure x1 < x2 for display (swap if needed)
+  let a = Math.min(x1Val, x2Val), b = Math.max(x1Val, x2Val);
+
+  const y1 = currentFn(a), y2 = currentFn(b);
+  const dx = b - a;
+  const dy = y2 - y1;
+  const slope = dx !== 0 ? dy / dx : null;
+
+  document.getElementById('val1').textContent = sliderToX(+slider1.value).toFixed(2);
+  document.getElementById('val2').textContent = sliderToX(+slider2.value).toFixed(2);
+  document.getElementById('dxVal').textContent = dx.toFixed(3);
+  document.getElementById('dyVal').textContent = isFinite(dy) ? dy.toFixed(3) : '—';
+  document.getElementById('slopeVal').textContent = (slope !== null && isFinite(slope)) ? slope.toFixed(3) : '—';
+
+  updateSliderStyle(slider1, 'blue-slider');
+  updateSliderStyle(slider2, 'orange-slider');
+
+  // Insight
+  const insightEl = document.getElementById('insightBox').querySelector('p');
+  if (slope === null || !isFinite(slope)) {
+    insightEl.innerHTML = 'Los dos puntos coinciden. La pendiente no está definida para Δx = 0.';
+  } else if (Math.abs(dx) < 0.05) {
+    insightEl.innerHTML = `Δx = ${dx.toFixed(3)} es muy pequeño. La <strong>recta secante</strong> se aproxima a la <strong>tangente</strong>: esta es la esencia de la derivada.`;
+  } else if (Math.abs(slope) < 0.1) {
+    insightEl.innerHTML = `Pendiente ≈ 0. En este intervalo la función es <strong>casi plana</strong>. Podrías estar cerca de un máximo o mínimo.`;
+  } else if (slope > 0) {
+    insightEl.innerHTML = `Pendiente <strong style="color:var(--green)">positiva (${slope.toFixed(2)})</strong>. La función <strong>crece</strong> de x₁ a x₂. Cuanto mayor el valor, más inclinada hacia arriba.`;
+  } else {
+    insightEl.innerHTML = `Pendiente <strong style="color:var(--accent2)">negativa (${slope.toFixed(2)})</strong>. La función <strong>decrece</strong> de x₁ a x₂. Cuanto más negativo, más inclinada hacia abajo.`;
+  }
+
+  drawAll();
+}
+
+slider1.addEventListener('input', updateDeltaDisplay);
+slider2.addEventListener('input', updateDeltaDisplay);
+
+// ==============================
+// RESIZE
+// ==============================
+function resizeCanvas() {
+  const area = document.getElementById('graphArea');
+  canvas.width = area.clientWidth;
+  canvas.height = area.clientHeight;
+}
+
+window.addEventListener('resize', () => { resizeCanvas(); drawAll(); });
+
+// ==============================
+// GAME
+// ==============================
+const gameCanvas = document.getElementById('gameCanvas');
+const gCtx = gameCanvas.getContext('2d');
+
+let gScore = { correct: 0, wrong: 0 };
+let gQuestion = 0;
+const TOTAL_Q = 8;
+let gCurrentPoint = null;
+let gCurrentSlope = null;
+let gAnswered = false;
+let gameFn = null;
+
+const SLOPE_CATEGORIES = ['pos-steep', 'pos-flat', 'neg-flat', 'neg-steep'];
+
+const FEEDBACK = {
+  'pos-steep': {
+    correct: '¡Correcto! La curva asciende de forma pronunciada: pendiente positiva y grande. Piensa en escalar una montaña empinada.',
+    wrong: 'La pendiente aquí es pronunciada, pero en la dirección opuesta a lo que señalaste. Observa hacia dónde sube la curva.'
+  },
+  'pos-flat': {
+    correct: '¡Exacto! La curva sube, pero casi en horizontal. Pendiente positiva y pequeña: la función crece muy despacio.',
+    wrong: 'La función sí sube (pendiente positiva), pero fíjate en si lo hace de forma suave o empinada.'
+  },
+  'neg-flat': {
+    correct: '¡Bien! La curva baja suavemente. Pendiente negativa pero cercana a cero: el descenso es gradual.',
+    wrong: 'La pendiente es negativa (la función desciende), pero ¿lo hace suavemente o de forma pronunciada?'
+  },
+  'neg-steep': {
+    correct: '¡Correcto! La curva desciende bruscamente. Pendiente negativa y grande en valor absoluto.',
+    wrong: 'La curva sí desciende (pendiente negativa), pero revisa si lo hace de forma suave o pronunciada.'
+  }
+};
+
+function classifySlope(s) {
+  if (s > 1.2) return 'pos-steep';
+  if (s > 0.1) return 'pos-flat';
+  if (s > -0.1) return null; // near zero — skip
+  if (s > -1.2) return 'neg-flat';
+  return 'neg-steep';
+}
+
+function generateGameQuestion() {
+  // Make a function with interesting shape
+  const fns = [
+    (x) => Math.sin(x) * 2 + 0.3 * Math.sin(3 * x),
+    (x) => Math.cos(x * 1.5) * 1.8 + 0.5 * Math.sin(2 * x),
+    (x) => 0.3 * x * x * x - 1.5 * x + Math.sin(2 * x),
+    (x) => Math.sin(x * x / 4) * 2,
+    (x) => Math.sin(x) + Math.sin(2 * x) * 0.6 + Math.sin(3 * x) * 0.3,
+  ];
+
+  let attempts = 0;
+  let found = false;
+  while (!found && attempts < 200) {
+    attempts++;
+    gameFn = fns[Math.floor(Math.random() * fns.length)];
+    const xv = rand(-4, 4);
+    const h = 0.001;
+    const slope = (gameFn(xv + h) - gameFn(xv - h)) / (2 * h);
+    const cat = classifySlope(slope);
+    if (cat !== null && isFinite(slope)) {
+      gCurrentPoint = xv;
+      gCurrentSlope = slope;
+      found = true;
+    }
+  }
+
+  gAnswered = false;
+  document.getElementById('qNum').textContent = gQuestion + 1;
+  document.getElementById('gCurrent').textContent = gQuestion + 1;
+
+  document.querySelectorAll('.choice-btn').forEach(b => {
+    b.classList.remove('correct', 'wrong');
+    b.disabled = false;
+  });
+
+  document.getElementById('feedbackBox').textContent = 'Observa bien el punto marcado ✦ en la gráfica. Fíjate en hacia dónde "apunta" la curva justo en ese lugar.';
+  document.getElementById('feedbackBox').className = 'feedback-box';
+  document.getElementById('btnNext').classList.remove('visible');
+
+  resizeGameCanvas();
+  drawGame();
+}
+
+function resizeGameCanvas() {
+  const area = document.getElementById('gameCanvas').parentElement;
+  gameCanvas.width = area.clientWidth;
+  gameCanvas.height = area.clientHeight;
+}
+
+function drawGame() {
+  if (!gameFn || !gCtx) return;
+  const W = gameCanvas.width, H = gameCanvas.height;
+  const scale = 70;
+  const offX = gCurrentPoint || 0;
+
+  gCtx.clearRect(0, 0, W, H);
+
+  // Grid
+  gCtx.strokeStyle = 'rgba(255,255,255,0.04)';
+  gCtx.lineWidth = 1;
+  for (let x = -10; x <= 10; x++) {
+    const cx = W / 2 + (x - offX) * scale;
+    gCtx.beginPath(); gCtx.moveTo(cx, 0); gCtx.lineTo(cx, H); gCtx.stroke();
+  }
+  for (let y = -8; y <= 8; y++) {
+    const cy = H / 2 - y * scale;
+    gCtx.beginPath(); gCtx.moveTo(0, cy); gCtx.lineTo(W, cy); gCtx.stroke();
+  }
+
+  // Axes
+  gCtx.strokeStyle = 'rgba(255,255,255,0.15)';
+  gCtx.lineWidth = 1.5;
+  const ax = W / 2 - offX * scale;
+  gCtx.beginPath(); gCtx.moveTo(0, H / 2); gCtx.lineTo(W, H / 2); gCtx.stroke();
+  gCtx.beginPath(); gCtx.moveTo(ax, 0); gCtx.lineTo(ax, H); gCtx.stroke();
+
+  // Curve
+  gCtx.strokeStyle = '#4a9eff';
+  gCtx.lineWidth = 2.5;
+  gCtx.shadowColor = 'rgba(74,158,255,0.3)';
+  gCtx.shadowBlur = 8;
+  gCtx.beginPath();
+  let first = true;
+  for (let i = 0; i <= W; i++) {
+    const x = offX + (i - W / 2) / scale;
+    const y = gameFn(x);
+    if (!isFinite(y) || Math.abs(y) > 20) { first = true; continue; }
+    const cy = H / 2 - y * scale;
+    if (first) { gCtx.moveTo(i, cy); first = false; }
+    else gCtx.lineTo(i, cy);
+  }
+  gCtx.stroke();
+  gCtx.shadowBlur = 0;
+
+  // Marked point
+  const py = gameFn(gCurrentPoint);
+  const pcx = W / 2;
+  const pcy = H / 2 - py * scale;
+
+  // Tangent line (shown after answer or always?)
+  if (gAnswered) {
+    const h = 0.001;
+    const s = (gameFn(gCurrentPoint + h) - gameFn(gCurrentPoint - h)) / (2 * h);
+    const len = 120;
+    const angle = Math.atan(s);
+    const dx = Math.cos(angle) * len;
+    const dy = Math.sin(angle) * len;
+    gCtx.strokeStyle = 'rgba(240,165,0,0.7)';
+    gCtx.lineWidth = 2;
+    gCtx.setLineDash([5, 4]);
+    gCtx.beginPath();
+    gCtx.moveTo(pcx - dx, pcy + dy);
+    gCtx.lineTo(pcx + dx, pcy - dy);
+    gCtx.stroke();
+    gCtx.setLineDash([]);
+  }
+
+  // Star point
+  gCtx.fillStyle = '#f0a500';
+  gCtx.font = 'bold 22px serif';
+  gCtx.textAlign = 'center';
+  gCtx.textBaseline = 'middle';
+
+  // Glow
+  gCtx.shadowColor = '#f0a500';
+  gCtx.shadowBlur = 15;
+  gCtx.fillText('✦', pcx, pcy - 18);
+  gCtx.shadowBlur = 0;
+
+  // Dot
+  gCtx.beginPath();
+  gCtx.arc(pcx, pcy, 7, 0, Math.PI * 2);
+  gCtx.fillStyle = '#f0a500';
+  gCtx.fill();
+  gCtx.strokeStyle = '#0d0f14';
+  gCtx.lineWidth = 2;
+  gCtx.stroke();
+}
+
+function gameAnswer(choice) {
+  if (gAnswered) return;
+  gAnswered = true;
+
+  const correctCat = classifySlope(gCurrentSlope);
+  const isCorrect = choice === correctCat;
+
+  const catLabels = {
+    'pos-steep': 'Positiva pronunciada',
+    'pos-flat': 'Positiva suave',
+    'neg-flat': 'Negativa suave',
+    'neg-steep': 'Negativa pronunciada'
+  };
+
+  document.querySelectorAll('.choice-btn').forEach(b => {
+    b.disabled = true;
+    const bcat = b.getAttribute('onclick').match(/'([^']+)'/)[1];
+    if (bcat === correctCat) b.classList.add('correct');
+    else if (bcat === choice && !isCorrect) b.classList.add('wrong');
+  });
+
+  const fb = document.getElementById('feedbackBox');
+  if (isCorrect) {
+    gScore.correct++;
+    fb.textContent = FEEDBACK[correctCat].correct;
+    fb.className = 'feedback-box correct';
+  } else {
+    gScore.wrong++;
+    fb.textContent = FEEDBACK[correctCat].wrong + ` La respuesta correcta era: ${catLabels[correctCat]}.`;
+    fb.className = 'feedback-box wrong';
+  }
+
+  document.getElementById('gCorrect').textContent = gScore.correct;
+  document.getElementById('gWrong').textContent = gScore.wrong;
+
+  drawGame(); // show tangent
+
+  gQuestion++;
+  if (gQuestion >= TOTAL_Q) {
+    setTimeout(showGameComplete, 1200);
+  } else {
+    document.getElementById('btnNext').classList.add('visible');
+  }
+}
+
+function nextQuestion() {
+  generateGameQuestion();
+}
+
+function showGameComplete() {
+  document.getElementById('btnNext').classList.remove('visible');
+  document.getElementById('choiceGrid').style.opacity = '0.3';
+
+  const pct = Math.round(gScore.correct / TOTAL_Q * 100);
+  const title = pct >= 75 ? '¡Excelente trabajo!' : pct >= 50 ? '¡Bien hecho!' : '¡Sigue practicando!';
+  const text = pct >= 75
+    ? `Has acertado ${gScore.correct} de ${TOTAL_Q} preguntas (${pct}%). Tienes muy buena intuición geométrica para leer pendientes.`
+    : pct >= 50
+    ? `Has acertado ${gScore.correct} de ${TOTAL_Q} preguntas (${pct}%). Recuerda: si la curva "sube de izquierda a derecha", la pendiente es positiva.`
+    : `Has acertado ${gScore.correct} de ${TOTAL_Q} preguntas (${pct}%). Vuelve al Explorador y practica moviendo los sliders cerca de varios puntos.`;
+
+  document.getElementById('finalTitle').textContent = title;
+  document.getElementById('finalText').textContent = text;
+  document.getElementById('gameComplete').classList.add('visible');
+}
+
+function restartGame() {
+  gScore = { correct: 0, wrong: 0 };
+  gQuestion = 0;
+  document.getElementById('gCorrect').textContent = 0;
+  document.getElementById('gWrong').textContent = 0;
+  document.getElementById('gameComplete').classList.remove('visible');
+  document.getElementById('choiceGrid').style.opacity = '1';
+  generateGameQuestion();
+}
+
+// ==============================
+// INIT
+// ==============================
+window.addEventListener('load', () => {
+  resizeCanvas();
+  newFunction();
+  updateDeltaDisplay();
+
+  // Init game too
+  resizeGameCanvas();
+  generateGameQuestion();
+});
+
+window.addEventListener('resize', () => {
+  resizeCanvas(); drawAll();
+  resizeGameCanvas(); drawGame();
+});
+</script>
+</body>
+</html>
