@@ -1,0 +1,1091 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Ciclo del Carbono – Visor Interactivo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,500;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script
+      src="https://unpkg.com/react@18.3.1/umd/react.development.js"
+      integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"
+      integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"
+      integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y"
+      crossorigin="anonymous"
+    ></script>
+    <script src="carbon-data.js"></script>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #0b0f1c;
+        font-family: "Space Grotesk", sans-serif;
+        color: #f1f5f9;
+      }
+      #root {
+        width: 100%;
+        height: 100%;
+      }
+
+      /* Hotspot pulse animation */
+      @keyframes pulse {
+        0% {
+          transform: translate(-50%, -50%) scale(1);
+          opacity: 0.7;
+        }
+        70% {
+          transform: translate(-50%, -50%) scale(2.2);
+          opacity: 0;
+        }
+        100% {
+          transform: translate(-50%, -50%) scale(2.2);
+          opacity: 0;
+        }
+      }
+      @keyframes pulse2 {
+        0% {
+          transform: translate(-50%, -50%) scale(1);
+          opacity: 0.4;
+        }
+        70% {
+          transform: translate(-50%, -50%) scale(3);
+          opacity: 0;
+        }
+        100% {
+          transform: translate(-50%, -50%) scale(3);
+          opacity: 0;
+        }
+      }
+
+      /* KaTeX display block */
+      .katex-block {
+        display: block;
+        padding: 10px 0;
+        text-align: center;
+        overflow-x: auto;
+        font-size: 0.95em;
+      }
+      .katex-block .katex {
+        color: #e2e8f0;
+      }
+
+      /* Side panel scrollbar */
+      .panel-body::-webkit-scrollbar {
+        width: 5px;
+      }
+      .panel-body::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .panel-body::-webkit-scrollbar-thumb {
+        background: #334155;
+        border-radius: 4px;
+      }
+
+      /* Panel text */
+      .panel-body p {
+        font-family: "Lora", serif;
+        font-size: 0.93em;
+        line-height: 1.72;
+        color: #cbd5e1;
+        margin-bottom: 0.85em;
+      }
+      .panel-body h3 {
+        font-size: 0.78em;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #64748b;
+        margin: 1.1em 0 0.4em;
+        font-family: "Space Grotesk", sans-serif;
+      }
+
+      /* Image no-select */
+      .map-img {
+        display: block;
+        user-select: none;
+        -webkit-user-drag: none;
+        pointer-events: none;
+      }
+
+      /* Mobile panel overlay */
+      @media (max-width: 767px) {
+        .side-panel {
+          position: fixed !important;
+          top: auto !important;
+          right: 0 !important;
+          bottom: 0 !important;
+          left: 0 !important;
+          width: 100% !important;
+          height: 70vh !important;
+          border-radius: 16px 16px 0 0 !important;
+          transform: translateY(0) !important;
+        }
+        .side-panel.closed {
+          transform: translateY(110%) !important;
+        }
+      }
+    </style>
+
+    <template id="__bundler_thumbnail" data-bg-color="#0b0f1c">
+      <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+        <rect width="1200" height="800" fill="#0b0f1c" />
+        <circle
+          cx="600"
+          cy="310"
+          r="160"
+          fill="none"
+          stroke="#a78bfa"
+          stroke-width="4"
+          opacity="0.6"
+        />
+        <circle
+          cx="600"
+          cy="310"
+          r="120"
+          fill="none"
+          stroke="#34d399"
+          stroke-width="3"
+          opacity="0.5"
+        />
+        <circle
+          cx="600"
+          cy="310"
+          r="70"
+          fill="#1e293b"
+          stroke="#38bdf8"
+          stroke-width="3"
+        />
+        <text
+          x="600"
+          y="295"
+          text-anchor="middle"
+          font-family="sans-serif"
+          font-size="28"
+          fill="#a78bfa"
+        >
+          CO₂
+        </text>
+        <text
+          x="600"
+          y="330"
+          text-anchor="middle"
+          font-family="sans-serif"
+          font-size="18"
+          fill="#94a3b8"
+        >
+          Ciclo del Carbono
+        </text>
+        <text
+          x="600"
+          y="520"
+          text-anchor="middle"
+          font-family="sans-serif"
+          font-size="22"
+          fill="#475569"
+        >
+          Visor Interactivo
+        </text>
+      </svg>
+    </template>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="text/babel">
+      const { useState, useEffect, useRef, useCallback } = React;
+
+      const IMG_W = 1688,
+        IMG_H = 1125,
+        PANEL_W = 400;
+
+      const TYPE_COLORS = {
+        atmospheric: "#a78bfa",
+        terrestrial: "#34d399",
+        marine: "#38bdf8",
+        geological: "#fbbf24",
+        anthropogenic: "#f87171",
+        volcanic: "#fb923c",
+      };
+      const TYPE_LABELS = {
+        atmospheric: "Reservorio atmosférico",
+        terrestrial: "Reservorio terrestre",
+        marine: "Reservorio / flujo marino",
+        geological: "Flujo / reservorio geológico",
+        anthropogenic: "Flujo antropogénico",
+        volcanic: "Flujo volcánico",
+      };
+
+      // ── KaTeX helpers ────────────────────────────────────────────────────────────
+      function KatexInline({ tex }) {
+        const html = katex.renderToString(tex, {
+          throwOnError: false,
+          displayMode: false,
+        });
+        return <span dangerouslySetInnerHTML={{ __html: html }} />;
+      }
+      function KatexDisplay({ tex }) {
+        const html = katex.renderToString(tex, {
+          throwOnError: false,
+          displayMode: true,
+        });
+        return (
+          <div
+            className="katex-block"
+            dangerouslySetInnerHTML={{ __html: html }}
+          />
+        );
+      }
+      // Parse text that may contain $...$ inline math
+      function RichText({ text }) {
+        const parts = text.split(/(\$[^$]+\$)/g);
+        return (
+          <>
+            {parts.map((p, i) =>
+              p.startsWith("$") ? (
+                <KatexInline key={i} tex={p.slice(1, -1)} />
+              ) : (
+                p
+              ),
+            )}
+          </>
+        );
+      }
+
+      // ── Section renderer ─────────────────────────────────────────────────────────
+      function Sections({ sections, color }) {
+        return sections.map((s, i) => {
+          if (s.p)
+            return (
+              <p key={i}>
+                <RichText text={s.p} />
+              </p>
+            );
+          if (s.h)
+            return (
+              <h3 key={i} style={{ color }}>
+                {s.h}
+              </h3>
+            );
+          if (s.eq)
+            return s.display ? (
+              <KatexDisplay key={i} tex={s.eq} />
+            ) : (
+              <p key={i}>
+                <KatexInline tex={s.eq} />
+              </p>
+            );
+          return null;
+        });
+      }
+
+      // ── Level switch ─────────────────────────────────────────────────────────────
+      function LevelSwitch({ level, onToggle }) {
+        return (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 0,
+              background: "#1e293b",
+              borderRadius: 8,
+              padding: 2,
+              border: "1px solid #334155",
+              flexShrink: 0,
+            }}
+          >
+            {["normal", "avanzado"].map((l) => (
+              <button
+                key={l}
+                onClick={() => onToggle(l)}
+                style={{
+                  background: level === l ? "#334155" : "transparent",
+                  border: "none",
+                  borderRadius: 6,
+                  color: level === l ? "#f1f5f9" : "#475569",
+                  padding: "4px 10px",
+                  fontSize: ".72em",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                  textTransform: "capitalize",
+                  transition: "all .2s",
+                  letterSpacing: ".02em",
+                }}
+              >
+                {l.charAt(0).toUpperCase() + l.slice(1)}
+              </button>
+            ))}
+          </div>
+        );
+      }
+
+      // ── Hotspot ──────────────────────────────────────────────────────────────────
+      function Hotspot({ el, selected, onClick }) {
+        const color = TYPE_COLORS[el.type];
+        const isRes = el.kind === "reservoir";
+        const dotSize = isRes ? 26 : 19;
+        const ringSize = dotSize * 2.2;
+        const stopEvt = (e) => e.stopPropagation();
+        return (
+          <div
+            className="hotspot"
+            onClick={onClick}
+            onPointerDown={stopEvt}
+            onTouchStart={stopEvt}
+            style={{
+              position: "absolute",
+              left: `${el.x}%`,
+              top: `${el.y}%`,
+              transform: "translate(-50%,-50%)",
+              cursor: "pointer",
+              zIndex: selected ? 30 : 10,
+              width: Math.max(ringSize * 2, 48),
+              height: Math.max(ringSize * 2, 48),
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {/* Pulse rings */}
+            <div
+              style={{
+                position: "absolute",
+                left: "50%",
+                top: "50%",
+                width: ringSize,
+                height: ringSize,
+                borderRadius: "50%",
+                border: `2px solid ${color}`,
+                animation: "pulse 2.2s ease-out infinite",
+                animationDelay: `${el.id.length * 0.13}s`,
+              }}
+            />
+            <div
+              style={{
+                position: "absolute",
+                left: "50%",
+                top: "50%",
+                width: ringSize * 0.75,
+                height: ringSize * 0.75,
+                borderRadius: "50%",
+                border: `1.5px solid ${color}`,
+                animation: "pulse2 2.2s ease-out infinite",
+                animationDelay: `${el.id.length * 0.13 + 0.5}s`,
+              }}
+            />
+            {/* Dot */}
+            <div
+              style={{
+                position: "relative",
+                zIndex: 2,
+                width: dotSize,
+                height: dotSize,
+                borderRadius: "50%",
+                background: selected ? color : `${color}cc`,
+                boxShadow: selected
+                  ? `0 0 0 3px ${color}55, 0 0 14px ${color}88`
+                  : `0 0 6px ${color}66`,
+                transition: "all .3s",
+                border: selected ? `2px solid #fff` : `1.5px solid ${color}`,
+              }}
+            />
+          </div>
+        );
+      }
+
+      // ── Side Panel ───────────────────────────────────────────────────────────────
+      function SidePanel({
+        element,
+        open,
+        onClose,
+        onNext,
+        onPrev,
+        idx,
+        total,
+        level,
+        onToggleLevel,
+      }) {
+        const color = element ? TYPE_COLORS[element.type] : "#94a3b8";
+        const c = element?.content;
+        const stopWheel = (e) => e.stopPropagation();
+        const stopTouch = (e) => e.stopPropagation();
+
+        return (
+          <div
+            className={`side-panel${open ? "" : " closed"}`}
+            onWheel={stopWheel}
+            onTouchStart={stopTouch}
+            onTouchMove={stopTouch}
+            onTouchEnd={stopTouch}
+            style={{
+              position: "fixed",
+              top: 0,
+              right: 0,
+              width: PANEL_W,
+              height: "100vh",
+              background: "#0f172a",
+              borderLeft: `1px solid #1e293b`,
+              display: "flex",
+              flexDirection: "column",
+              transition: "transform .4s cubic-bezier(.4,0,.2,1)",
+              transform: open
+                ? "translateX(0)"
+                : `translateX(${PANEL_W + 4}px)`,
+              zIndex: 100,
+              boxShadow: open ? "-12px 0 40px #00000066" : "none",
+            }}
+          >
+            {/* Color accent bar */}
+            <div
+              style={{
+                height: 3,
+                background: element
+                  ? `linear-gradient(90deg, ${color}, transparent)`
+                  : "#1e293b",
+                flexShrink: 0,
+              }}
+            />
+
+            {/* Header */}
+            <div
+              style={{
+                padding: "18px 20px 14px",
+                borderBottom: "1px solid #1e293b",
+                flexShrink: 0,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                }}
+              >
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  {element && (
+                    <div
+                      style={{
+                        display: "inline-block",
+                        fontSize: ".68em",
+                        fontWeight: 600,
+                        letterSpacing: ".07em",
+                        textTransform: "uppercase",
+                        color,
+                        background: `${color}18`,
+                        border: `1px solid ${color}44`,
+                        borderRadius: 4,
+                        padding: "2px 8px",
+                        marginBottom: 8,
+                      }}
+                    >
+                      {TYPE_LABELS[element.type]}
+                    </div>
+                  )}
+                  <h2
+                    style={{
+                      fontSize:
+                        element?.label.length > 20 ? "1.15em" : "1.35em",
+                      fontWeight: 700,
+                      lineHeight: 1.25,
+                      color: "#f8fafc",
+                      letterSpacing: "-.01em",
+                    }}
+                  >
+                    {element ? element.label : "Selecciona un elemento"}
+                  </h2>
+                  {c?.stock && (
+                    <div
+                      style={{
+                        fontSize: ".8em",
+                        color: "#64748b",
+                        marginTop: 5,
+                        fontVariantNumeric: "tabular-nums",
+                      }}
+                    >
+                      {c.stock}
+                    </div>
+                  )}
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "flex-end",
+                    gap: 6,
+                    flexShrink: 0,
+                    marginLeft: 8,
+                  }}
+                >
+                  <button
+                    onClick={onClose}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      color: "#475569",
+                      fontSize: "1.4em",
+                      lineHeight: 1,
+                      padding: "2px 4px",
+                      transition: "color .2s",
+                    }}
+                    onMouseEnter={(e) => (e.target.style.color = "#f1f5f9")}
+                    onMouseLeave={(e) => (e.target.style.color = "#475569")}
+                  >
+                    ×
+                  </button>
+                  <LevelSwitch level={level} onToggle={onToggleLevel} />
+                </div>
+              </div>
+            </div>
+
+            {/* Body */}
+            <div
+              className="panel-body"
+              style={{ flex: 1, overflowY: "auto", padding: "16px 20px 8px" }}
+            >
+              {element ? (
+                <Sections
+                  sections={level === "normal" ? c.simple : c.sections}
+                  color={color}
+                />
+              ) : (
+                <p
+                  style={{
+                    color: "#475569",
+                    fontStyle: "italic",
+                    fontFamily: "'Lora',serif",
+                  }}
+                >
+                  Haz clic sobre cualquier punto brillante del diagrama para
+                  explorar ese reservorio o flujo del ciclo del carbono.
+                </p>
+              )}
+            </div>
+
+            {/* Nav footer */}
+            <div
+              style={{
+                borderTop: "1px solid #1e293b",
+                padding: "12px 16px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                flexShrink: 0,
+              }}
+            >
+              <button
+                onClick={onPrev}
+                disabled={!element}
+                style={{
+                  background: "#1e293b",
+                  border: "none",
+                  borderRadius: 8,
+                  color: element ? "#94a3b8" : "#2d3748",
+                  cursor: element ? "pointer" : "default",
+                  padding: "8px 14px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  fontSize: ".82em",
+                  fontWeight: 500,
+                  fontFamily: "inherit",
+                  transition: "all .2s",
+                }}
+                onMouseEnter={(e) => {
+                  if (element) {
+                    e.currentTarget.style.background = "#334155";
+                    e.currentTarget.style.color = "#f1f5f9";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "#1e293b";
+                  e.currentTarget.style.color = element ? "#94a3b8" : "#2d3748";
+                }}
+              >
+                ‹ Anterior
+              </button>
+
+              <span
+                style={{
+                  fontSize: ".78em",
+                  color: "#334155",
+                  fontVariantNumeric: "tabular-nums",
+                }}
+              >
+                {element ? `${idx + 1} / ${total}` : `– / ${total}`}
+              </span>
+
+              <button
+                onClick={onNext}
+                disabled={!element}
+                style={{
+                  background: "#1e293b",
+                  border: "none",
+                  borderRadius: 8,
+                  color: element ? "#94a3b8" : "#2d3748",
+                  cursor: element ? "pointer" : "default",
+                  padding: "8px 14px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  fontSize: ".82em",
+                  fontWeight: 500,
+                  fontFamily: "inherit",
+                  transition: "all .2s",
+                }}
+                onMouseEnter={(e) => {
+                  if (element) {
+                    e.currentTarget.style.background = "#334155";
+                    e.currentTarget.style.color = "#f1f5f9";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "#1e293b";
+                  e.currentTarget.style.color = element ? "#94a3b8" : "#2d3748";
+                }}
+              >
+                Siguiente ›
+              </button>
+            </div>
+          </div>
+        );
+      }
+
+      // ── Header bar ───────────────────────────────────────────────────────────────
+      function Header({ panelOpen, selectedEl, onShowPanel }) {
+        return (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: panelOpen ? PANEL_W : 0,
+              zIndex: 50,
+              pointerEvents: "none",
+              padding: "14px 20px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+            }}
+          >
+            <div
+              style={{
+                background: "#0f172acc",
+                backdropFilter: "blur(12px)",
+                border: "1px solid #1e293b",
+                borderRadius: 10,
+                padding: "8px 16px",
+                pointerEvents: "auto",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: ".68em",
+                  letterSpacing: ".1em",
+                  textTransform: "uppercase",
+                  color: "#4a5568",
+                  marginBottom: 2,
+                }}
+              >
+                Biogeoquímica
+              </div>
+              <div
+                style={{
+                  fontSize: "1.05em",
+                  fontWeight: 700,
+                  color: "#e2e8f0",
+                  letterSpacing: "-.01em",
+                }}
+              >
+                Ciclo del Carbono
+              </div>
+            </div>
+
+            {/* Legend */}
+            <div
+              style={{
+                background: "#0f172acc",
+                backdropFilter: "blur(12px)",
+                border: "1px solid #1e293b",
+                borderRadius: 10,
+                padding: "8px 12px",
+                pointerEvents: "auto",
+                display: "flex",
+                flexDirection: "column",
+                gap: 5,
+              }}
+            >
+              {[
+                ["atmospheric", "Atmósfera"],
+                ["terrestrial", "Biosfera terrestre"],
+                ["marine", "Océano"],
+                ["geological", "Geología"],
+                ["anthropogenic", "Antropogénico"],
+                ["volcanic", "Volcánico"],
+              ].map(([t, l]) => (
+                <div
+                  key={t}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 7,
+                    fontSize: ".72em",
+                    color: "#94a3b8",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: "50%",
+                      background: TYPE_COLORS[t],
+                      boxShadow: `0 0 6px ${TYPE_COLORS[t]}`,
+                    }}
+                  />
+                  {l}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      // ── Mobile toggle button ─────────────────────────────────────────────────────
+      function MobileToggle({ show, element, onOpen }) {
+        if (!show) return null;
+        const color = element ? TYPE_COLORS[element.type] : "#94a3b8";
+        return (
+          <button
+            onClick={onOpen}
+            style={{
+              position: "fixed",
+              bottom: 20,
+              right: 20,
+              zIndex: 90,
+              background: `#0f172a`,
+              border: `1px solid ${color}66`,
+              borderRadius: 24,
+              padding: "10px 18px",
+              color: "#f1f5f9",
+              fontFamily: "inherit",
+              fontWeight: 600,
+              fontSize: ".85em",
+              cursor: "pointer",
+              boxShadow: `0 4px 20px #00000088, 0 0 16px ${color}33`,
+            }}
+          >
+            {element ? `Ver: ${element.label}` : "Selecciona un punto"}
+          </button>
+        );
+      }
+
+      // ── Main App ─────────────────────────────────────────────────────────────────
+      function App() {
+        const ELEMENTS = window.CARBON_ELEMENTS;
+        const [zoom, setZoom] = useState(1);
+        const [pan, setPan] = useState({ x: 0, y: 0 });
+        const [selectedId, setSelectedId] = useState(null);
+        const [panelOpen, setPanelOpen] = useState(false);
+        const [animating, setAnimating] = useState(false);
+        const [level, setLevel] = useState("normal");
+
+        const containerRef = useRef(null);
+        const isDragging = useRef(false);
+        const lastMouse = useRef({ x: 0, y: 0 });
+        const lastDist = useRef(null);
+        const hasMoved = useRef(false);
+
+        const selectedEl = ELEMENTS.find((e) => e.id === selectedId) || null;
+        const selectedIdx = selectedEl
+          ? ELEMENTS.findIndex((e) => e.id === selectedId)
+          : -1;
+        const isMobile = () => window.innerWidth < 768;
+
+        // Initial fit
+        useEffect(() => {
+          const fit = () => {
+            const vw = window.innerWidth,
+              vh = window.innerHeight;
+            const z = Math.min(vw / IMG_W, vh / IMG_H) * 0.97;
+            setZoom(z);
+            setPan({ x: (vw - IMG_W * z) / 2, y: (vh - IMG_H * z) / 2 });
+          };
+          fit();
+          window.addEventListener("resize", fit);
+          return () => window.removeEventListener("resize", fit);
+        }, []);
+
+        const zoomToElement = useCallback((el, open) => {
+          const vw = window.innerWidth,
+            vh = window.innerHeight;
+          const mobile = isMobile();
+          const availW = mobile ? vw : open ? vw - PANEL_W : vw;
+          const availH = mobile ? vh * 0.3 : vh;
+          const ix = (el.x / 100) * IMG_W;
+          const iy = (el.y / 100) * IMG_H;
+          const targetZoom = Math.max(
+            1.6,
+            Math.min(2.4, availW / (IMG_W * 0.55)),
+          );
+          const cx = mobile ? vw / 2 : availW / 2;
+          const cy = mobile ? availH / 2 : vh / 2;
+          setZoom(targetZoom);
+          setPan({ x: cx - ix * targetZoom, y: cy - iy * targetZoom });
+          setAnimating(true);
+          setTimeout(() => setAnimating(false), 700);
+        }, []);
+
+        const handleSelect = useCallback(
+          (el) => {
+            const isReselect = el.id === selectedId;
+            setSelectedId(el.id);
+            setPanelOpen(true);
+            if (!isReselect) zoomToElement(el, true);
+          },
+          [selectedId, zoomToElement],
+        );
+
+        const goNext = () => {
+          const next = ELEMENTS[(selectedIdx + 1) % ELEMENTS.length];
+          setSelectedId(next.id);
+          zoomToElement(next, true);
+        };
+        const goPrev = () => {
+          const prev =
+            ELEMENTS[(selectedIdx - 1 + ELEMENTS.length) % ELEMENTS.length];
+          setSelectedId(prev.id);
+          zoomToElement(prev, true);
+        };
+        const closePanel = () => {
+          setPanelOpen(false);
+          setSelectedId(null);
+        };
+
+        // Mouse events
+        const onMouseDown = useCallback((e) => {
+          if (e.target.closest(".hotspot")) return;
+          isDragging.current = true;
+          hasMoved.current = false;
+          lastMouse.current = { x: e.clientX, y: e.clientY };
+        }, []);
+
+        const onMouseMove = useCallback((e) => {
+          if (!isDragging.current) return;
+          const dx = e.clientX - lastMouse.current.x;
+          const dy = e.clientY - lastMouse.current.y;
+          if (Math.abs(dx) + Math.abs(dy) > 3) hasMoved.current = true;
+          lastMouse.current = { x: e.clientX, y: e.clientY };
+          setPan((p) => ({ x: p.x + dx, y: p.y + dy }));
+          setAnimating(false);
+        }, []);
+
+        const onMouseUp = useCallback(() => {
+          isDragging.current = false;
+        }, []);
+
+        const onWheel = useCallback((e) => {
+          e.preventDefault();
+          const rect = containerRef.current.getBoundingClientRect();
+          const mx = e.clientX - rect.left,
+            my = e.clientY - rect.top;
+          const factor = e.deltaY > 0 ? 0.9 : 1.11;
+          setZoom((z) => {
+            const nz = Math.max(0.2, Math.min(6, z * factor));
+            setPan((p) => ({
+              x: mx - (mx - p.x) * (nz / z),
+              y: my - (my - p.y) * (nz / z),
+            }));
+            return nz;
+          });
+          setAnimating(false);
+        }, []);
+
+        // Touch events
+        const onTouchStart = useCallback((e) => {
+          if (e.touches.length === 1) {
+            isDragging.current = true;
+            hasMoved.current = false;
+            lastMouse.current = {
+              x: e.touches[0].clientX,
+              y: e.touches[0].clientY,
+            };
+          } else if (e.touches.length === 2) {
+            isDragging.current = false;
+            const dx = e.touches[0].clientX - e.touches[1].clientX;
+            const dy = e.touches[0].clientY - e.touches[1].clientY;
+            lastDist.current = Math.hypot(dx, dy);
+          }
+        }, []);
+
+        const onTouchMove = useCallback((e) => {
+          e.preventDefault();
+          if (e.touches.length === 1 && isDragging.current) {
+            const dx = e.touches[0].clientX - lastMouse.current.x;
+            const dy = e.touches[0].clientY - lastMouse.current.y;
+            if (Math.abs(dx) + Math.abs(dy) > 4) hasMoved.current = true;
+            lastMouse.current = {
+              x: e.touches[0].clientX,
+              y: e.touches[0].clientY,
+            };
+            setPan((p) => ({ x: p.x + dx, y: p.y + dy }));
+            setAnimating(false);
+          } else if (e.touches.length === 2 && lastDist.current) {
+            const dx = e.touches[0].clientX - e.touches[1].clientX;
+            const dy = e.touches[0].clientY - e.touches[1].clientY;
+            const dist = Math.hypot(dx, dy);
+            const mx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+            const my = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+            const factor = dist / lastDist.current;
+            lastDist.current = dist;
+            setZoom((z) => {
+              const nz = Math.max(0.2, Math.min(6, z * factor));
+              setPan((p) => ({
+                x: mx - (mx - p.x) * (nz / z),
+                y: my - (my - p.y) * (nz / z),
+              }));
+              return nz;
+            });
+            setAnimating(false);
+          }
+        }, []);
+
+        const onTouchEnd = useCallback(() => {
+          isDragging.current = false;
+          lastDist.current = null;
+        }, []);
+
+        return (
+          <div
+            ref={containerRef}
+            style={{
+              position: "fixed",
+              inset: 0,
+              overflow: "hidden",
+              cursor: isDragging.current ? "grabbing" : "grab",
+              background: "#0b0f1c",
+            }}
+            onMouseDown={onMouseDown}
+            onMouseMove={onMouseMove}
+            onMouseUp={onMouseUp}
+            onMouseLeave={onMouseUp}
+            onWheel={onWheel}
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+          >
+            {/* Pannable/zoomable wrapper */}
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: IMG_W,
+                height: IMG_H,
+                transform: `translate(${pan.x}px,${pan.y}px) scale(${zoom})`,
+                transformOrigin: "0 0",
+                transition: animating
+                  ? "transform .65s cubic-bezier(.4,0,.2,1)"
+                  : "none",
+                willChange: "transform",
+              }}
+            >
+              <img
+                className="map-img"
+                src="./Picture1.png"
+                width={IMG_W}
+                height={IMG_H}
+                draggable={false}
+                alt="Diagrama del ciclo del carbono"
+              />
+              {ELEMENTS.map((el) => (
+                <Hotspot
+                  key={el.id}
+                  el={el}
+                  selected={selectedId === el.id}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSelect(el);
+                  }}
+                />
+              ))}
+            </div>
+
+            {/* Header */}
+            <Header
+              panelOpen={panelOpen && !isMobile()}
+              selectedEl={selectedEl}
+              onShowPanel={() => setPanelOpen(true)}
+            />
+
+            {/* Side panel */}
+            <SidePanel
+              element={selectedEl}
+              open={panelOpen}
+              onClose={closePanel}
+              onNext={goNext}
+              onPrev={goPrev}
+              idx={selectedIdx}
+              total={ELEMENTS.length}
+              level={level}
+              onToggleLevel={setLevel}
+            />
+
+            {/* Mobile bottom toggle */}
+            <MobileToggle
+              show={!!selectedEl && !panelOpen}
+              element={selectedEl}
+              onOpen={() => setPanelOpen(true)}
+            />
+
+            {/* Zoom hint (disappears) */}
+            <div
+              style={{
+                position: "fixed",
+                bottom: 16,
+                left: "50%",
+                transform: "translateX(-50%)",
+                background: "#0f172aaa",
+                backdropFilter: "blur(8px)",
+                border: "1px solid #1e293b",
+                borderRadius: 20,
+                padding: "5px 14px",
+                fontSize: ".72em",
+                color: "#475569",
+                pointerEvents: "none",
+                whiteSpace: "nowrap",
+                zIndex: 40,
+              }}
+            >
+              Rueda para zoom · Arrastra para mover · Clic en los puntos para
+              explorar
+            </div>
+          </div>
+        );
+      }
+
+      ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+    </script>
+  </body>
+</html>

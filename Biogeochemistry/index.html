@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+  <title>Ciclos Biogeoquímicos – Visor Interactivo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.7.16/dist/vue.min.js"></script>
+  <script src="./data.js"></script>
+  <script src="./cycle-viewer.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #0b0f1c; font-family: 'Space Grotesk', sans-serif; color: #f1f5f9; }
+    #app { width: 100%; height: 100%; }
+
+    /* ── Home screen ─────────────────────────────────────────────────────── */
+    .home {
+      width: 100%; height: 100%; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 48px;
+      background: radial-gradient(ellipse at 50% 0%, #1a1040 0%, #0b0f1c 70%);
+      overflow: hidden;
+    }
+    .home-header { text-align: center; }
+    .home-header .eyebrow {
+      font-size: .72em; letter-spacing: .18em; text-transform: uppercase;
+      color: #475569; margin-bottom: 10px;
+    }
+    .home-header h1 {
+      font-size: clamp(1.8em, 4vw, 3em); font-weight: 700;
+      letter-spacing: -.03em; color: #f8fafc; line-height: 1.1;
+    }
+    .home-header p {
+      font-family: 'Lora', serif; font-size: .95em; color: #64748b;
+      margin-top: 10px; max-width: 420px;
+    }
+
+    /* ── Cycle grid ──────────────────────────────────────────────────────── */
+    .cycle-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr);
+      gap: 20px; padding: 0 24px;
+      max-width: 820px; width: 100%;
+    }
+    .cycle-card {
+      position: relative; border-radius: 16px; overflow: hidden;
+      cursor: pointer; aspect-ratio: 16/9;
+      border: 1px solid #1e293b;
+      background-color: #0f172a;
+      background-size: 108%; background-position: 50% 50%;
+      transition: background-position .55s ease, background-size .55s ease, box-shadow .3s ease, border-color .3s ease;
+    }
+    .cycle-card:hover {
+      background-size: 115%; background-position: 50% 55%;
+      box-shadow: 0 8px 40px #00000088;
+    }
+    .cycle-card::before {
+      content: ''; position: absolute; inset: 0; z-index: 1;
+      background: linear-gradient(to top, #0b0f1cdd 0%, #0b0f1c99 40%, transparent 100%);
+      transition: opacity .3s;
+    }
+    .cycle-card:hover::before { opacity: .75; }
+    .cycle-card-body {
+      position: absolute; bottom: 0; left: 0; right: 0; z-index: 2;
+      padding: 18px 20px 16px;
+    }
+    .cycle-card .symbol {
+      font-size: 1em; font-weight: 700; letter-spacing: .05em;
+      opacity: .6; margin-bottom: 4px;
+    }
+    .cycle-card h2 {
+      font-size: 1.15em; font-weight: 700; letter-spacing: -.01em;
+      color: #f8fafc; line-height: 1.2;
+    }
+    .cycle-card .card-hint {
+      font-size: .72em; color: #64748b; margin-top: 4px;
+      opacity: 0; transform: translateY(4px);
+      transition: opacity .3s, transform .3s;
+    }
+    .cycle-card:hover .card-hint { opacity: 1; transform: translateY(0); }
+    .cycle-card .accent-border {
+      position: absolute; top: 0; left: 0; right: 0; height: 2px; z-index: 3;
+      opacity: 0; transition: opacity .3s;
+    }
+    .cycle-card:hover .accent-border { opacity: 1; }
+
+    /* ── Hotspot pulse ───────────────────────────────────────────────────── */
+    @keyframes pulse {
+      0%   { transform: translate(-50%,-50%) scale(1); opacity: .7; }
+      70%  { transform: translate(-50%,-50%) scale(2.2); opacity: 0; }
+      100% { transform: translate(-50%,-50%) scale(2.2); opacity: 0; }
+    }
+    @keyframes pulse2 {
+      0%   { transform: translate(-50%,-50%) scale(1); opacity: .4; }
+      70%  { transform: translate(-50%,-50%) scale(3); opacity: 0; }
+      100% { transform: translate(-50%,-50%) scale(3); opacity: 0; }
+    }
+
+    /* ── Edit mode banner animation ──────────────────────────────────────── */
+    @keyframes editBanner {
+      0%   { background-position: 0% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+    /* ── KaTeX ───────────────────────────────────────────────────────────── */
+    .katex-block { display: block; padding: 10px 0; text-align: center; overflow-x: auto; font-size: .95em; }
+    .katex-block .katex { color: #e2e8f0; }
+
+    /* ── Panel scrollbar ─────────────────────────────────────────────────── */
+    .panel-body::-webkit-scrollbar { width: 5px; }
+    .panel-body::-webkit-scrollbar-track { background: transparent; }
+    .panel-body::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    .panel-body p { font-family: 'Lora', serif; font-size: .93em; line-height: 1.72; color: #cbd5e1; margin-bottom: .85em; }
+    .panel-body h3 { font-size: .78em; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #64748b; margin: 1.1em 0 .4em; font-family: 'Space Grotesk', sans-serif; }
+
+    /* ── Nav buttons hover ───────────────────────────────────────────────── */
+    .nav-btn:hover:not(:disabled) { background: #334155 !important; color: #f1f5f9 !important; }
+
+    /* ── Map image ───────────────────────────────────────────────────────── */
+    .map-img { display: block; user-select: none; -webkit-user-drag: none; pointer-events: none; }
+
+    /* ── Mobile panel ────────────────────────────────────────────────────── */
+    @media (max-width: 767px) {
+      .cycle-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+      .cycle-card { aspect-ratio: 4/3; }
+      .side-panel {
+        position: fixed !important; top: auto !important; right: 0 !important;
+        bottom: 0 !important; left: 0 !important; width: 100% !important;
+        height: 70vh !important; border-radius: 16px 16px 0 0 !important;
+        transform: translateY(0) !important;
+      }
+      .side-panel.closed { transform: translateY(110%) !important; }
+    }
+    @media (max-width: 480px) {
+      .cycle-grid { grid-template-columns: 1fr; }
+      .home { gap: 32px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script>
+    Vue.component('cycle-viewer', window.BGQ_CycleViewer);
+
+    new Vue({
+      el: '#app',
+
+      data: function () {
+        return {
+          cycles: Object.values(window.BGQ_CYCLES),
+          activeCycle: null,
+        };
+      },
+
+      mounted: function () {
+        this.preloadImages();
+      },
+
+      methods: {
+        preloadImages: function () {
+          this.cycles.forEach(function (c) {
+            var img = new Image();
+            img.src = c.image;
+          });
+        },
+
+        openCycle: function (cycle) {
+          this.activeCycle = cycle;
+        },
+
+        goHome: function () {
+          this.activeCycle = null;
+        },
+
+        cardStyle: function (cycle) {
+          return {
+            backgroundImage: "url('" + cycle.image + "')",
+          };
+        },
+      },
+
+      template: `
+<div style="width:100%;height:100%;">
+  <!-- Home screen -->
+  <div v-if="!activeCycle" class="home">
+    <div class="home-header">
+      <div class="eyebrow">Biología · Geología</div>
+      <h1>Ciclos Biogeoquímicos</h1>
+      <p>Explora los grandes ciclos de la materia en la Tierra con mapas interactivos y contenido a dos niveles.</p>
+    </div>
+
+    <div class="cycle-grid">
+      <div
+        v-for="cycle in cycles"
+        :key="cycle.id"
+        class="cycle-card"
+        :style="cardStyle(cycle)"
+        @click="openCycle(cycle)"
+      >
+        <div class="accent-border" :style="{background: 'linear-gradient(90deg,' + cycle.accent + ',transparent)'}"></div>
+        <div class="cycle-card-body">
+          <div class="symbol" :style="{color: cycle.accent}">{{ cycle.symbol }}</div>
+          <h2>{{ cycle.title }}</h2>
+          <div class="card-hint">{{ cycle.elements.length }} elementos interactivos →</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cycle viewer -->
+  <cycle-viewer
+    v-else
+    :cycle="activeCycle"
+    @back="goHome"
+  ></cycle-viewer>
+</div>
+      `,
+    });
+  </script>
+</body>
+</html>
