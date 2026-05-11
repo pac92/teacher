@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0d0f14; color: #c8cdd8; font-family: 'JetBrains Mono', 'Courier New', monospace; min-height: 100vh; }
+  .outer { display: flex; flex-direction: column; height: 100vh; min-height: 560px; padding: 20px 16px 16px; }
+  h2.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+  .title-bar { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; }
+  .title-bar h1 { font-size: 13px; font-weight: 400; letter-spacing: 0.12em; text-transform: uppercase; color: #7a8298; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: #3a8fdb; flex-shrink: 0; }
+  .main-area { display: flex; gap: 16px; flex: 1; min-height: 0; }
+  .left-panel { width: 148px; flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; padding-top: 4px; }
+  .fact-card { background: #13161f; border: 0.5px solid #252a38; border-radius: 8px; padding: 9px 10px; transition: border-color 0.4s, background 0.4s; }
+  .fact-card.active { border-color: #2e4a72; background: #111a2a; }
+  .fact-card.warn  { border-color: #3a2a10; background: #15110a; }
+  .fact-label { font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: #444c63; margin-bottom: 4px; transition: color 0.4s; }
+  .fact-card.active .fact-label { color: #3a8fdb; }
+  .fact-card.warn  .fact-label { color: #c47a20; }
+  .fact-value { font-size: 11px; color: #5a637a; line-height: 1.45; transition: color 0.4s; white-space: pre-line; }
+  .fact-card.active .fact-value { color: #a8bcda; }
+  .fact-card.warn  .fact-value { color: #e8a84a; }
+  .chart-wrap { flex: 1; position: relative; min-width: 0; }
+  canvas#mainChart { width: 100%; height: 100%; display: block; }
+  .controls { display: flex; align-items: center; gap: 12px; margin-top: 14px; background: #13161f; border: 0.5px solid #252a38; border-radius: 10px; padding: 10px 14px; }
+  .time-display { font-size: 18px; color: #c8cdd8; min-width: 52px; letter-spacing: 0.04em; }
+  .time-label { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: #444c63; margin-bottom: 2px; }
+  .slider-wrap { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .slider-ticks { display: flex; justify-content: space-between; font-size: 9px; color: #353b4f; padding: 0 2px; }
+  input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 3px; background: #1e2740; border-radius: 2px; outline: none; cursor: pointer; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #3a8fdb; border: 2px solid #0d0f14; cursor: pointer; }
+  input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: #3a8fdb; border: 2px solid #0d0f14; cursor: pointer; }
+  .play-btn { width: 38px; height: 38px; border-radius: 50%; border: 0.5px solid #2a3448; background: #1a2030; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .15s, border-color .15s; flex-shrink: 0; }
+  .play-btn:hover { background: #1e2840; border-color: #3a8fdb; }
+  .play-btn svg { width: 14px; height: 14px; fill: #7a8298; transition: fill .15s; }
+  .play-btn:hover svg, .play-btn.playing svg { fill: #3a8fdb; }
+  .btn-label { font-size: 9px; color: #444c63; letter-spacing: 0.1em; text-transform: uppercase; text-align: center; margin-top: 2px; }
+  .play-col { display: flex; flex-direction: column; align-items: center; }
+</style>
+</head>
+<body>
+<div class="outer">
+  <h2 class="sr-only">Simulador de inversión térmica corregido: perfil temperatura vs altitud 0–3 km, sin discontinuidades</h2>
+  <div class="title-bar">
+    <div class="dot"></div>
+    <h1>Inversión Térmica — Troposfera Baja (0–3 km)</h1>
+  </div>
+  <div class="main-area">
+    <div class="left-panel">
+      <div class="fact-card" id="fc-surf"><div class="fact-label" id="fl-surf">Superficie</div><div class="fact-value" id="fv-surf">—</div></div>
+      <div class="fact-card" id="fc-inv"><div class="fact-label">Inversión térmica</div><div class="fact-value" id="fv-inv">—</div></div>
+      <div class="fact-card" id="fc-grad"><div class="fact-label">Gradiente en inv.</div><div class="fact-value" id="fv-grad">—</div></div>
+      <div class="fact-card" id="fc-conv"><div class="fact-label">Convección</div><div class="fact-value" id="fv-conv">—</div></div>
+      <div class="fact-card" id="fc-cap"><div class="fact-label">Capa de mezcla</div><div class="fact-value" id="fv-cap">—</div></div>
+      <div class="fact-card" id="fc-lapse"><div class="fact-label">Lapse rate CBL</div><div class="fact-value" id="fv-lapse">—</div></div>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="mainChart" role="img" aria-label="Perfil de temperatura vs altitud 0 a 3 km a lo largo del día"></canvas>
+    </div>
+  </div>
+  <div class="controls">
+    <div>
+      <div class="time-label">Hora local</div>
+      <div class="time-display" id="timeDisplay">06:00</div>
+    </div>
+    <div class="slider-wrap">
+      <input type="range" id="hourSlider" min="0" max="24" step="0.05" value="6">
+      <div class="slider-ticks"><span>0h</span><span>3h</span><span>6h</span><span>9h</span><span>12h</span><span>15h</span><span>18h</span><span>21h</span><span>24h</span></div>
+    </div>
+    <div class="play-col">
+      <button class="play-btn" id="playBtn">
+        <svg id="playIcon" viewBox="0 0 16 16"><polygon points="4,2 14,8 4,14"/></svg>
+      </button>
+      <div class="btn-label" id="btnLabel">Activar</div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const N = 120;
+const ALT_MAX = 3.0;
+const altitudes = Array.from({length: N}, (_, i) => (i / (N-1)) * ALT_MAX);
+
+const DALR = 9.8;
+const ELR  = 6.5;
+const T_STD = 15;
+const INV_TOP = 0.32; // km — tope inversión radiativa (constante, ~320 m)
+
+// ── Funciones de interpolación suave ────────────────────────────────────────
+function smoothstep(x) { return x * x * (3 - 2 * x); }
+function clamp01(x) { return Math.max(0, Math.min(1, x)); }
+
+// Temperatura superficial: mínimo a las 05:00, máximo a las 14:00
+function Tsurf(h) {
+  // Modelamos como suma de dos semiciclos para asimetría calentamiento/enfriamiento
+  const h24 = ((h % 24) + 24) % 24;
+  // Ángulo centrado en máximo (14h)
+  const phi = (h24 - 14) / 24 * 2 * Math.PI;
+  return T_STD + 6 * Math.cos(phi) - 2; // oscila entre ~7 y ~21 °C
+}
+
+// ── Variables continuas del ciclo diurno ────────────────────────────────────
+// Todo se define como funciones suaves de la hora, sin bloques if de fase.
+// Cada variable tiene su propia curva y las transiciones son suavizadas.
+
+function getInvStrength(h) {
+  // Inversión nula de 10:00 a 17:00, crece de tarde, máxima de noche, se rompe de mañana
+  // Ciclo: 0 en día, crece a partir de ~18h, máximo ~03–05h, cae a 0 antes de las 10h
+  const h24 = ((h % 24) + 24) % 24;
+
+  // Función de "noche larga" continua: peak centrado en las 03:00
+  // Usamos una gaussiana suave en el espacio circular
+  // Distancia circular a las 03:00
+  let dist = Math.abs(h24 - 3);
+  if (dist > 12) dist = 24 - dist;
+  // Ventana: semianchura ~9h → cero en ~12h y ~18h
+  const raw = Math.max(0, 1 - (dist / 9) ** 2);
+  return smoothstep(clamp01(raw)) * 6.0; // máximo 6°C de inversión
+}
+
+function getInvTop(h) {
+  // El tope de inversión es proporcional a la intensidad: cuando no hay inversión, 0
+  const s = getInvStrength(h);
+  return s > 0.05 ? INV_TOP * (s / 6.0) : 0;
+}
+
+function getBlHeight(h) {
+  // CBL: nula de noche, crece de mañana, máxima al mediodía, colapsa de tarde
+  const h24 = ((h % 24) + 24) % 24;
+  // Peak centrado en las 13:00, semianchura ~5h
+  let dist = Math.abs(h24 - 13);
+  if (dist > 12) dist = 24 - dist;
+  const raw = Math.max(0, 1 - (dist / 6) ** 2);
+  return smoothstep(clamp01(raw)) * 2.4; // máximo ~2.4 km
+}
+
+function getTempProfile(h) {
+  const Ts = Tsurf(h);
+  const invS = getInvStrength(h);
+  const invTop = getInvTop(h);
+  const blH = getBlHeight(h);
+
+  const profile = altitudes.map(z => {
+    let T;
+    const hasInv = invS > 0.05 && invTop > 0.01;
+
+    if (hasInv) {
+      if (z <= invTop) {
+        // Dentro de la inversión: T aumenta con z (gradiente negativo real)
+        T = Ts + invS * (z / invTop);
+      } else {
+        // Por encima de la inversión: ELR
+        const Ttop = Ts + invS;
+        T = Ttop - ELR * (z - invTop);
+      }
+    } else if (blH > 0.05) {
+      if (z <= blH) {
+        // CBL bien mezclada: DALR seco
+        T = Ts - DALR * z;
+      } else {
+        // Troposfera libre: ELR
+        T = (Ts - DALR * blH) - ELR * (z - blH);
+      }
+    } else {
+      // Situación neutra
+      T = Ts - ELR * z;
+    }
+
+    // Mezcla suave: si coexisten CBL e inversión (mañana, tarde)
+    // El perfil ya es coherente porque invS y blH son casi excluyentes por diseño de curvas
+    return parseFloat(T.toFixed(2));
+  });
+
+  return { profile, Tsurf: parseFloat(Ts.toFixed(1)), invS, invTop, blH };
+}
+
+// ── Chart.js ─────────────────────────────────────────────────────────────────
+const ctx = document.getElementById('mainChart').getContext('2d');
+const init = getTempProfile(6);
+
+const chart = new Chart(ctx, {
+  type: 'scatter',
+  data: {
+    datasets: [
+      {
+        label: 'Perfil real',
+        data: altitudes.map((z,i) => ({ x: init.profile[i], y: z })),
+        borderColor: '#3a8fdb', backgroundColor: 'rgba(58,143,219,0.08)',
+        borderWidth: 2.5, pointRadius: 0, fill: true, tension: 0.35, showLine: true,
+      },
+      {
+        label: 'ISA 6.5°C/km',
+        data: altitudes.map(z => ({ x: T_STD - ELR * z, y: z })),
+        borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1,
+        borderDash: [4,5], pointRadius: 0, fill: false, tension: 0, showLine: true,
+      },
+      {
+        label: 'DALR 9.8°C/km',
+        data: altitudes.map(z => ({ x: T_STD - DALR * z, y: z })),
+        borderColor: 'rgba(220,120,60,0.2)', borderWidth: 1,
+        borderDash: [2,6], pointRadius: 0, fill: false, tension: 0, showLine: true,
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false, animation: { duration: 0 },
+    scales: {
+      x: {
+        type: 'linear', min: -5, max: 32,
+        title: { display: true, text: 'Temperatura (°C)', color: '#444c63', font: { size: 11, family: 'JetBrains Mono' } },
+        ticks: { color: '#353b4f', font: { size: 10, family: 'JetBrains Mono' }, stepSize: 5, callback: v => v + '°' },
+        grid: { color: 'rgba(255,255,255,0.04)' }, border: { color: '#252a38' }
+      },
+      y: {
+        type: 'linear', min: 0, max: 3,
+        title: { display: true, text: 'Altitud (km)', color: '#444c63', font: { size: 11, family: 'JetBrains Mono' } },
+        ticks: { color: '#353b4f', font: { size: 10, family: 'JetBrains Mono' }, stepSize: 0.25,
+          callback: v => (v % 0.5 === 0) ? v.toFixed(1) + ' km' : '' },
+        grid: { color: 'rgba(255,255,255,0.04)' }, border: { color: '#252a38' }
+      }
+    },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: { label: c => `${c.parsed.y.toFixed(2)} km → ${c.parsed.x.toFixed(1)} °C` },
+        backgroundColor: '#13161f', borderColor: '#252a38', borderWidth: 0.5,
+        titleColor: '#7a8298', bodyColor: '#a8bcda',
+        titleFont: { family: 'JetBrains Mono', size: 10 }, bodyFont: { family: 'JetBrains Mono', size: 10 }
+      }
+    }
+  }
+});
+
+// Plugin: líneas de referencia + leyenda
+const zonePlugin = {
+  id: 'zones',
+  afterDraw(chart) {
+    const {ctx, chartArea: {top, bottom, left, right}, scales} = chart;
+    const st = chart._state; if (!st) return;
+
+    // Franja inversión
+    if (st.invTop > 0.005 && st.invS > 0.3) {
+      const yBase = scales.y.getPixelForValue(0);
+      const yTop  = scales.y.getPixelForValue(Math.min(st.invTop, 3));
+      ctx.save();
+      ctx.fillStyle = 'rgba(220,140,60,0.07)';
+      ctx.fillRect(left, Math.min(yBase,yTop), right-left, Math.abs(yBase-yTop));
+      ctx.setLineDash([3,4]);
+      ctx.strokeStyle = 'rgba(220,140,60,0.5)';
+      ctx.lineWidth = 0.8;
+      ctx.beginPath(); ctx.moveTo(left, yTop); ctx.lineTo(right-44, yTop); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = 'rgba(220,140,60,0.75)';
+      ctx.font = '9px JetBrains Mono,monospace';
+      ctx.fillText('tope inv. ' + (st.invTop*1000).toFixed(0) + ' m', right-90, yTop-4);
+      ctx.restore();
+    }
+
+    // Línea CBL
+    if (st.blH > 0.1 && st.blH <= 3) {
+      const yBL = scales.y.getPixelForValue(st.blH);
+      ctx.save();
+      ctx.setLineDash([6,4]);
+      ctx.strokeStyle = 'rgba(58,143,219,0.3)';
+      ctx.lineWidth = 0.8;
+      ctx.beginPath(); ctx.moveTo(left, yBL); ctx.lineTo(right-44, yBL); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = 'rgba(58,143,219,0.6)';
+      ctx.font = '9px JetBrains Mono,monospace';
+      ctx.fillText('CBL ' + st.blH.toFixed(2) + ' km', right-72, yBL-4);
+      ctx.restore();
+    }
+
+    // Leyenda
+    const items = [
+      { color: '#3a8fdb',              dash: false, label: 'Perfil real' },
+      { color: 'rgba(255,255,255,0.3)', dash: true,  label: 'ISA 6.5°C/km' },
+      { color: 'rgba(220,120,60,0.5)', dash: true,  label: 'DALR 9.8°C/km' },
+    ];
+    let lx = left+10, ly = top+14;
+    ctx.font = '9px JetBrains Mono,monospace';
+    items.forEach(it => {
+      ctx.save();
+      ctx.strokeStyle = it.color; ctx.lineWidth = 1.5;
+      if (it.dash) ctx.setLineDash([3,4]);
+      ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(lx+18, ly); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = 'rgba(100,110,140,0.85)';
+      ctx.fillText(it.label, lx+22, ly+3);
+      ctx.restore();
+      ly += 14;
+    });
+  }
+};
+Chart.register(zonePlugin);
+
+function toHHMM(h) {
+  const hh = Math.floor(((h%24)+24)%24), mm = Math.floor((h%1)*60);
+  return String(hh).padStart(2,'0') + ':' + String(mm).padStart(2,'0');
+}
+
+function phaseLabel(h) {
+  const h24 = ((h%24)+24)%24;
+  if (h24 >= 21 || h24 < 6)  return 'noche';
+  if (h24 >= 6  && h24 < 9.5) return 'morning_break';
+  if (h24 >= 9.5 && h24 <= 18) return 'day';
+  return 'evening';
+}
+
+function updateFacts(st, h) {
+  const { Tsurf, invS, invTop, blH } = st;
+  const h24 = ((h%24)+24)%24;
+  const warming = h24 > 5.5 && h24 < 14.5;
+  const phase = phaseLabel(h);
+
+  const fcS = document.getElementById('fc-surf');
+  fcS.className = 'fact-card active';
+  document.getElementById('fl-surf').textContent = warming ? 'Superficie ↑ calentando' : 'Superficie ↓ enfriando';
+  document.getElementById('fv-surf').textContent = Tsurf + ' °C';
+
+  const fcI = document.getElementById('fc-inv');
+  const fvI = document.getElementById('fv-inv');
+  if (invS > 0.3) {
+    fcI.className = 'fact-card active warn';
+    fvI.textContent = 'ACTIVA\n+' + invS.toFixed(1) + '°C en ' + (invTop*1000).toFixed(0) + ' m';
+  } else {
+    fcI.className = 'fact-card';
+    fvI.textContent = 'Inactiva';
+  }
+
+  const fcG = document.getElementById('fc-grad');
+  const fvG = document.getElementById('fv-grad');
+  if (invS > 0.3 && invTop > 0) {
+    const grad = -(invS / invTop);
+    fcG.className = 'fact-card active warn';
+    fvG.textContent = grad.toFixed(1) + ' °C/km\n(T ↑ con altitud)';
+  } else {
+    fcG.className = 'fact-card';
+    fvG.textContent = 'Normal\n(T ↓ con altitud)';
+  }
+
+  const fcC = document.getElementById('fc-conv');
+  const fvC = document.getElementById('fv-conv');
+  if (phase === 'day') {
+    fcC.className = 'fact-card active'; fvC.textContent = 'Vigorosa\n(aire inestable)';
+  } else if (phase === 'morning_break') {
+    fcC.className = 'fact-card active'; fvC.textContent = 'Iniciando\n(inversión rompe)';
+  } else {
+    fcC.className = 'fact-card'; fvC.textContent = 'Suprimida\n(aire estable)';
+  }
+
+  const fcCap = document.getElementById('fc-cap');
+  const fvCap = document.getElementById('fv-cap');
+  if (blH > 0.1) {
+    fcCap.className = 'fact-card active';
+    fvCap.textContent = (blH >= 3 ? '>3.0' : blH.toFixed(2)) + ' km';
+  } else {
+    fcCap.className = 'fact-card'; fvCap.textContent = '< 100 m';
+  }
+
+  const fcL = document.getElementById('fc-lapse');
+  const fvL = document.getElementById('fv-lapse');
+  if (phase === 'day' || phase === 'morning_break') {
+    fcL.className = 'fact-card active'; fvL.textContent = '9.8 °C/km\n(DALR seco)';
+  } else {
+    fcL.className = 'fact-card'; fvL.textContent = '6.5 °C/km\n(ELR estándar)';
+  }
+}
+
+function updateChart(h) {
+  const st = getTempProfile(h);
+  chart.data.datasets[0].data = altitudes.map((z,i) => ({ x: st.profile[i], y: z }));
+  const h24 = ((h%24)+24)%24;
+  const isNight = h24 < 7 || h24 > 20;
+  chart.data.datasets[0].borderColor = isNight ? '#7a6fc8' : '#3a8fdb';
+  chart.data.datasets[0].backgroundColor = isNight ? 'rgba(106,100,200,0.07)' : 'rgba(58,143,219,0.08)';
+  chart._state = st;
+  chart.update('none');
+  document.getElementById('timeDisplay').textContent = toHHMM(h);
+  document.getElementById('hourSlider').value = h;
+  updateFacts(st, h);
+}
+
+let hour = 6, playing = false, animFrame = null, lastTime = null;
+const SPEED = 1.4;
+
+function tick(ts) {
+  if (!playing) return;
+  if (lastTime == null) lastTime = ts;
+  const dt = (ts - lastTime) / 1000;
+  lastTime = ts;
+  hour = (hour + dt * SPEED) % 24;
+  updateChart(hour);
+  animFrame = requestAnimationFrame(tick);
+}
+
+document.getElementById('hourSlider').addEventListener('input', e => {
+  hour = parseFloat(e.target.value); updateChart(hour);
+});
+
+const playBtn = document.getElementById('playBtn');
+playBtn.addEventListener('click', () => {
+  playing = !playing;
+  if (playing) {
+    playBtn.classList.add('playing');
+    document.getElementById('playIcon').innerHTML = '<rect x="3" y="2" width="4" height="12" rx="1"/><rect x="9" y="2" width="4" height="12" rx="1"/>';
+    document.getElementById('btnLabel').textContent = 'Pausar';
+    lastTime = null; animFrame = requestAnimationFrame(tick);
+  } else {
+    playBtn.classList.remove('playing');
+    document.getElementById('playIcon').innerHTML = '<polygon points="4,2 14,8 4,14"/>';
+    document.getElementById('btnLabel').textContent = 'Activar';
+    if (animFrame) cancelAnimationFrame(animFrame);
+  }
+});
+
+updateChart(6);
+</script>
+</body>
+</html>
