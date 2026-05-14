@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guía de visionado — El debilitamiento de la AMOC · DW News</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #0d1117;
+    --bg2:       #131920;
+    --bg3:       #1a2330;
+    --border:    #243040;
+    --border2:   #2e3d50;
+    --text:      #dde6f0;
+    --text2:     #8fa0b0;
+    --text3:     #566878;
+    --accent:    #4a9edd;
+    --accent2:   #2a6ea6;
+    --teal:      #2ebf8f;
+    --amber:     #e8a840;
+    --coral:     #e05a4a;
+    --serif:     'Playfair Display', Georgia, serif;
+    --sans:      'Outfit', sans-serif;
+    --mono:      'JetBrains Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.7;
+  }
+
+  /* ── HERO ─────────────────────────────────────── */
+  .hero {
+    position: relative;
+    overflow: hidden;
+    padding: 4rem 2rem 3rem;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(160deg, #0d1a2a 0%, #0d1117 60%);
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 80% 30%, rgba(74,158,221,0.07) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 60% at 10% 80%, rgba(46,191,143,0.05) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-inner { max-width: 820px; margin: 0 auto; position: relative; }
+  .hero-tag {
+    font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: .8rem; font-weight: 500;
+  }
+  .hero h1 {
+    font-family: var(--serif); font-size: clamp(1.8rem, 4vw, 2.8rem);
+    line-height: 1.18; color: #eef4f9; margin-bottom: .8rem;
+  }
+  .hero-lead {
+    font-size: 1rem; color: var(--text2); max-width: 640px;
+    line-height: 1.65; font-style: italic; font-family: var(--serif);
+  }
+  .hero-meta {
+    margin-top: 1.6rem; display: flex; gap: 1.4rem; flex-wrap: wrap;
+    font-size: 12px; color: var(--text3); border-top: 1px solid var(--border);
+    padding-top: 1rem;
+  }
+  .hero-meta span { display: flex; align-items: center; gap: 5px; }
+
+  /* ── LAYOUT ───────────────────────────────────── */
+  main { max-width: 820px; margin: 0 auto; padding: 2.5rem 2rem 5rem; }
+
+  /* ── SECTION HEADERS ──────────────────────────── */
+  .sec-head {
+    display: flex; align-items: center; gap: 12px;
+    margin: 2.8rem 0 1.2rem;
+  }
+  .sec-num {
+    font-family: var(--mono); font-size: 11px; font-weight: 500;
+    color: var(--accent); background: rgba(74,158,221,.1);
+    border: 1px solid rgba(74,158,221,.2);
+    border-radius: 4px; padding: 2px 8px; flex-shrink: 0;
+  }
+  .sec-title {
+    font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+    font-weight: 600; color: var(--text2); flex: 1;
+  }
+  .sec-title::after {
+    content: ''; display: inline-block; width: 100%;
+    height: 1px; background: var(--border); vertical-align: middle;
+    margin-left: 10px; max-width: 200px;
+  }
+
+  /* ── GLOSSARY ─────────────────────────────────── */
+  .glossary { display: grid; gap: 1px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .gl-item { background: var(--bg2); padding: 1.1rem 1.3rem; border-bottom: 1px solid var(--border); }
+  .gl-item:last-child { border-bottom: none; }
+  .gl-term {
+    font-family: var(--mono); font-size: .82rem; font-weight: 500;
+    color: var(--accent); margin-bottom: .4rem; display: flex; align-items: center; gap: 8px;
+  }
+  .gl-tag {
+    font-size: 10px; font-family: var(--sans); font-weight: 400;
+    text-transform: uppercase; letter-spacing: .08em;
+    color: var(--text3); background: var(--bg3);
+    border: 1px solid var(--border); border-radius: 3px; padding: 1px 6px;
+  }
+  .gl-def { font-size: .88rem; color: var(--text2); line-height: 1.6; }
+  .gl-def strong { color: var(--text); font-weight: 500; }
+
+  /* ── PARADOX BOX ──────────────────────────────── */
+  .paradox {
+    display: grid; grid-template-columns: 1fr 40px 1fr;
+    align-items: center; gap: 0;
+    border: 1px solid var(--border2); border-radius: 10px;
+    overflow: hidden; margin: .5rem 0 1rem;
+  }
+  .para-side {
+    background: var(--bg2); padding: 1.2rem 1.4rem;
+    text-align: center;
+  }
+  .para-side .big { font-size: 1rem; font-weight: 600; color: var(--text); margin-bottom: .3rem; }
+  .para-side .sm { font-size: .82rem; color: var(--text2); line-height: 1.45; }
+  .para-side.left { border-right: 1px solid var(--border); }
+  .para-side.right { border-left: 1px solid var(--border); }
+  .para-arrow {
+    text-align: center; font-size: 1.1rem; color: var(--text3);
+    background: var(--bg3);
+  }
+  .paradox-note {
+    font-size: .84rem; color: var(--text2); line-height: 1.55;
+    font-style: italic; border-left: 2px solid var(--border2);
+    padding-left: 1rem; margin-top: .8rem;
+  }
+
+  /* ── STATS GRID ───────────────────────────────── */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin: .5rem 0; }
+  .stat { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: .9rem 1rem; }
+  .stat .n { font-size: 1.6rem; font-weight: 600; color: var(--text); font-family: var(--serif); line-height: 1; }
+  .stat .l { font-size: .76rem; color: var(--text2); margin-top: .3rem; line-height: 1.4; }
+  .stat.hi .n { color: var(--coral); }
+  .stat.med .n { color: var(--amber); }
+  .stat.ok .n { color: var(--teal); }
+
+  /* ── CARDS ─────────────────────────────────────── */
+  .cards { display: grid; gap: 10px; }
+  .card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 8px; padding: .95rem 1.2rem;
+    transition: border-color .2s;
+  }
+  .card:hover { border-color: var(--border2); }
+  .card-q {
+    font-size: .88rem; font-weight: 500; color: var(--text);
+    margin-bottom: .35rem; display: flex; align-items: baseline; gap: 9px;
+  }
+  .card-q .ico { color: var(--accent); font-size: .8rem; font-family: var(--mono); flex-shrink: 0; }
+  .card-a { font-size: .84rem; color: var(--text2); line-height: 1.6; padding-left: 22px; }
+  .card-a em { color: var(--teal); font-style: normal; font-weight: 500; }
+
+  /* ── TIMELINE ─────────────────────────────────── */
+  .timeline { display: grid; gap: 0; }
+  .tl-item { display: grid; grid-template-columns: 36px 1fr; gap: 0; }
+  .tl-num-col { display: flex; flex-direction: column; align-items: center; }
+  .tl-num {
+    width: 30px; height: 30px; border-radius: 50%;
+    border: 1px solid var(--accent2); background: rgba(74,158,221,.1);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: .78rem; color: var(--accent);
+    font-weight: 500; flex-shrink: 0;
+  }
+  .tl-line { flex: 1; width: 1px; background: var(--border); margin: 4px 0; }
+  .tl-item:last-child .tl-line { display: none; }
+  .tl-content { padding: 0 0 1.2rem 1rem; }
+  .tl-head { font-size: .9rem; font-weight: 500; color: var(--text); margin-bottom: .3rem; line-height: 1.3; padding-top: 4px; }
+  .tl-body { font-size: .83rem; color: var(--text2); line-height: 1.55; }
+
+  /* ── FOOTER ───────────────────────────────────── */
+  footer {
+    border-top: 1px solid var(--border); margin-top: 3rem;
+    padding: 1.5rem 0 0;
+    font-size: .78rem; color: var(--text3); line-height: 1.6;
+  }
+
+  @media print {
+    body { background: #fff; color: #111; }
+    .hero { background: #f0f4f8; }
+    .card, .stat, .gl-item { background: #f7f9fb; }
+    footer { border-top-color: #ccc; }
+  }
+
+  @media (max-width: 560px) {
+    .hero { padding: 2.5rem 1.2rem 2rem; }
+    main { padding: 1.8rem 1.2rem 3rem; }
+    .paradox { grid-template-columns: 1fr; }
+    .para-side.left { border-right: none; border-bottom: 1px solid var(--border); }
+    .para-side.right { border-left: none; border-top: 1px solid var(--border); }
+    .para-arrow { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-inner">
+    <div class="hero-tag">DW News · Guía de visionado</div>
+    <h1>El debilitamiento de la AMOC.<br>Por qué importa.</h1>
+    <p class="hero-lead">Una corriente atlántica clave se debilita. Esta guía prepara los conceptos esenciales antes del visionado y ofrece claves para seguir el reportaje con más profundidad.</p>
+    <div class="hero-meta">
+      <span>🎙 Narración: Ola Alsaga, Berlín</span>
+      <span>🔬 Experto: Prof. Stefan Rahmstorf · Universidad de Potsdam</span>
+      <span>📡 Fuente: DW News</span>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- ══ 01 GLOSARIO ══════════════════════════════ -->
+  <div class="sec-head">
+    <span class="sec-num">01</span>
+    <span class="sec-title">Glosario y contenidos teóricos básicos</span>
+  </div>
+
+  <div class="glossary">
+
+    <div class="gl-item">
+      <div class="gl-term">AMOC <span class="gl-tag">concepto central</span></div>
+      <div class="gl-def">
+        <strong>Circulación Meridional de Retorno del Atlántico</strong> (Atlantic Meridional Overturning Circulation). Sistema de corrientes oceánicas que transporta agua cálida y salada desde los trópicos hacia el norte del Atlántico, donde libera calor a la atmósfera y se hunde por densidad, regresando luego al sur en profundidad. Es la razón por la que Europa occidental tiene un clima más templado del que le correspondería por latitud.
+      </div>
+    </div>
+
+    <div class="gl-item">
+      <div class="gl-term">Circulación termohalina <span class="gl-tag">oceanografía</span></div>
+      <div class="gl-def">
+        Sistema global de corrientes oceánicas impulsadas por diferencias de <strong>temperatura</strong> (<em>termo-</em>) y <strong>salinidad</strong> (<em>-halina</em>), que determinan la densidad del agua. El agua más fría y salada es más densa y se hunde; el agua más cálida y dulce es más ligera y flota. La AMOC es el componente atlántico de este sistema global, a veces llamado <em>cinta transportadora oceánica</em>.
+      </div>
+    </div>
+
+    <div class="gl-item">
+      <div class="gl-term">Convección oceánica <span class="gl-tag">física</span></div>
+      <div class="gl-def">
+        Proceso por el cual el agua superficial, al volverse suficientemente densa (por enfriamiento o aumento de salinidad), se hunde hacia el fondo oceánico. En el Atlántico norte y los mares nórdicos, esta <strong>convección profunda</strong> es el «motor» que mantiene activa la AMOC. Si el agua superficial pierde densidad —por calentamiento o dilución con agua dulce—, la convección cesa y la corriente se debilita.
+      </div>
+    </div>
+
+    <div class="gl-item">
+      <div class="gl-term">Punto de inflexión / <em>tipping point</em> <span class="gl-tag">física del clima</span></div>
+      <div class="gl-def">
+        Umbral crítico del sistema climático a partir del cual se desencadenan <strong>retroalimentaciones positivas autoperpetuadas</strong> que hacen el cambio irreversible, incluso si se eliminan las causas externas. En el caso de la AMOC, el punto de inflexión se alcanza cuando la convección profunda en el Atlántico norte se detiene de forma permanente. Concepto formalizado por Henry Stommel en 1961.
+      </div>
+    </div>
+
+    <div class="gl-item">
+      <div class="gl-term">Retroalimentación positiva <span class="gl-tag">sistemas dinámicos</span></div>
+      <div class="gl-def">
+        Mecanismo en el que un cambio inicial amplifica sus propias causas, acelerando el proceso. Ejemplo en este contexto: el calentamiento funde el hielo de Groenlandia → más agua dulce en el Atlántico → la AMOC se debilita → menos calor llega al norte → mayor contraste térmico y más inestabilidad. <strong>No debe confundirse con «retroalimentación positiva» en el sentido coloquial de algo bueno</strong>; en este contexto simplemente significa que el efecto refuerza la causa.
+      </div>
+    </div>
+
+    <div class="gl-item">
+      <div class="gl-term"><em>Cold blob</em> / Mancha fría <span class="gl-tag">señal observable</span></div>
+      <div class="gl-def">
+        Zona del Atlántico norte —al oeste de las Islas Británicas y al sur de Islandia y Groenlandia— que se está <strong>enfriando</strong> mientras el resto del planeta se calienta. Los modelos climáticos predijeron esta anomalía como consecuencia del debilitamiento de la AMOC, y ya es un fenómeno observable. Su presencia tiene efectos contraintuitivos: favorece sistemas de baja presión que traen aire cálido del suroeste, contribuyendo a las olas de calor en Europa continental.
+      </div>
+    </div>
+
+    <div class="gl-item">
+      <div class="gl-term">Escenarios de emisiones (SSP/RCP) <span class="gl-tag">modelización climática</span></div>
+      <div class="gl-def">
+        Los modelos climáticos trabajan con distintas hipótesis de emisiones futuras de CO₂. Los <strong>escenarios de altas emisiones</strong> (SSP5-8.5 / RCP8.5) asumen que seguimos quemando combustibles fósiles sin restricciones; los <strong>de bajas emisiones</strong> (SSP1-2.6 / RCP2.6) asumen reducciones drásticas. En el reportaje, Rahmstorf cita que el 70% de los modelos predicen colapso de la AMOC con altas emisiones y el 25% incluso con bajas.
+      </div>
+    </div>
+
+    <div class="gl-item">
+      <div class="gl-term">Nivel del mar relativo <span class="gl-tag">oceanografía física</span></div>
+      <div class="gl-def">
+        El nivel del mar no sube de manera uniforme en todo el planeta: las corrientes oceánicas distribuyen el agua y crean diferencias regionales. Si la AMOC colapsa, la redistribución de masa oceánica produciría una <strong>subida adicional de ~0,5 m en las costas del Atlántico norte europeo</strong>, por encima de la subida media global debida al deshielo y la expansión térmica.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══ 02 LA PARADOJA ═══════════════════════════ -->
+  <div class="sec-head">
+    <span class="sec-num">02</span>
+    <span class="sec-title">La paradoja central del reportaje</span>
+  </div>
+
+  <div class="paradox">
+    <div class="para-side left">
+      <div class="big">Europa se calienta</div>
+      <div class="sm">A más del doble de la tasa media global. Hecho observable hoy.</div>
+    </div>
+    <div class="para-arrow">↔</div>
+    <div class="para-side right">
+      <div class="big">Europa podría enfriarse</div>
+      <div class="sm">Si la AMOC colapsa, menos calor llegaría desde el sur.</div>
+    </div>
+  </div>
+  <p class="paradox-note">Estos efectos no se cancelan: su coexistencia aumentaría el gradiente térmico entre el norte y el sur de Europa, lo que dispararía los extremos meteorológicos —tormentas, olas de calor, sequías— y no simplemente moderaría la temperatura media.</p>
+
+  <!-- ══ 03 CIFRAS CLAVE ═══════════════════════════ -->
+  <div class="sec-head">
+    <span class="sec-num">03</span>
+    <span class="sec-title">Cifras clave para seguir el reportaje</span>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="n">1961</div><div class="l">Año del modelo de Stommel que predijo el punto de inflexión</div></div>
+    <div class="stat hi"><div class="n">70%</div><div class="l">Modelos con colapso en escenarios de altas emisiones</div></div>
+    <div class="stat med"><div class="n">25%</div><div class="l">Probabilidad de colapso incluso con bajas emisiones</div></div>
+    <div class="stat"><div class="n">50–100 a</div><div class="l">Años que duraría el colapso una vez superado el umbral</div></div>
+    <div class="stat ok"><div class="n">+0,5 m</div><div class="l">Subida adicional del nivel del mar en costas del Atlántico norte europeo</div></div>
+    <div class="stat"><div class="n">×2</div><div class="l">Velocidad de calentamiento de Europa respecto a la media global</div></div>
+  </div>
+
+  <!-- ══ 04 CONCEPTOS DEL VÍDEO ════════════════════ -->
+  <div class="sec-head">
+    <span class="sec-num">04</span>
+    <span class="sec-title">Conceptos que aparecen en el vídeo</span>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-q"><span class="ico">Q1</span>¿Qué es la AMOC y por qué importa para Europa?</div>
+      <div class="card-a">Transporta agua cálida y salada desde el trópico hacia el norte. Al llegar al Atlántico norte, libera ese calor a la atmósfera —lo que suaviza el clima europeo— y se hunde por ser más densa. Ese hundimiento es el motor del sistema. Sin él, Europa recibiría mucho menos calor oceánico.</div>
+    </div>
+    <div class="card">
+      <div class="card-q"><span class="ico">Q2</span>¿Qué es el <em>cold blob</em> y qué paradoja genera?</div>
+      <div class="card-a">Es la única zona del planeta que se enfría mientras el resto se calienta. Su presencia desplaza borrascas hacia el oeste de Gran Bretaña; el aire circula en sentido antihorario a su alrededor y lleva <em>aire cálido del suroeste a Europa continental</em>. Es decir: el frío atlántico está contribuyendo a las olas de calor europeas.</div>
+    </div>
+    <div class="card">
+      <div class="card-q"><span class="ico">Q3</span>¿Qué es un punto de inflexión y por qué es irreversible?</div>
+      <div class="card-a">Un umbral físico a partir del cual retroalimentaciones positivas toman el control del sistema. En la AMOC, ocurre cuando la convección profunda cesa por completo. A partir de ahí, el proceso se autoperpetúa aunque se reduzcan las emisiones: <em>no hay marcha atrás</em>.</div>
+    </div>
+    <div class="card">
+      <div class="card-q"><span class="ico">Q4</span>¿Por qué el agua dulce desencadena el colapso?</div>
+      <div class="card-a">El deshielo de Groenlandia y el calentamiento superficial reducen la densidad del agua en el Atlántico norte: menos salada (menos densa) y más cálida (menos densa). El agua deja de hundirse, la convección cesa y el motor de la AMOC se para.</div>
+    </div>
+    <div class="card">
+      <div class="card-q"><span class="ico">Q5</span>¿Qué tiene de cierto <em>El día de mañana</em> (2004)?</div>
+      <div class="card-a">La premisa básica —deshielo de Groenlandia → dilución del Atlántico → colapso de la corriente— está fundamentada en ciencia real. La licencia de Hollywood está en la velocidad: en la película ocurre en días; en la realidad tomaría <em>décadas</em>.</div>
+    </div>
+    <div class="card">
+      <div class="card-q"><span class="ico">Q6</span>¿Se puede revertir el proceso una vez superado el umbral?</div>
+      <div class="card-a">Según Rahmstorf, es muy improbable. Las retroalimentaciones que se activan son autoperpetuadas. La única estrategia eficaz es preventiva: reducir emisiones antes de alcanzar el punto de inflexión, abandonando los combustibles fósiles lo antes posible.</div>
+    </div>
+  </div>
+
+  <!-- ══ 05 ESTRUCTURA DEL REPORTAJE ═══════════════ -->
+  <div class="sec-head">
+    <span class="sec-num">05</span>
+    <span class="sec-title">Estructura narrativa — a qué prestar atención</span>
+  </div>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-num-col"><div class="tl-num">1</div><div class="tl-line"></div></div>
+      <div class="tl-content">
+        <div class="tl-head">La paradoja de apertura</div>
+        <div class="tl-body">Europa se calienta más rápido que ninguna otra región y, sin embargo, podría enfriarse a largo plazo. Presta atención a cómo el narrador plantea la contradicción antes de presentar al experto. Es el hilo conductor de todo el reportaje.</div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-num-col"><div class="tl-num">2</div><div class="tl-line"></div></div>
+      <div class="tl-content">
+        <div class="tl-head">El cambio de percepción de Rahmstorf</div>
+        <div class="tl-body">El científico pasó de estimar un 5% de riesgo a ver modelos con un 70%. El bloque central del reportaje explica qué nuevas evidencias provocaron ese giro radical en su valoración y por qué es científicamente significativo.</div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-num-col"><div class="tl-num">3</div><div class="tl-line"></div></div>
+      <div class="tl-content">
+        <div class="tl-head">La física de la «cinta transportadora» y el umbral</div>
+        <div class="tl-body">La sección más técnica. Explica el mecanismo termohalino, por qué el agua dulce lo interrumpe y dónde está exactamente el punto de no retorno. El reportaje usa la película <em>El día de mañana</em> para anclar el concepto antes de desmontarlo.</div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-num-col"><div class="tl-num">4</div><div class="tl-line"></div></div>
+      <div class="tl-content">
+        <div class="tl-head">El efecto paradójico del <em>cold blob</em></div>
+        <div class="tl-body">El frío atlántico desplaza borrascas que traen aire cálido del suroeste a Europa. Es el mecanismo concreto que explica por qué la AMOC ya está influyendo en las olas de calor actuales, antes incluso de llegar al punto de inflexión.</div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-num-col"><div class="tl-num">5</div><div class="tl-line"></div></div>
+      <div class="tl-content">
+        <div class="tl-head">Consecuencias regionales y cierre político</div>
+        <div class="tl-body">Se detallan los efectos sobre temperaturas, sequías y nivel del mar. El cierre es notable: Rahmstorf —físico— declara que no puede predecir el comportamiento humano. Es una forma velada de señalar que la ciencia ya tiene la respuesta, pero que la decisión trasciende lo científico.</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>Guía preparada a partir del reportaje <em>«A key Atlantic current is weakening. Here's why it matters»</em> de DW News · Narrado por Ola Alsaga · Entrevistado: Prof. Stefan Rahmstorf, Universidad de Potsdam.</p>
+    <p style="margin-top:.4rem">Documento de uso educativo. El contenido científico se atribuye íntegramente a las declaraciones del Prof. Rahmstorf y a las publicaciones citadas en el reportaje, principalmente <em>Science Advances</em>.</p>
+  </footer>
+
+</main>
+</body>
+</html>
