@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Selectividad Biología · Banco de preguntas</title>
+<meta name="description" content="Preguntas de Biología de la PAU/PEvAU de Andalucía 2008-2025 organizadas por bloques, año y tipo de examen.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <button class="icon-btn only-mobile" id="btnFilters" aria-label="Filtros" title="Filtros">☰</button>
+  <div class="brand">
+    <span class="logo" aria-hidden="true">🧬</span>
+    <div>
+      <h1>Selectividad · Biología</h1>
+      <p class="sub">PAU/PEvAU Andalucía <span id="yearSpan"></span></p>
+    </div>
+  </div>
+  <div class="search">
+    <span class="search-ico" aria-hidden="true">⌕</span>
+    <input id="q" type="search" autocomplete="off" spellcheck="false"
+      placeholder="Buscar: meiosis, «ciclo de Krebs», 2019, inmunología, -virus…" aria-label="Buscar preguntas">
+    <button class="clear" id="qClear" aria-label="Borrar búsqueda" title="Borrar">×</button>
+  </div>
+  <div class="top-actions">
+    <label class="inline">
+      <input type="checkbox" id="inCrit"> <span>buscar en criterios</span>
+    </label>
+    <button class="icon-btn" id="btnTheme" title="Cambiar tema claro/oscuro" aria-label="Cambiar tema">◐</button>
+    <button class="icon-btn" id="btnHelp" title="Ayuda y atajos" aria-label="Ayuda">?</button>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="filters" id="filters" aria-label="Filtros">
+    <div class="f-head">
+      <strong>Filtros</strong>
+      <button class="link" id="btnReset">Quitar filtros</button>
+    </div>
+
+    <section class="f-sec">
+      <div class="f-title">Bloques de contenido</div>
+      <div class="seg" role="radiogroup" aria-label="Currículo">
+        <button data-scheme="lomloe" role="radio">LOMLOE <small>(actual)</small></button>
+        <button data-scheme="lomce" role="radio">LOMCE <small>(2008‑24)</small></button>
+      </div>
+      <div id="fBlocks" class="checks"></div>
+    </section>
+
+    <section class="f-sec">
+      <div class="f-title">Tipo de examen</div>
+      <div id="fTipo" class="chips"></div>
+    </section>
+
+    <section class="f-sec">
+      <div class="f-title">Año <span class="muted" id="yearLbl"></span></div>
+      <div class="range">
+        <input type="range" id="yMin" aria-label="Año inicial">
+        <input type="range" id="yMax" aria-label="Año final">
+      </div>
+      <div id="fYears" class="years"></div>
+    </section>
+
+    <section class="f-sec">
+      <div class="f-title">Convocatoria</div>
+      <div id="fConv" class="chips"></div>
+    </section>
+
+    <section class="f-sec">
+      <div class="f-title">Otros</div>
+      <label class="check"><input type="checkbox" id="fFig"> Solo preguntas con figura</label>
+      <label class="check"><input type="checkbox" id="fDup"> Solo preguntas repetidas en varios años</label>
+    </section>
+    <p class="note">Los exámenes marcados como <b>Modelo</b> son de años cuyo zip no indica si se usaron como titular, suplente o reserva.</p>
+  </aside>
+
+  <main class="main" id="main">
+    <div class="empty" id="empty" hidden>
+      <p>No hay preguntas con esos filtros.</p>
+      <button class="btn" id="btnReset2">Quitar filtros</button>
+    </div>
+
+    <article class="card" id="card" hidden>
+      <div class="meta">
+        <div class="crumbs" id="crumbs"></div>
+        <div class="badges" id="badges"></div>
+      </div>
+      <figure class="qfig">
+        <img id="qimg" alt="" decoding="async">
+        <button class="zoom-hint" id="zoomHint" tabindex="-1">🔍 Ampliar</button>
+      </figure>
+
+      <div class="actions">
+        <button class="btn" id="btnCrit" aria-expanded="false">Criterios de corrección <kbd>C</kbd></button>
+        <button class="btn ghost" id="btnText" aria-expanded="false">Texto <kbd>T</kbd></button>
+        <button class="btn ghost" id="btnDl" title="Descargar la imagen de la pregunta">Descargar</button>
+        <button class="btn ghost" id="btnLink" title="Copiar enlace a esta pregunta">Copiar enlace</button>
+      </div>
+
+      <section class="crit" id="crit" hidden></section>
+      <section class="txt" id="txt" hidden></section>
+      <section class="dups" id="dups" hidden></section>
+    </article>
+  </main>
+
+  <aside class="list" id="list" aria-label="Resultados">
+    <div class="l-head">
+      <strong id="count">0 preguntas</strong>
+      <select id="order" aria-label="Orden">
+        <option value="chron">Por año ↑</option>
+        <option value="chronDesc">Por año ↓</option>
+        <option value="block">Por bloque</option>
+      </select>
+    </div>
+    <ol id="results"></ol>
+    <button class="btn ghost more" id="more" hidden>Mostrar más</button>
+  </aside>
+</div>
+
+<nav class="bottom" aria-label="Navegación">
+  <button class="nav-btn" id="prev" title="Anterior (←)">◀ <span>Anterior</span></button>
+  <div class="pos">
+    <input id="posIn" type="number" min="1" aria-label="Ir a la pregunta número">
+    <span>/ <b id="posTot">0</b></span>
+  </div>
+  <button class="nav-btn accent" id="rand" title="Pregunta aleatoria (R)">🎲 <span>Aleatoria</span></button>
+  <button class="nav-btn" id="toggleList" title="Lista de resultados (L)">☰ <span>Lista</span></button>
+  <button class="nav-btn" id="next" title="Siguiente (→)"><span>Siguiente</span> ▶</button>
+</nav>
+
+<div class="lb" id="lb" hidden role="dialog" aria-modal="true" aria-label="Imagen ampliada">
+  <div class="lb-stage" id="lbStage"><img id="lbImg" alt="" draggable="false"></div>
+  <div class="lb-bar">
+    <span class="lb-cap" id="lbCap"></span>
+    <button class="icon-btn" id="lbPrev" title="Imagen anterior">‹</button>
+    <button class="icon-btn" id="lbNext" title="Imagen siguiente">›</button>
+    <span class="sep"></span>
+    <button class="icon-btn" id="lbOut" title="Alejar (−)">−</button>
+    <button class="lb-zoom" id="lbFit" title="Ajustar a pantalla (0)">100%</button>
+    <button class="icon-btn" id="lbIn" title="Acercar (+)">+</button>
+    <span class="sep"></span>
+    <button class="btn small" id="lbDl" title="Descargar imagen">⬇ Descargar</button>
+    <button class="btn small ghost" id="lbPng" title="Descargar convertida a PNG">PNG</button>
+    <button class="icon-btn" id="lbClose" title="Cerrar (Esc)">✕</button>
+  </div>
+</div>
+
+<div class="modal" id="help" hidden role="dialog" aria-modal="true" aria-label="Ayuda">
+  <div class="modal-box">
+    <button class="icon-btn modal-x" id="helpClose" aria-label="Cerrar">✕</button>
+    <h2>Cómo usar el visor</h2>
+    <ul>
+      <li><b>Buscador</b>: todas las palabras deben aparecer (enunciado, bloque, tema, tipo o año). Admite prefijos (<i>mitoc</i>), frases entre comillas (<i>"ciclo de krebs"</i>), exclusiones (<i>-virus</i>) y rangos de años (<i>2015-2019</i>). No distingue tildes ni mayúsculas.</li>
+      <li><b>Bloques</b>: puedes ver la clasificación según la LOMLOE (6 bloques, currículo actual) o según la LOMCE (5 bloques del currículo con el que se hicieron los exámenes hasta 2024).</li>
+      <li><b>Imagen</b>: haz clic para ampliarla; en el visor usa la rueda o pellizca para hacer zoom y arrastra para moverla.</li>
+      <li>Cada pregunta se ha recortado del PDF original con sus figuras; si ocupaba dos páginas, los trozos se han unido.</li>
+    </ul>
+    <h3>Atajos de teclado</h3>
+    <table class="keys">
+      <tr><td><kbd>←</kbd> <kbd>→</kbd></td><td>Pregunta anterior / siguiente</td></tr>
+      <tr><td><kbd>R</kbd></td><td>Pregunta aleatoria</td></tr>
+      <tr><td><kbd>C</kbd></td><td>Mostrar u ocultar criterios</td></tr>
+      <tr><td><kbd>T</kbd></td><td>Mostrar u ocultar texto</td></tr>
+      <tr><td><kbd>Z</kbd> o <kbd>Espacio</kbd></td><td>Ampliar imagen</td></tr>
+      <tr><td><kbd>/</kbd></td><td>Ir al buscador</td></tr>
+      <tr><td><kbd>L</kbd></td><td>Mostrar u ocultar la lista</td></tr>
+      <tr><td><kbd>Esc</kbd></td><td>Cerrar</td></tr>
+    </table>
+    <p class="muted small">Fuente: exámenes y criterios oficiales publicados por las Universidades de Andalucía. El año indicado es el del final del curso (p. ej. 2019 = curso 2018‑2019). Los PDF de 2009 son escaneados: su texto se ha obtenido por OCR y puede contener errores (la imagen es la original).</p>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="data/db.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

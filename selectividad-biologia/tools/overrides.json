@@ -1,0 +1,825 @@
+{
+ "2008-modelo1-b2": [
+  "celula",
+  "catabolismo"
+ ],
+ "2008-modelo2-a1": [
+  "celula",
+  "membrana"
+ ],
+ "2008-modelo2-b1": [
+  "glucidos",
+  "lipidos",
+  "proteinas",
+  "nucleicos"
+ ],
+ "2008-modelo3-b1": [
+  "glucidos",
+  "proteinas",
+  "nucleicos"
+ ],
+ "2008-modelo3-b4": [
+  "division",
+  "celula"
+ ],
+ "2008-modelo3-b6": [
+  "division"
+ ],
+ "2008-modelo4-a1": [
+  "glucidos",
+  "lipidos",
+  "proteinas",
+  "nucleicos"
+ ],
+ "2008-modelo5-a4": [
+  "membrana"
+ ],
+ "2008-modelo5-b5": [
+  "molecular"
+ ],
+ "2008-modelo6-a4": [
+  "agua",
+  "microbio"
+ ],
+ "2008-modelo6-a5": [
+  "microbio",
+  "molecular"
+ ],
+ "2008-modelo6-b6": [
+  "molecular"
+ ],
+ "2009-modelo1-a2": [
+  "catabolismo",
+  "anabolismo"
+ ],
+ "2009-modelo1-a4": [
+  "enzimas",
+  "glucidos"
+ ],
+ "2009-modelo1-b6": [
+  "molecular"
+ ],
+ "2009-modelo2-a3": [
+  "molecular",
+  "mendel"
+ ],
+ "2009-modelo2-a6": [
+  "proteinas",
+  "lipidos",
+  "glucidos"
+ ],
+ "2009-modelo3-a3": [
+  "microbio",
+  "biotec"
+ ],
+ "2009-modelo4-b6": [
+  "molecular"
+ ],
+ "2009-modelo5-a4": [
+  "molecular",
+  "biotec"
+ ],
+ "2009-modelo6-a5": [
+  "inmuno"
+ ],
+ "2009-modelo6-b4": [
+  "molecular",
+  "celula"
+ ],
+ "2010-reservaa-juni-a6": [
+  "celula",
+  "catabolismo"
+ ],
+ "2010-reservaa-juni-b5": [
+  "molecular"
+ ],
+ "2010-reservaa-sept-b6": [
+  "celula",
+  "membrana"
+ ],
+ "2010-reservab-juni-a4": [
+  "membrana"
+ ],
+ "2010-reservab-juni-b5": [
+  "mutacion",
+  "mendel"
+ ],
+ "2010-reservab-sept-a4": [
+  "agua",
+  "membrana"
+ ],
+ "2010-titular-sept-a5": [
+  "microbio",
+  "anabolismo"
+ ],
+ "2011-modelo1-a3": [
+  "mutacion",
+  "division"
+ ],
+ "2011-modelo1-a4": [
+  "celula"
+ ],
+ "2011-modelo1-a5": [
+  "inmuno"
+ ],
+ "2011-modelo1-a6": [
+  "microbio",
+  "inmuno"
+ ],
+ "2011-modelo2-a2": [
+  "microbio",
+  "celula"
+ ],
+ "2011-modelo3-a5": [
+  "celula",
+  "agua"
+ ],
+ "2011-modelo3-b6": [
+  "molecular"
+ ],
+ "2011-modelo5-a4": [
+  "celula"
+ ],
+ "2011-modelo6-a4": [
+  "agua",
+  "microbio"
+ ],
+ "2012-modelo1-a4": [
+  "anabolismo",
+  "celula"
+ ],
+ "2012-modelo1-b5": [
+  "mutacion",
+  "molecular"
+ ],
+ "2012-modelo2-a2": [
+  "celula",
+  "membrana"
+ ],
+ "2012-modelo2-b5": [
+  "molecular"
+ ],
+ "2012-modelo3-a5": [
+  "membrana",
+  "catabolismo"
+ ],
+ "2012-modelo3-b4": [
+  "division",
+  "celula"
+ ],
+ "2012-modelo4-a5": [
+  "nucleicos",
+  "microbio"
+ ],
+ "2012-modelo4-b4": [
+  "division"
+ ],
+ "2012-modelo4-b5": [
+  "molecular"
+ ],
+ "2012-modelo5-a3": [
+  "molecular"
+ ],
+ "2012-titular-sept-a5": [
+  "catabolismo",
+  "celula"
+ ],
+ "2012-titular-sept-b1": [
+  "glucidos",
+  "lipidos",
+  "proteinas"
+ ],
+ "2012-titular-sept-b5": [
+  "molecular"
+ ],
+ "2013-reservaa-juni-a2": [
+  "nucleicos",
+  "catabolismo"
+ ],
+ "2013-reservaa-juni-a3": [
+  "nucleicos",
+  "division"
+ ],
+ "2013-reservaa-juni-b4": [
+  "catabolismo",
+  "lipidos"
+ ],
+ "2013-reservaa-sept-a5": [
+  "inmuno",
+  "microbio"
+ ],
+ "2013-reservab-juni-a4": [
+  "nucleicos",
+  "microbio"
+ ],
+ "2013-reservab-juni-b6": [
+  "molecular"
+ ],
+ "2013-reservab-sept-b5": [
+  "molecular",
+  "nucleicos"
+ ],
+ "2013-titular-juni-a5": [
+  "microbio",
+  "catabolismo"
+ ],
+ "2013-titular-sept-b4": [
+  "microbio",
+  "membrana"
+ ],
+ "2014-modelo2-b1": [
+  "nucleicos",
+  "celula"
+ ],
+ "2014-modelo2-b3": [
+  "microbio",
+  "biotec"
+ ],
+ "2014-modelo3-a2": [
+  "molecular"
+ ],
+ "2014-modelo3-b3": [
+  "microbio",
+  "celula"
+ ],
+ "2014-modelo3-b4": [
+  "celula",
+  "molecular"
+ ],
+ "2014-modelo5-b4": [
+  "membrana",
+  "lipidos"
+ ],
+ "2014-modelo5-b5": [
+  "molecular"
+ ],
+ "2014-modelo6-a4": [
+  "proteinas",
+  "enzimas"
+ ],
+ "2014-titular-juni-a4": [
+  "enzimas",
+  "proteinas"
+ ],
+ "2014-titular-juni-b4": [
+  "enzimas",
+  "glucidos"
+ ],
+ "2014-titular-juni-b5": [
+  "mutacion"
+ ],
+ "2014-titular-sept-b1": [
+  "glucidos",
+  "lipidos",
+  "proteinas",
+  "nucleicos"
+ ],
+ "2015-modelo1-a4": [
+  "celula",
+  "molecular"
+ ],
+ "2015-modelo1-b4": [
+  "membrana",
+  "lipidos"
+ ],
+ "2015-modelo2-b1": [
+  "glucidos",
+  "proteinas",
+  "nucleicos"
+ ],
+ "2015-modelo3-a4": [
+  "lipidos"
+ ],
+ "2015-modelo3-a5": [
+  "microbio",
+  "catabolismo"
+ ],
+ "2015-modelo4-a4": [
+  "catabolismo",
+  "enzimas"
+ ],
+ "2015-modelo4-a5": [
+  "division",
+  "celula"
+ ],
+ "2015-modelo4-b1": [
+  "glucidos",
+  "lipidos",
+  "proteinas",
+  "nucleicos"
+ ],
+ "2015-modelo4-b3": [
+  "microbio",
+  "celula"
+ ],
+ "2015-modelo6-a4": [
+  "enzimas",
+  "catabolismo"
+ ],
+ "2015-modelo6-b4": [
+  "catabolismo",
+  "enzimas"
+ ],
+ "2015-modelo6-b5": [
+  "molecular"
+ ],
+ "2016-reservaa-a4": [
+  "proteinas",
+  "glucidos"
+ ],
+ "2016-reservaa-a5": [
+  "biotec",
+  "microbio"
+ ],
+ "2016-reservaa-b1": [
+  "glucidos",
+  "proteinas",
+  "nucleicos"
+ ],
+ "2016-reservaa-b4": [
+  "catabolismo",
+  "microbio"
+ ],
+ "2016-reservaa-b5": [
+  "nucleicos"
+ ],
+ "2016-reservab-b6": [
+  "division"
+ ],
+ "2016-suplente-sept-a1": [
+  "glucidos",
+  "lipidos",
+  "proteinas",
+  "nucleicos"
+ ],
+ "2016-suplente-sept-a6": [
+  "microbio"
+ ],
+ "2016-suplente-sept-b5": [
+  "molecular"
+ ],
+ "2016-titular-juni-a5": [
+  "agua",
+  "glucidos"
+ ],
+ "2016-titular-juni-a6": [
+  "proteinas"
+ ],
+ "2016-titular-juni-b1": [
+  "glucidos",
+  "lipidos",
+  "proteinas"
+ ],
+ "2016-titular-juni-b4": [
+  "mutacion",
+  "proteinas"
+ ],
+ "2017-reservaa-b5": [
+  "microbio",
+  "molecular"
+ ],
+ "2017-reservaa-b6-7": [
+  "division",
+  "mendel"
+ ],
+ "2017-reservab-a4": [
+  "molecular"
+ ],
+ "2017-reservab-a5": [
+  "microbio",
+  "agua"
+ ],
+ "2017-reservab-b5": [
+  "proteinas",
+  "molecular"
+ ],
+ "2017-suplente-juni-a5": [
+  "nucleicos",
+  "microbio"
+ ],
+ "2017-suplente-sept-a5": [
+  "anabolismo",
+  "enzimas"
+ ],
+ "2017-suplente-sept-b4": [
+  "catabolismo",
+  "celula"
+ ],
+ "2017-titular-juni-a1": [
+  "celula",
+  "inmuno"
+ ],
+ "2017-titular-juni-b4": [
+  "agua",
+  "membrana"
+ ],
+ "2017-titular-sept-b6-7": [
+  "molecular"
+ ],
+ "2018-reservaa-a5": [
+  "biotec",
+  "microbio"
+ ],
+ "2018-reservaa-b4": [
+  "celula",
+  "agua"
+ ],
+ "2018-reservab-a6-7": [
+  "lipidos"
+ ],
+ "2018-reservab-b1": [
+  "glucidos",
+  "lipidos",
+  "proteinas",
+  "nucleicos"
+ ],
+ "2018-reservab-b4": [
+  "enzimas"
+ ],
+ "2018-reservab-b5": [
+  "molecular"
+ ],
+ "2018-suplente-juni-a6-7": [
+  "catabolismo"
+ ],
+ "2018-suplente-juni-b4": [
+  "membrana",
+  "lipidos"
+ ],
+ "2018-suplente-sept-b4": [
+  "celula",
+  "molecular"
+ ],
+ "2018-suplente-sept-b6-7": [
+  "molecular"
+ ],
+ "2018-titular-juni-a2": [
+  "mutacion",
+  "division"
+ ],
+ "2018-titular-juni-b2": [
+  "microbio",
+  "biotec"
+ ],
+ "2018-titular-sept-a4": [
+  "celula",
+  "molecular"
+ ],
+ "2018-titular-sept-b4": [
+  "lipidos"
+ ],
+ "2019-reservaa-b6-7": [
+  "molecular",
+  "nucleicos"
+ ],
+ "2019-suplente-juni-a5": [
+  "catabolismo"
+ ],
+ "2019-suplente-juni-b4": [
+  "microbio",
+  "celula"
+ ],
+ "2019-suplente-sept-a5": [
+  "inmuno"
+ ],
+ "2019-suplente-sept-b5": [
+  "celula",
+  "division"
+ ],
+ "2019-titular-juni-a4": [
+  "catabolismo",
+  "anabolismo"
+ ],
+ "2019-titular-juni-a5": [
+  "molecular",
+  "biotec"
+ ],
+ "2019-titular-sept-a4": [
+  "molecular",
+  "celula"
+ ],
+ "2019-titular-sept-b4": [
+  "enzimas"
+ ],
+ "2020-modelo2-c1": [
+  "agua"
+ ],
+ "2020-modelo3-a2": [
+  "membrana"
+ ],
+ "2020-modelo3-b2": [
+  "anabolismo"
+ ],
+ "2020-modelo3-c3": [
+  "molecular"
+ ],
+ "2020-modelo4-b2": [
+  "division"
+ ],
+ "2020-modelo4-b4": [
+  "catabolismo",
+  "microbio"
+ ],
+ "2020-modelo5-a2": [
+  "nucleicos",
+  "catabolismo"
+ ],
+ "2020-modelo5-c2": [
+  "agua",
+  "membrana"
+ ],
+ "2020-modelo5-c3": [
+  "molecular",
+  "nucleicos"
+ ],
+ "2020-modelo6-b2": [
+  "celula",
+  "microbio"
+ ],
+ "2020-modelo6-b4": [
+  "microbio"
+ ],
+ "2021-reserva-ordi-b3": [
+  "mutacion",
+  "division"
+ ],
+ "2021-reservab-extr-b2": [
+  "anabolismo"
+ ],
+ "2021-reservab-extr-c4": [
+  "microbio"
+ ],
+ "2021-suplente-extr-a1": [
+  "nucleicos"
+ ],
+ "2021-suplente-extr-b1": [
+  "membrana",
+  "lipidos"
+ ],
+ "2021-suplente-extr-b4": [
+  "microbio",
+  "nucleicos"
+ ],
+ "2021-suplente-extr-c4": [
+  "microbio",
+  "inmuno"
+ ],
+ "2021-suplente-ordi-b3": [
+  "mutacion"
+ ],
+ "2021-suplente-ordi-b4": [
+  "catabolismo",
+  "anabolismo"
+ ],
+ "2021-suplente-ordi-c4": [
+  "biotec",
+  "catabolismo"
+ ],
+ "2021-titular-extr-b2": [
+  "membrana",
+  "catabolismo"
+ ],
+ "2021-titular-extr-c4": [
+  "microbio",
+  "inmuno"
+ ],
+ "2021-titular-ordi-a3": [
+  "mutacion"
+ ],
+ "2021-titular-ordi-a4": [
+  "microbio",
+  "celula"
+ ],
+ "2021-titular-ordi-b1": [
+  "enzimas"
+ ],
+ "2021-titular-ordi-b2": [
+  "agua",
+  "microbio"
+ ],
+ "2021-titular-ordi-b3": [
+  "molecular"
+ ],
+ "2021-titular-ordi-b4": [
+  "microbio"
+ ],
+ "2021-titular-ordi-c2": [
+  "anabolismo",
+  "celula"
+ ],
+ "2021-titular-ordi-c5": [
+  "inmuno"
+ ],
+ "2022-reserva-extr-b1": [
+  "lipidos",
+  "catabolismo"
+ ],
+ "2022-reserva-extr-b2": [
+  "division"
+ ],
+ "2022-reserva-extr-b5": [
+  "inmuno"
+ ],
+ "2022-reserva-ordi-b3": [
+  "mutacion"
+ ],
+ "2022-suplente-extr-b1": [
+  "enzimas"
+ ],
+ "2022-suplente-extr-c3": [
+  "molecular"
+ ],
+ "2022-suplente-ordi-b2": [
+  "division",
+  "celula"
+ ],
+ "2022-suplente-ordi-b4": [
+  "microbio"
+ ],
+ "2022-suplente-ordi-b5": [
+  "inmuno"
+ ],
+ "2022-suplente-ordi-c2": [
+  "membrana",
+  "celula"
+ ],
+ "2022-titular-extr-c3": [
+  "mutacion"
+ ],
+ "2022-titular-ordi-b3": [
+  "microbio"
+ ],
+ "2022-titular-ordi-b4": [
+  "microbio"
+ ],
+ "2022-titular-ordi-b5": [
+  "inmuno"
+ ],
+ "2023-reservaa-a-a4": [
+  "biotec",
+  "microbio"
+ ],
+ "2023-reservaa-a-b4": [
+  "microbio"
+ ],
+ "2023-reservaa-a-c2": [
+  "anabolismo"
+ ],
+ "2023-reservaa-a-c3": [
+  "molecular"
+ ],
+ "2023-reservab-b-b2": [
+  "agua",
+  "membrana"
+ ],
+ "2023-reservab-b-b3": [
+  "mutacion"
+ ],
+ "2023-reservab-b-b4": [
+  "catabolismo",
+  "biotec"
+ ],
+ "2023-reservab-b-c3": [
+  "mutacion"
+ ],
+ "2023-reservab-b-c4": [
+  "microbio"
+ ],
+ "2023-suplentea-a-c3": [
+  "microbio"
+ ],
+ "2023-suplenteb-b-a3": [
+  "mutacion"
+ ],
+ "2023-suplenteb-b-b3": [
+  "molecular"
+ ],
+ "2023-titularb-b-c4": [
+  "biotec",
+  "microbio"
+ ],
+ "2024-reservaa-a-a4": [
+  "molecular"
+ ],
+ "2024-reservaa-a-b3": [
+  "catabolismo"
+ ],
+ "2024-reservaa-a-b4": [
+  "proteinas",
+  "nucleicos"
+ ],
+ "2024-reservab-b-b3": [
+  "catabolismo",
+  "anabolismo"
+ ],
+ "2024-reservab-b-b4": [
+  "molecular"
+ ],
+ "2024-reservab-b-b5": [
+  "inmuno"
+ ],
+ "2024-reservab-b-c4": [
+  "biotec",
+  "molecular"
+ ],
+ "2024-suplentea-a-a5": [
+  "inmuno"
+ ],
+ "2024-suplentea-a-b1": [
+  "glucidos",
+  "enzimas"
+ ],
+ "2024-suplentea-a-b3": [
+  "microbio",
+  "anabolismo"
+ ],
+ "2024-suplenteb-b-b4": [
+  "biotec",
+  "molecular"
+ ],
+ "2024-titulara-a-b1": [
+  "nucleicos",
+  "microbio"
+ ],
+ "2024-titulara-a-c2": [
+  "division",
+  "celula"
+ ],
+ "2024-titularb-b-a3": [
+  "catabolismo",
+  "anabolismo"
+ ],
+ "2024-titularb-b-b2": [
+  "celula",
+  "molecular"
+ ],
+ "2025-suplente1b-b-33_1": [
+  "division"
+ ],
+ "2025-suplente1b-b-33_2": [
+  "celula",
+  "biotec"
+ ],
+ "2025-suplente1b-b-44_1": [
+  "catabolismo"
+ ],
+ "2025-suplente1b-b-44_2": [
+  "catabolismo",
+  "membrana"
+ ],
+ "2025-suplente1b-b-55_1": [
+  "celula",
+  "molecular"
+ ],
+ "2025-suplente2b-b-33_1": [
+  "membrana",
+  "lipidos"
+ ],
+ "2025-suplentea-a-22_2": [
+  "biotec",
+  "molecular"
+ ],
+ "2025-suplentea-a-44_1": [
+  "catabolismo",
+  "anabolismo"
+ ],
+ "2025-suplentea-a-44_2": [
+  "anabolismo",
+  "microbio"
+ ],
+ "2025-titular2a-a-44_1": [
+  "division",
+  "celula"
+ ],
+ "2025-titular2a-a-44_2": [
+  "membrana",
+  "proteinas"
+ ],
+ "2025-titular2a-a-55_2": [
+  "anabolismo",
+  "biotec"
+ ],
+ "2025-titulara-a-11": [
+  "molecular",
+  "biotec"
+ ],
+ "2025-titulara-a-22_2": [
+  "nucleicos",
+  "molecular"
+ ],
+ "2025-titulara-a-33_1": [
+  "agua",
+  "membrana"
+ ],
+ "2025-titulara-a-44_2": [
+  "inmuno"
+ ],
+ "2025-titularb-b-33_1": [
+  "membrana",
+  "lipidos"
+ ],
+ "2025-titularb-b-55_2": [
+  "inmuno",
+  "biotec"
+ ]
+}
