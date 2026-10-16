@@ -1,8 +1,10 @@
 # Diddo Sans: brief de diseño (fase 2)
 
-Estado: **borrador pendiente de tu revisión**. Cada punto lleva una recomendación,
-pero la decisión es tuya. Cuando estén todas cerradas, este documento pasa a ser la
-especificación de la fase 4 (`scripts/diddoize.py`).
+Estado: **decidido el 2026-10-16** (ver el resumen al final). Este documento es la
+especificación de la fase 4 (`scripts/diddoize.py`). Cada punto conserva las opciones
+que se compararon y la recomendación que se hizo, junto a la decisión tomada.
+
+![Muestra con todas las decisiones](../proofs/brief/6-decision.png)
 
 Las imágenes salen de `make proof` (`scripts/proof_brief.py`). Son un **prototipo
 rápido** construido sobre Montserrat 400, no la fuente: los diacríticos están separados
@@ -30,12 +32,12 @@ estimaba mal. Están corregidas en `analisis-logos.md`:
 4. **El punto de la i es mayor y está más alto**: ⌀ 125 con el centro a 730, frente a
    ⌀ 104 con el centro a 692 en Montserrat.
 
-Con estas reglas, el prototipo ya reproduce bastante bien las letras del logo
+Con estas reglas (variante decidida), el prototipo ya reproduce bastante bien las letras del logo
 (IoU entre el logo y el prototipo, donde 1 es idéntico):
 
 | i | d | o | p | a |
 |---|---|---|---|---|
-| 0,982 | 0,958 | 0,979 | 0,954 | 0,950 |
+| 0,982 | 0,958 | 0,979 | 0,954 | 0,953 |
 
 ![Prototipo (rojo) sobre el logo (azul)](../proofs/brief/5-superposicion.png)
 
@@ -53,9 +55,9 @@ el cuenco y el asta y la forma exacta del extremo superior.
 
 ![Trazo 95 frente a 105](../proofs/brief/1-peso.png)
 
-Recomendación: **95**. Es el logo principal, y la diferencia en texto es pequeña. Si
-algún día hace falta el peso de pad, sale casi gratis como segundo estilo ("Black"),
-porque la transformación es la misma con otro trazo.
+Recomendación: 95. Es el logo principal, y la diferencia en texto es pequeña.
+
+**Decisión: 105 UPM, el grosor de pad.**
 
 ## 2. Regla del asta (ahusado y extremos redondos)
 
@@ -81,6 +83,11 @@ la regla automática no cubre y se resolverán a mano en la fase 5:
 - La **f** y la **t**, porque la barra cruza el asta.
 - El asta central de la **m**.
 
+**Decisión: todas las letras con asta Diddo (D), pero en la n y la m solo la primera
+asta.** La h es una n con ascendente, así que sigue la misma regla (pendiente de
+confirmar). La ñ hereda la regla de la n. La regla D aparece en `2-ahusado.png`. Las
+patas sin ahusar siguen llevando el extremo redondo (punto 3).
+
 ## 3. El pie de la d
 
 Con lo que se ha aprendido en el punto 2, esta pregunta cambia. El pie no es un rasgo
@@ -88,18 +95,32 @@ propio de la d, sino el extremo redondo del asta Diddo. Si eliges B o C, aparece
 todas las letras con asta Diddo (b d p q a, y con C también n h k l r…), porque es la
 misma pieza.
 
-Recomendación: **tratarlo como parte del asta**, sin pie especial para la d. La muesca
-en V entre cuenco y asta se modela en la fase 4, con la prueba de superposición como
-criterio.
+Recomendación: tratarlo como parte del asta, sin pie especial para la d.
+
+**Decisión: todos los extremos libres terminan en semicírculo, como en los originales.**
+No solo las astas: también los terminales de c, e, s, r, f, t, g, j y y, los brazos de
+k, v, w, x, y y z, las barras de f, t y z, los números y los acentos.
+
+- **Regla:** se quita el último medio ancho del trazo y se pone un disco del mismo
+  ancho, con la punta donde estaba el extremo. Así la letra no crece.
+- **Diagonales** (v, x, k…): el disco no pasa del corte original, de modo que la punta
+  toca la base o la altura x.
+- **Muesca:** la muesca en V entre cuenco y asta se modela en la fase 4, con la prueba
+  de superposición como criterio.
 
 ## 4. Mayúsculas
 
-![Mayúsculas sin ahusar y ahusadas](../proofs/brief/4-mayusculas.png)
+Recomendación: sin ahusar.
 
-Recomendación: **sin ahusar** (Montserrat engrosada) en la v1. Los logos no muestran
-ninguna mayúscula. Ahusadas, la D, la P y la N se vuelven cuñas y pierden la
-geometría circular, que es lo que más se parece al logo. Se puede revisar en la v2
-con una alternativa estilística.
+**Decisión: la v1 no tiene mayúsculas.** Es una tipografía solo de minúsculas, como los
+logos. Consecuencia práctica: si alguien escribe una mayúscula, el programa no encuentra
+el glifo y la muestra con otra fuente (o con un recuadro vacío). Hay dos formas de
+tratarlo, que quedan por decidir antes de la fase 8:
+
+- **Unicase (recomendada):** A–Z, Ñ y las vocales acentuadas mayúsculas apuntan a las
+  mismas minúsculas. Escribir "Diddo" o "DIDDO" da "diddo", sin cambiar de fuente.
+  Cuesta cero glifos.
+- **Sin asignar:** las mayúsculas no existen y cada programa las sustituye a su manera.
 
 ## 5. Ascendentes, descendentes y métricas
 
@@ -110,27 +131,29 @@ con una alternativa estilística.
 | a) Montserrat | 742 / −194 | Más compacta y mejor para varias líneas |
 | **b) Logo** | 857 / −326 | **Recomendada**: "diddo" y "pad" compuestos con la fuente coinciden con el logo |
 
-Recomendación: **b**. La fuente existe para hacer logotipos de la familia Diddo, y las
-d altas y la p larga son lo más reconocible del logo. El coste es más interlineado.
+Recomendación: b.
 
-**Reescalado.** El engrosado añade 47,5 UPM por cada lado. Propongo reescalar ×0,936
-para que la altura de mayúsculas visible sea **700 UPM**. Así, a igual cuerpo, Diddo
-Sans ocupa lo mismo que Montserrat. El trazo queda en 89 UPM, con el mismo peso
-relativo. Valores aproximados con la opción b (se fijarán al compilar en la fase 4):
+**Decisión: b, las del logo (más largas).**
+
+**Reescalado.** Sin mayúsculas, la referencia ya no puede ser la altura de mayúsculas
+(la propuesta anterior era 700). La nueva propuesta es reescalar ×0,909 para que la
+**altura x visible sea la de Montserrat (525,5)**. Así, a igual cuerpo, el texto
+en minúscula ocupa lo mismo que con Montserrat, y el trazo de 105 queda en ≈ 95 UPM. Estos
+valores salen del prototipo decidido; se fijarán al compilar en la fase 4:
 
 | Métrica | Valor visible tras reescalar |
 |---|---|
-| Altura de mayúsculas | 700 |
-| Altura x | ≈ 537 |
-| Ascendente (d) | ≈ 847 |
-| Descendente (p, g, y) | ≈ −358 |
-| Mayúsculas acentuadas (Á) | ≈ 945 |
+| Altura x | 525,5 |
+| Ascendente (d, b, k) | ≈ 827 |
+| Acentos (á, í) | ≈ 825 |
+| Punto de la i | ≈ 768 |
+| Descendente (p) / (g, y, j) | ≈ −344 / −352 |
 
 Propuesta de métricas verticales (esquema de Google Fonts, `USE_TYPO_METRICS`):
 
-- typo y hhea: ascendente 850, descendente −360 y `lineGap` 0, con interlineado por
-  defecto de 1,21.
-- win: cubrir la caja real de todos los glifos, ≈ 960 / 380.
+- typo y hhea: ascendente 830, descendente −355 y `lineGap` 0, con interlineado por
+  defecto de 1,185.
+- win: cubrir la caja real de todos los glifos, ≈ 850 / 360.
 
 La altura x del logo (532) es un 1,3 % mayor que la de Montserrat (525,5), pero la
 diferencia viene del extremo redondo del asta. Se mantiene la de Montserrat.
@@ -139,6 +162,8 @@ diferencia viene del extremo redondo del asta. Se mantiene la de Montserrat.
 
 Recomendación: el del logo (⌀ 125, centro a 730). Los demás puntos (`. : ; ! ¡ ? ¿`
 y la diéresis) se igualan a ese tamaño en la fase 5.
+
+**Decisión: el punto de diddo.**
 
 ## 7. El símbolo "D" de diddo
 
@@ -149,12 +174,12 @@ Queda fuera de la v1, como ya estaba decidido. En la v2 podría entrar como alte
 
 ## Resumen de decisiones
 
-| # | Tema | Recomendación | Decisión |
-|---|---|---|---|
-| 1 | Peso | 95 UPM | ⏳ |
-| 2 | Asta Diddo | C (todas las minúsculas) | ⏳ |
-| 3 | Pie de la d | Parte del asta, sin pie especial | ⏳ |
-| 4 | Mayúsculas | Sin ahusar | ⏳ |
-| 5 | Extensiones y métricas | Las del logo, reescalado a mayúsculas de 700 | ⏳ |
-| 6 | Punto de i/j | El del logo | ⏳ |
-| 7 | Símbolo D | Fuera de la v1 | ✅ |
+| # | Tema | Decisión |
+|---|---|---|
+| 1 | Peso | ✅ Trazo de 105 UPM (pad) |
+| 2 | Asta Diddo | ✅ En todas las letras. En n y m (y h, pendiente de confirmar) solo la primera asta |
+| 3 | Extremos | ✅ Todos los extremos libres redondos (semicírculo), como en los originales |
+| 4 | Mayúsculas | ✅ No hay en la v1 · ⏳ unicase o sin asignar (recomendado: unicase) |
+| 5 | Extensiones y métricas | ✅ Las del logo · reescalado a altura x de 525,5 (propuesta) |
+| 6 | Punto de i/j | ✅ El de diddo |
+| 7 | Símbolo D | ✅ Fuera de la v1 |

@@ -11,9 +11,11 @@ Salidas en proofs/brief/:
     1-peso.png          trazo 95 frente a 105
     2-ahusado.png       reglas de ahusado A, B y C
     3-extensiones.png   ascendentes/descendentes de Montserrat frente a las del logo
-    4-mayusculas.png    mayúsculas sin ahusar y ahusadas
-    5-superposicion.png prototipo sobre el logo, con IoU por letra
+    5-superposicion.png prototipo decidido sobre el logo, con IoU por letra
+    6-decision.png      muestra con todas las decisiones del brief
     resumen.json        IoU y datos de las muestras
+
+Las pruebas 1–3 conservan las alternativas que se compararon (variante C de partida).
 
 Uso:  python scripts/proof_brief.py
 """
@@ -21,6 +23,7 @@ Uso:  python scripts/proof_brief.py
 from __future__ import annotations
 
 import json
+import math
 from dataclasses import dataclass, field, replace
 
 import pathops
@@ -48,6 +51,9 @@ SINGLE = set("ijlıȷ")
 DESCENDING = set("pq")
 
 LOGO_LETTERS = set("dbpqaijl")   # regla B: letras del logo y sus parientes directos
+# Regla D: en n y m solo se ahúsa la primera asta. La h se trata igual por ser una n
+# con ascendente (pendiente de confirmar).
+FIRST_ONLY = set("nmh")
 
 
 @dataclass(frozen=True)
@@ -55,10 +61,18 @@ class Variant:
     name: str
     stroke: float = dl.STROKE_DIDDO
     taper: str = "C"            # "A" sin ahusado · "B" letras del logo · "C" todas
+                                # "D" la decidida: como C, pero en FIRST_ONLY solo la 1.ª asta
     taper_caps: bool = False
     long_extenders: bool = False
     one_story_a: bool = True
+    round_terminals: bool = False   # todos los extremos libres en semicírculo
+    logo_dot: bool = False          # punto de la i/j del logo de diddo
     extra: dict = field(default_factory=dict)
+
+
+# Decisiones del brief (docs/design-brief.md, 2026-10-16).
+DECIDED = Variant("decidido", stroke=dl.STROKE_PAD, taper="D", long_extenders=True,
+                  round_terminals=True, logo_dot=True)
 
 
 # ---------------------------------------------------------------------------
@@ -147,7 +161,7 @@ def find_stems(path, stem_w):
     return sorted(chosen)
 
 
-def taper_glyph(path, char, stem_w=STEM, xh=XH, round_ends=True):
+def taper_glyph(path, char, stem_w=STEM, xh=XH, round_ends=True, first_only=False):
     """Sustituye las astas verticales rectas por astas ahusadas (regla del logo)."""
     xmin, _, xmax, _ = path.bounds
     stems = find_stems(path, stem_w)
@@ -164,6 +178,8 @@ def taper_glyph(path, char, stem_w=STEM, xh=XH, round_ends=True):
             move = "right"
         else:
             continue  # asta central (m, M…): sin ahusar
+        if first_only and abs(xl - xmin) >= 2:
+            continue  # regla D: n, m, h solo llevan ahusada la primera asta
 
         # El extremo ancho tiene que ser libre (la base, o la altura x en p/q); si acaba
         # en una curva (u, j) el trapecio dejaría un escalón: esa asta no se ahúsa.
@@ -250,19 +266,109 @@ def one_story_a(font, v: Variant):
 def skeleton(font, char, v: Variant):
     """Esqueleto (antes de engrosar) de un carácter sin diacríticos."""
     if char == "a" and v.one_story_a:
-        return one_story_a(font, v)
-    path = dl.glyph_path(font, char)
-    if v.long_extenders and char.islower():
-        path = stretch_extenders(path, *v.extra.get("ext", (742, 857, -194, -326)))
-        if char in "ij":
+        path = one_story_a(font, v)
+    else:
+        path = dl.glyph_path(font, char)
+        if v.long_extenders and char.islower():
+            path = stretch_extenders(path, *v.extra.get("ext", (742, 857, -194, -326)))
+            if char in "ij" and not v.logo_dot:
+                path = fix_dot(path)
+        if v.logo_dot and char in "ij":
             path = fix_dot(path)
-    tapered = (v.taper == "C" and char.islower()) or \
-              (v.taper == "B" and char in LOGO_LETTERS) or \
-              (v.taper_caps and char.isupper())
-    if tapered:
-        path = taper_glyph(path, char, 74.0 if char.isupper() else STEM,
-                           round_ends=char.islower() or char == "I")
+        tapered = (v.taper in "CD" and char.islower()) or \
+                  (v.taper == "B" and char in LOGO_LETTERS) or \
+                  (v.taper_caps and char.isupper())
+        if tapered:
+            path = taper_glyph(path, char, 74.0 if char.isupper() else STEM,
+                               round_ends=char.islower() or char == "I",
+                               first_only=v.taper == "D" and char in FIRST_ONLY)
+    if v.round_terminals:
+        path = round_terminals(path)
     return path
+
+
+def _unit(x, y):
+    n = (x * x + y * y) ** 0.5
+    return (x / n, y / n) if n else (0.0, 0.0)
+
+
+def _edges(contour):
+    """Segmentos de un contorno como (verbo, inicio, puntos), con el cierre explícito."""
+    out, start, cur = [], None, None
+    for verb, pts in contour.segments:
+        if verb == "moveTo":
+            start = cur = pts[0]
+            continue
+        if verb in ("closePath", "endPath"):
+            if cur != start and math.dist(cur, start) > 0.01:
+                out.append(("lineTo", cur, [start]))
+            break
+        out.append((verb, cur, list(pts)))
+        cur = pts[-1]
+    return out
+
+
+def round_terminals(path, min_len=30.0, max_len=170.0, parallel=-0.85):
+    """Redondea en semicírculo los extremos libres de trazo (como las astas del logo).
+
+    Un extremo es un segmento recto corto cuyos vecinos van en sentidos opuestos: el
+    contorno llega por un lado del trazo y vuelve por el otro. Se quita el último medio
+    ancho del trazo y se pone un disco del mismo ancho, con la punta donde estaba el
+    extremo, así que la letra no crece.
+    """
+    cuts, discs = [], []
+    for contour in path.contours:
+        edges = _edges(contour)
+        n = len(edges)
+        for i, (verb, a, pts) in enumerate(edges):
+            b = pts[-1]
+            if verb != "lineTo" or not (min_len <= math.dist(a, b) <= max_len):
+                continue
+            pv, pa, ppts = edges[i - 1]
+            nv, na, npts = edges[(i + 1) % n]
+            prev_ctrl = ppts[-2] if len(ppts) > 1 else pa
+            t_in = _unit(a[0] - prev_ctrl[0], a[1] - prev_ctrl[1])
+            t_out = _unit(npts[0][0] - b[0], npts[0][1] - b[1])
+            if t_in[0] * t_out[0] + t_in[1] * t_out[1] > parallel:
+                continue
+            u = _unit(t_in[0] - t_out[0], t_in[1] - t_out[1])   # hacia fuera del trazo
+            nrm = (-u[1], u[0])
+            w = abs((b[0] - a[0]) * nrm[0] + (b[1] - a[1]) * nrm[1])
+            if w < min_len * 0.8:
+                continue
+            proj = lambda p, d: p[0] * d[0] + p[1] * d[1]  # noqa: E731
+            tip = max(proj(a, u), proj(b, u))
+            along = tip - w / 2
+            lat = (proj(a, nrm) + proj(b, nrm)) / 2
+            cx = u[0] * along + nrm[0] * lat
+            cy = u[1] * along + nrm[1] * lat
+            # En trazos diagonales cortados en horizontal (v, x, k…) el disco no puede
+            # pasar del corte original (base o altura x): se retrasa a lo largo del trazo.
+            m = _unit(-(b[1] - a[1]), b[0] - a[0])
+            if m[0] * u[0] + m[1] * u[1] < 0:
+                m = (-m[0], -m[1])
+            over = cx * m[0] + cy * m[1] + w / 2 - proj(a, m)
+            mu = m[0] * u[0] + m[1] * u[1]
+            if over > 0.5 and mu > 0.2:
+                along -= over / mu
+                cx = u[0] * along + nrm[0] * lat
+                cy = u[1] * along + nrm[1] * lat
+            discs.append(circle(cx, cy, w / 2))
+            # Rectángulo orientado con el trazo, desde el centro del disco hasta más
+            # allá del extremo, 1 UPM más ancho para no dejar espigas en los bordes.
+            corners = []
+            for da, dl_ in ((-0.5, -w / 2 - 1), (tip - along + 1, -w / 2 - 1),
+                            (tip - along + 1, w / 2 + 1), (-0.5, w / 2 + 1)):
+                corners.append((cx + u[0] * da + nrm[0] * dl_, cy + u[1] * da + nrm[1] * dl_))
+            box = pathops.Path()
+            box.moveTo(*corners[0])
+            for c in corners[1:]:
+                box.lineTo(*c)
+            box.close()
+            cuts.append(box)
+    if not cuts:
+        return path
+    return dl.union(dl.difference(path, dl.union(*cuts)), *discs)
 
 
 def fix_dot(path):
@@ -277,9 +383,11 @@ def components(font, char):
     """[(nombre, dx, dy)] si el glifo es compuesto; None si no."""
     name = font.getBestCmap()[ord(char)]
     g = font["glyf"][name]
-    if not g.isComposite():
-        return None
-    return [(c.glyphName, c.x, c.y) for c in g.components]
+    if not g.isComposite() or any(hasattr(c, "transform") for c in g.components):
+        return None  # simple, o con componentes girados/escalados: se dibuja entero
+    comps = [(c.glyphName, c.x, c.y) for c in g.components]
+    cmap_names = set(font.getBestCmap().values())
+    return comps if comps[0][0] in cmap_names else None
 
 
 def glyph(font, char, v: Variant):
@@ -292,6 +400,8 @@ def glyph(font, char, v: Variant):
         marks = pathops.Path()
         for name, dx, dy in comps[1:]:
             mark = dl.transformed(dl.glyph_path(font, name), (1, 0, 0, 1, dx, dy))
+            if v.round_terminals:
+                mark = round_terminals(mark)
             # Provisional: el engrosado come 2·r del hueco; se sube la marca lo mismo
             # y un poco más, para que no se funda.
             lift = 0.85 * v.stroke
@@ -358,7 +468,7 @@ def overlay(font):
     """Compone d, i, o, p, a con la variante del logo y la compara con las letras reales."""
     from xml.etree import ElementTree as ET
 
-    v = Variant("logo", taper="C", long_extenders=True)
+    v = DECIDED
     results = {}
     items = []
     x_off = 0.0
@@ -418,9 +528,11 @@ def main():
         (lower, A, "A · sin ahusado"),
         (lower, B, "B · solo d b p q a i j l"),
         (lower, base, "C · todas las astas"),
+        (lower, DECIDED, "D · decidida"),
         (lower2, A, "A"),
         (lower2, B, "B"),
         (lower2, base, "C"),
+        (lower2, DECIDED, "D"),
     ], f)
 
     save_block("3-extensiones.png", [
@@ -428,12 +540,15 @@ def main():
         ("diddo bly pq", replace(base, long_extenders=True), "las del logo (857 / -326)"),
     ], f, line_h=1500)
 
-    save_block("4-mayusculas.png", [
-        ("DIDDO PAD HLKN", base, "mayúsculas sin ahusar"),
-        ("DIDDO PAD HLKN", replace(base, taper_caps=True), "mayúsculas ahusadas"),
-        ("Diddo Pad 2026", base, "texto mixto"),
-        (words, base, "diacríticos (separación provisional)"),
-    ], f)
+    D = DECIDED
+    save_block("6-decision.png", [
+        ("abcdefghijklm", D, "decidido · trazo 105, asta Diddo (n m h: solo la 1.ª), extremos redondos"),
+        ("nñopqrstuvwxyz", D, "extensiones del logo, punto de diddo, a de un piso"),
+        ("0123456789 ¿¡?! @#€", D, "números y signos (sin ajustes manuales todavía)"),
+        ("áéíóúü «diddo»", D, "diacríticos (separación provisional)"),
+        ("diddo pad hamburguesa", D, ""),
+        (words, D, ""),
+    ], f, line_h=1500)
 
     iou = overlay(f)
     (OUT / "resumen.json").write_text(json.dumps({"iou_superposicion": iou}, indent=2) + "\n")

@@ -7,8 +7,8 @@ Montserrat aplicando la misma transformación que se usó en los logos de diddo 
 para una versión modificada. Los logos que se hagan con la fuente no quedan bajo la OFL.
 Detalles en [`docs/licencia.md`](docs/licencia.md) y créditos en [`FONTLOG.txt`](FONTLOG.txt). El plan completo está en [`PLAN.md`](PLAN.md).
 
-**Estado:** fase 2. El [brief de diseño](docs/design-brief.md) está pendiente de revisión
-y todavía no hay ninguna fuente compilada.
+**Estado:** el [brief de diseño](docs/design-brief.md) está decidido; la fase 4 (construir
+la fuente) está por empezar. Todavía no hay ninguna fuente compilada.
 
 ## Uso
 

@@ -1,15 +1,16 @@
 # Diddo Sans: plan de trabajo
 
 Tipografía para logotipos de subproductos de Diddo y material promocional.
-Estado: **fase 2, brief pendiente de revisión** (todavía no se ha generado ninguna fuente).
-Fases 0, 1 y 3 terminadas.
+Estado: **fase 4 por empezar** (todavía no se ha generado ninguna fuente).
+Fases 0, 1, 2 y 3 terminadas; el brief está decidido.
 
 ## Decisiones tomadas
 
 | Tema | Decisión |
 |---|---|
-| Pesos | Solo **Bold** |
-| Juego de caracteres v1 | A–Z, a–z, 0–9, puntuación básica y español (á é í ó ú ü ñ ¿ ¡ « » € @ #); unos 120 glifos |
+| Pesos | Solo **Bold**, con el trazo de pad (105 UPM) |
+| Juego de caracteres v1 | **Solo minúsculas**: a–z, 0–9, puntuación básica y español (á é í ó ú ü ñ ¿ ¡ « » € @ #); unos 90 glifos. Sin mayúsculas (¿unicase?, ver brief §4) |
+| Diseño | Ver `docs/design-brief.md`: asta Diddo en todas (n y m solo la 1.ª), extremos redondos, extensiones del logo y punto de diddo |
 | Licencia | **SIL Open Font License 1.1**. Además es obligatoria, porque la fuente deriva de Montserrat (OFL) |
 | Fuente base | **Montserrat Regular (400)**, confirmado por medición (ver `docs/analisis-logos.md`). No es Lato. |
 | Ubicación | Carpeta `diddo-sans/` dentro de este repositorio |
@@ -47,9 +48,9 @@ normales: una fuente no puede "aplicar un trazo" al renderizar.
   del ahusado (≈ 4°). También salieron rasgos nuevos: extensiones más largas que
   Montserrat, el asta de la d igual a la de la i y un punto de la i mayor.
 
-### Fase 2 · Brief de diseño (`docs/design-brief.md`), con revisión contigo ⏳
-Borrador hecho, con pruebas visuales en `proofs/brief/` (`make proof`, `scripts/proof_brief.py`).
-Falta cerrar las decisiones 1–6 del resumen del brief. Estos eran los temas de partida:
+### Fase 2 · Brief de diseño (`docs/design-brief.md`), con revisión contigo ✅
+Decidido el 2026-10-16, con pruebas visuales en `proofs/brief/` (`make proof`,
+`scripts/proof_brief.py`); `6-decision.png` muestra el resultado. Temas tratados:
 1. **Peso de referencia:** diddo (95 UPM, recomendado) o pad (105 UPM).
 2. **Regla del asta ahusada** y a qué letras se aplica (b d h i j k l m n p q r u…). Se decide con pruebas visuales.
 3. **Pie de la d:** si se extiende a a/q/u o queda exclusivo de la d.
@@ -85,8 +86,9 @@ Falta cerrar las decisiones 1–6 del resumen del brief. Estos eran los temas de
    píxel a píxel con los logos. Objetivo: IoU ≥ 0,98 en d/i/o/p/a.
 
 ### Fase 5 · Correcciones manuales, por familias y con revisión contigo en cada bloque
-Minúsculas → mayúsculas → números → puntuación → diacríticos. Los casos ya detectados:
-`% @ ª` y todas las acentuadas.
+Minúsculas → números → puntuación → diacríticos (sin mayúsculas en la v1). Los casos ya
+detectados: `% @ ª`, todas las acentuadas, j, u, f, t, la cola de la y estirada y la muesca
+cuenco/asta de b d p q a.
 
 ### Fase 6 · Espaciado y kerning
 - Espaciado con el método de Tracy (letras de control n o H O).
