@@ -1,7 +1,8 @@
 # Diddo Sans: plan de trabajo
 
 Tipografía para logotipos de subproductos de Diddo y material promocional.
-Estado: **planificación** (todavía no se ha generado ninguna fuente).
+Estado: **fase 2, brief pendiente de revisión** (todavía no se ha generado ninguna fuente).
+Fases 0, 1 y 3 terminadas.
 
 ## Decisiones tomadas
 
@@ -17,7 +18,8 @@ Estado: **planificación** (todavía no se ha generado ninguna fuente).
 
 El análisis cambia el enfoque inicial. Los logos **no se dibujaron desde cero**: son
 Montserrat Regular **engrosada con un trazo redondo de ≈ 95 UPM** y con unas
-pocas formas retocadas a mano (asta ahusada, a de un piso, pie de la d).
+pocas formas retocadas a mano: asta ahusada con extremos redondos (la misma en la i y la d),
+a de un piso, ascendentes y descendentes alargadas y un punto de la i mayor.
 
 Por eso, en lugar de extrapolar 90 letras a partir de 5, haremos lo siguiente:
 
@@ -36,13 +38,18 @@ normales: una fuente no puede "aplicar un trazo" al renderizar.
 ### Fase 0 · Referencias ✅
 - SVG originales en `reference/original/`, con su procedencia anotada.
 
-### Fase 1 · Análisis ✅ (completar con el script)
-- Hecho: origen tipográfico, peso del trazo, construcción de d/i/o/p/a, defectos y viabilidad
+### Fase 1 · Análisis ✅
+- Origen tipográfico, peso del trazo, construcción de d/i/o/p/a, defectos y viabilidad
   (en `docs/analisis-logos.md`).
-- Pendiente: `scripts/analyze_reference.py`, que haga reproducibles esas medidas y genere
-  `reference/normalized/` (trazados limpios y escalados a UPM).
+- `scripts/analyze_reference.py` (`make analyze`) reproduce las medidas y genera
+  `reference/normalized/`: letras en UPM (`diddo.svg`, `pad.svg`) y `medidas.md`/`.json`.
+  Al hacerlo se corrigieron el ancho del asta de Montserrat (71, no 82 UPM) y el ángulo
+  del ahusado (≈ 4°). También salieron rasgos nuevos: extensiones más largas que
+  Montserrat, el asta de la d igual a la de la i y un punto de la i mayor.
 
-### Fase 2 · Brief de diseño (`docs/design-brief.md`), con revisión contigo
+### Fase 2 · Brief de diseño (`docs/design-brief.md`), con revisión contigo ⏳
+Borrador hecho, con pruebas visuales en `proofs/brief/` (`make proof`, `scripts/proof_brief.py`).
+Falta cerrar las decisiones 1–6 del resumen del brief. Estos eran los temas de partida:
 1. **Peso de referencia:** diddo (95 UPM, recomendado) o pad (105 UPM).
 2. **Regla del asta ahusada** y a qué letras se aplica (b d h i j k l m n p q r u…). Se decide con pruebas visuales.
 3. **Pie de la d:** si se extiende a a/q/u o queda exclusivo de la d.
@@ -53,21 +60,23 @@ normales: una fuente no puede "aplicar un trazo" al renderizar.
    descendentes y métricas verticales (esquema typo/hhea/win de Google Fonts, `USE_TYPO_METRICS`).
 6. **El símbolo "D" de diddo:** fuera de la v1. Opcionalmente en v2, como alternativa `ss01`.
 
-### Fase 3 · Entorno y herramientas
-- `requirements.txt` con versiones fijadas, en un entorno virtual (venv) de Python:
-  - `fontmake`, que incluye glyphsLib, ufo2ft y fontTools
-  - `skia-pathops`
-  - `ufoLib2`
-  - `fontbakery`
-  - `Pillow`, para las comparaciones de imagen
-- `Makefile` con objetivos `setup`, `sources`, `build`, `test`, `proof` y `clean`.
-- Descarga reproducible de Montserrat en el commit `555facf`, con suma de verificación.
+### Fase 3 · Entorno y herramientas ✅
+- `requirements.txt` con versiones fijadas (fontmake, fontTools, glyphsLib, ufo2ft, ufoLib2,
+  skia-pathops, freetype-py, Pillow, fontbakery), instalado en `.venv` con `make setup`.
+- `Makefile` con `setup`, `upstream`, `analyze`, `proof` y `clean`. Los objetivos
+  `sources`, `build` y `test` se añadirán en las fases 4–8.
+- `scripts/fetch_upstream.py` (`make upstream`) descarga Montserrat en el commit `555facf`
+  (`Montserrat.glyphs`, `Montserrat[wght].ttf` y `OFL.txt`) y verifica su SHA-256.
+- `scripts/diddolib.py` reúne las utilidades comunes: lectura de SVG, engrosado, medidas
+  y renderizado.
 
 ### Fase 4 · Fuente de diseño Diddo Sans
 1. `Montserrat.glyphs` → UFO con glyphsLib; instancia Regular 400; subconjunto con el juego de caracteres v1.
 2. `scripts/diddoize.py` (la transformación):
-   - Rasgos de esqueleto: asta ahusada, a de un piso (derivada de la d) y pie de la d.
-     La p se construye como la d girada, igual que en el logo.
+   - Rasgos de esqueleto: "asta Diddo" (ahusada y con extremos redondos; sustituye al asta
+     rectangular de Montserrat), a de un piso (derivada de la d), extensiones y punto de
+     la i según el brief. La p se construye como la d girada, igual que en el logo.
+     El prototipo de `scripts/proof_brief.py` sirve de punto de partida.
    - Engrosado: relleno ∪ trazo redondo; luego quitar solapamientos, corregir la dirección de los contornos y redondear a enteros.
    - Reescalado a las métricas finales y +r en los márgenes laterales de cada glifo.
    - Diacríticos rehechos como **componentes con anclajes**, separados para que no se fundan.
@@ -115,9 +124,10 @@ diddo-sans/
 ├── reference/   original/ (intocable) · normalized/
 ├── docs/        analisis-logos.md · design-brief.md
 ├── sources/     DiddoSans-Bold.ufo · features/ · upstream/ (Montserrat fijada, ignorada en git)
-├── scripts/     analyze_reference.py · diddoize.py · overlay_test.py · build.py
+├── scripts/     diddolib.py · fetch_upstream.py · analyze_reference.py · proof_brief.py
+│                (pendientes: diddoize.py · overlay_test.py · build.py)
 ├── fonts/       otf/ · ttf/ · webfonts/
-├── proofs/      specimen.html · overlay/*.png
+├── proofs/      brief/*.png · specimen.html · overlay/*.png
 └── qa/          informes de fontbakery
 ```
 
@@ -128,3 +138,5 @@ diddo-sans/
 | Contraformas que se cierran con el engrosado | Detección automática (cambio en el número de contornos) y corrección manual |
 | Diferencias entre la Montserrat de 2021 y la de 2024 | Prueba de superposición; ajustar la o/d si la desviación supera el 1 % |
 | Los logos no tienen el mismo peso (diddo y pad) | Elegir una referencia en la fase 2 |
+| Extensiones largas → interlineado grande | Métricas verticales propias (brief §5) y prueba en varias líneas |
+| El ahusado automático falla en j, u, f, t y m | Corrección manual en la fase 5 (ya identificadas) |

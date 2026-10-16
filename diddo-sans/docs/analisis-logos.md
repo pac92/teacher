@@ -1,15 +1,22 @@
 # Análisis de los logos de referencia
 
 Fecha: 2026-10-16. Medidas tomadas sobre los SVG de `reference/original/` con
-fontTools y skia-pathops. Las unidades "lienzo" son las del `viewBox` del SVG,
-y las "UPM" son unidades de fuente sobre 1000/em.
+fontTools y skia-pathops. Desde la fase 1, las medidas son reproducibles con
+`make analyze` (`scripts/analyze_reference.py`), que genera `reference/normalized/medidas.md`.
+Las correcciones que salieron al hacerlo están marcadas con **[corregido]** o **[nuevo]**.
+
+Las unidades "lienzo" son las del `viewBox` del SVG, y las "UPM" son unidades de fuente
+sobre 1000/em.
 
 ## 1. Origen tipográfico: Montserrat, no Lato
 
 - Los trazados de `pad-bold-dark.svg` conservan en su `style` el atributo
   `font-family:Montserrat`. Es un resto de haber convertido texto a trazado en Inkscape.
 - Comparación geométrica de la **o** del logo (normalizada por altura)
-  frente a la **o** de cada fuente. El valor es la desviación máxima entre contornos:
+  frente a la **o** de cada fuente. El valor es la desviación máxima entre contornos.
+  El script reproduce los de Montserrat con un método algo distinto (Hausdorff):
+  300: 4,93 %, 350: 3,29 %, **400: 1,66 %**, 450: 1,75 %, 500: 3,52 %.
+  La conclusión no cambia, aunque 450 queda más cerca de lo que decía esta tabla:
 
 | Fuente | Desviación máx. |
 |---|---|
@@ -65,19 +72,34 @@ La propuesta es tomar **diddo (95 UPM)** como referencia canónica.
 
 Todo el sistema minúsculo del logo sale, pues, de **dos piezas: el cuenco de la o/d y el asta ahusada**.
 
-## 4. El asta característica (d, a, p, i)
+## 4. El asta característica (d, a, p, i) [corregido]
 
-- Arriba es estrecha: relleno de ≈ 11,2 en el lienzo (≈ 62 UPM) frente a ≈ 15 (≈ 82 UPM) del asta de Montserrat 400.
-- Abajo es más ancha: relleno de ≈ 20 en el lienzo (≈ 110 UPM).
-- El borde izquierdo es vertical y el derecho se abre hacia fuera ≈ 4,5°.
-- El extremo superior es redondo.
-- En la base, la d tiene un **pie/lóbulo** que baja ligeramente por debajo de la línea base,
-  con una **muesca** donde el cuenco se une al asta.
-- Una vez sumado el trazo de 95 UPM, el asta visible va de ≈ 157 UPM arriba a ≈ 205 UPM abajo.
+- **Es la misma pieza en la i y en la d**: un trazo ahusado con los **dos extremos
+  redondos**. El borde interior es vertical y el exterior se inclina ≈ **4°**
+  (4,1° en la d y 3,7° en la i).
+- **El ancho del relleno depende solo de la altura**: ≈ 86 UPM en la altura x, 67 UPM a 800
+  de altura y ≈ 124 UPM extrapolado a la base, igual en la i que en la d. El asta de
+  Montserrat 400 mide **71 UPM** (la primera estimación decía 82; era errónea).
+- El "pie" de la d es el **extremo redondo inferior de esa asta**, que baja apenas 0,7 UPM
+  por debajo de la base y queda separado del cuenco por una **muesca en V**. No es un remate
+  añadido.
+- Una vez sumado el trazo de 95 UPM, el asta visible va de ≈ 162 UPM (a 800) a ≈ 181 UPM
+  (en la altura x), y sigue ensanchándose hacia la base.
+- La p, que es la d girada, se ensancha hacia la altura x y se estrecha hacia abajo.
 
-La regla general para extenderla a otras letras (b, h, k, l, n, m, q, r, u, j…) **no está
-determinada por los logos**. La i se ensancha hacia abajo, y la p (d girada) se ensancha
-hacia arriba. Se decidirá con pruebas visuales en la fase 2.
+La regla para extenderla a otras letras no está determinada por los logos. Las opciones,
+con pruebas visuales, están en `design-brief.md` §2.
+
+### Ascendentes, descendentes y punto de la i [nuevo]
+
+Los logos **no** conservan las proporciones verticales de Montserrat:
+
+| | Logo (relleno) | Montserrat 400 |
+|---|---|---|
+| Ascendente (d) | 857 | 742 |
+| Descendente (p) | −326 | −194 |
+| Punto de la i | ⌀ 125, centro a 730 | ⌀ 104, centro a 692 |
+| Altura x | 532 | 525,5 (el `sxHeight` de la tabla OS/2, 517, está desfasado) |
 
 ## 5. Defectos de los SVG que no se deben copiar
 

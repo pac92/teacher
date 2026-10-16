@@ -1,0 +1,11 @@
+{
+  "iou_superposicion": {
+    "diddo:i": 0.9815,
+    "diddo:d": 0.9578,
+    "diddo:d2": 0.9578,
+    "diddo:o": 0.9791,
+    "pad:p": 0.954,
+    "pad:a": 0.9504,
+    "pad:d": 0.9612
+  }
+}
