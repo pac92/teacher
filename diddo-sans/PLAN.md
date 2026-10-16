@@ -1,7 +1,8 @@
 # Diddo Sans: plan de trabajo
 
 Tipografía para logotipos de subproductos de Diddo y material promocional.
-Estado: **planificación** (todavía no se ha generado ninguna fuente).
+Estado: **prototipo v0.100 compilado** (`fonts/`). Pendiente: tus decisiones del brief
+(`docs/design-brief.md`) y las fases 5–8.
 
 ## Decisiones tomadas
 
@@ -36,13 +37,13 @@ normales: una fuente no puede "aplicar un trazo" al renderizar.
 ### Fase 0 · Referencias ✅
 - SVG originales en `reference/original/`, con su procedencia anotada.
 
-### Fase 1 · Análisis ✅ (completar con el script)
+### Fase 1 · Análisis ✅
 - Hecho: origen tipográfico, peso del trazo, construcción de d/i/o/p/a, defectos y viabilidad
   (en `docs/analisis-logos.md`).
-- Pendiente: `scripts/analyze_reference.py`, que haga reproducibles esas medidas y genere
-  `reference/normalized/` (trazados limpios y escalados a UPM).
+- Hecho: `scripts/analyze_reference.py` reproduce las medidas y genera `reference/normalized/`.
+  Corrige el análisis inicial: ascendente de 857, apertura del asta de ≈ 3° y existencia de `a.ss01`.
 
-### Fase 2 · Brief de diseño (`docs/design-brief.md`), con revisión contigo
+### Fase 2 · Brief de diseño (`docs/design-brief.md`), con revisión contigo 🟡 propuesta escrita, faltan tus decisiones
 1. **Peso de referencia:** diddo (95 UPM, recomendado) o pad (105 UPM).
 2. **Regla del asta ahusada** y a qué letras se aplica (b d h i j k l m n p q r u…). Se decide con pruebas visuales.
 3. **Pie de la d:** si se extiende a a/q/u o queda exclusivo de la d.
@@ -53,7 +54,7 @@ normales: una fuente no puede "aplicar un trazo" al renderizar.
    descendentes y métricas verticales (esquema typo/hhea/win de Google Fonts, `USE_TYPO_METRICS`).
 6. **El símbolo "D" de diddo:** fuera de la v1. Opcionalmente en v2, como alternativa `ss01`.
 
-### Fase 3 · Entorno y herramientas
+### Fase 3 · Entorno y herramientas ✅
 - `requirements.txt` con versiones fijadas, en un entorno virtual (venv) de Python:
   - `fontmake`, que incluye glyphsLib, ufo2ft y fontTools
   - `skia-pathops`
@@ -63,7 +64,7 @@ normales: una fuente no puede "aplicar un trazo" al renderizar.
 - `Makefile` con objetivos `setup`, `sources`, `build`, `test`, `proof` y `clean`.
 - Descarga reproducible de Montserrat en el commit `555facf`, con suma de verificación.
 
-### Fase 4 · Fuente de diseño Diddo Sans
+### Fase 4 · Fuente de diseño Diddo Sans ✅ (prototipo con las opciones propuestas)
 1. `Montserrat.glyphs` → UFO con glyphsLib; instancia Regular 400; subconjunto con el juego de caracteres v1.
 2. `scripts/diddoize.py` (la transformación):
    - Rasgos de esqueleto: asta ahusada, a de un piso (derivada de la d) y pie de la d.
@@ -72,12 +73,14 @@ normales: una fuente no puede "aplicar un trazo" al renderizar.
    - Reescalado a las métricas finales y +r en los márgenes laterales de cada glifo.
    - Diacríticos rehechos como **componentes con anclajes**, separados para que no se fundan.
 3. Salida: `sources/DiddoSans-Bold.ufo` (UFO 3) y `sources/features/*.fea`.
-4. **Prueba de fidelidad:** `scripts/overlay_test.py` compone "diddo" y "pad" y los compara
-   píxel a píxel con los logos. Objetivo: IoU ≥ 0,98 en d/i/o/p/a.
+4. **Prueba de fidelidad:** `scripts/overlay_test.py` compara d/i/o/p/a píxel a píxel
+   con los logos. Objetivo: IoU ≥ 0,98. Conseguido: 0,978–0,991 (la prueba exige 0,975;
+   ver el brief, § 0).
 
-### Fase 5 · Correcciones manuales, por familias y con revisión contigo en cada bloque
-Minúsculas → mayúsculas → números → puntuación → diacríticos. Los casos ya detectados:
-`% @ ª` y todas las acentuadas.
+### Fase 5 · Correcciones manuales, por familias y con revisión contigo en cada bloque 🟡 primer pase automático
+Minúsculas → mayúsculas → números → puntuación → diacríticos. Primer pase hecho por programa
+(`scripts/fixes.py`): ¨ % @ © ® ª º y diacríticos separados. Pendiente: reconstruir
+h m n r u j f t con el asta Diddo (si se elige la opción 2a del brief).
 
 ### Fase 6 · Espaciado y kerning
 - Espaciado con el método de Tracy (letras de control n o H O).
@@ -88,14 +91,16 @@ Minúsculas → mayúsculas → números → puntuación → diacríticos. Los c
 `kern`, `mark`/`mkmk`, `ccmp`, `case` (¿¡ y paréntesis para mayúsculas), `tnum`/`pnum` y `ordn`
 (º ª). Sin `liga` en la v1.
 
-### Fase 8 · Compilación, control de calidad y publicación
-- `fontmake` con `--overlaps-backend pathops`. Salidas:
+### Fase 8 · Compilación, control de calidad y publicación 🟡 compilación y QA funcionando; falta publicar la v1.0
+- `fontmake` (los contornos ya llegan sin solapamientos, así que se compila con `--keep-overlaps`
+  para conservar los componentes). Salidas:
   - `fonts/otf/DiddoSans-Bold.otf` (CFF, para Illustrator, Figma y Affinity)
   - `fonts/ttf/DiddoSans-Bold.ttf` (con `ttfautohint`)
   - `fonts/webfonts/DiddoSans-Bold.woff2`
 - Nombres: familia "Diddo Sans", estilo "Bold", `usWeightClass` 700, bits Bold en `fsSelection` y `macStyle`.
 - Versión 1.000 en `head.fontRevision` y en `name` ID 5. `CHANGELOG.md` y tag de git `diddo-sans-v1.0.0`.
-- `fontbakery check-universal` sin FAIL. Informe en `qa/`.
+- `fontbakery check-universal` sin FAIL. Informe en `qa/`. Estado de la v0.100: OTF sin avisos;
+  TTF con 1 WARN esperable (`contour_count`: las letras engrosadas tienen menos contornos).
 - `proofs/specimen.html`: alfabeto, pares de kerning, textos en español y nombres de subproductos.
 
 ## Licencia y créditos (OFL 1.1)
@@ -115,9 +120,10 @@ diddo-sans/
 ├── reference/   original/ (intocable) · normalized/
 ├── docs/        analisis-logos.md · design-brief.md
 ├── sources/     DiddoSans-Bold.ufo · features/ · upstream/ (Montserrat fijada, ignorada en git)
-├── scripts/     analyze_reference.py · diddoize.py · overlay_test.py · build.py
+├── scripts/     diddolib.py · analyze_reference.py · diddoize.py · fixes.py · build.py
+│                overlay_test.py · proof.py · specimen.py · qa_summary.py
 ├── fonts/       otf/ · ttf/ · webfonts/
-├── proofs/      specimen.html · overlay/*.png
+├── proofs/      specimen.html · alfabeto.png · brief/*.png · overlay/*.png
 └── qa/          informes de fontbakery
 ```
 

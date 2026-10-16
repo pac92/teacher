@@ -60,7 +60,7 @@ La propuesta es tomar **diddo (95 UPM)** como referencia canónica.
 | i | diddo | Punto circular más asta **ahusada** (17,1 → 22,1 de ancho de relleno en el lienzo, más estrecha arriba). |
 | o | diddo | Montserrat 400 casi sin cambios. |
 | p | pad | **Es la d girada 180°** (mismas coordenadas con signo invertido). |
-| a | pad | **De un piso, derivada de la d**: mismo cuenco, asta acortada a la altura x. Montserrat usa una a de dos pisos, así que esta es un rasgo propio de Diddo. |
+| a | pad | **De un piso, derivada de la d**: mismo cuenco, asta acortada a la altura x. La a por defecto de Montserrat es de dos pisos, pero Montserrat incluye esta misma construcción como alternativa `a.ss01`. |
 | D (inicial de diddo) | diddo | **No es una letra tipográfica**: es un símbolo (trazo abierto de 50 de grosor, sin relleno) con forma de "D/play/bocadillo". Queda fuera del juego base. |
 
 Todo el sistema minúsculo del logo sale, pues, de **dos piezas: el cuenco de la o/d y el asta ahusada**.
@@ -69,7 +69,7 @@ Todo el sistema minúsculo del logo sale, pues, de **dos piezas: el cuenco de la
 
 - Arriba es estrecha: relleno de ≈ 11,2 en el lienzo (≈ 62 UPM) frente a ≈ 15 (≈ 82 UPM) del asta de Montserrat 400.
 - Abajo es más ancha: relleno de ≈ 20 en el lienzo (≈ 110 UPM).
-- El borde izquierdo es vertical y el derecho se abre hacia fuera ≈ 4,5°.
+- El borde izquierdo es vertical y el derecho se abre hacia fuera ≈ 3° (pendiente ≈ 0,05; corregido: la primera estimación era 4,5°).
 - El extremo superior es redondo.
 - En la base, la d tiene un **pie/lóbulo** que baja ligeramente por debajo de la línea base,
   con una **muesca** donde el cuenco se une al asta.
@@ -100,3 +100,24 @@ caracteres de Montserrat 400: A–Z, a–z, 0–9, español y puntuación. Resul
   - `@` y `ª`: aparece o desaparece una contraforma.
 
   Todos tienen solución con ajustes locales.
+
+## 7. Medidas reproducibles (fase 1, `scripts/analyze_reference.py`)
+
+El script pasa los logos a UPM de Montserrat (línea base en 0) y escribe
+`reference/normalized/*.svg` y `reference/normalized/measurements.json`.
+Los dos logos están a la misma escala (5,526 UPM por unidad de lienzo): la d de pad y
+la de diddo son el mismo trazado. Hallazgos que no estaban en las secciones anteriores:
+
+- **Ascendente de la d ≈ 857 UPM** (Montserrat: 742). La p, que es la d girada,
+  desciende hasta ≈ −326 (Montserrat: −194).
+- **Asta de la d, ancho del relleno:** 66 a 800 UPM, 81 a 600, 90 a 450 y 103 a 50.
+  La cabeza es un semicírculo de ≈ 64 y la base, uno de ≈ 103, desplazado ≈ 20 hacia
+  fuera (el pie). Entre la base y y ≈ 300, el borde interior se inclina hacia el pie
+  y forma la muesca con el cuenco.
+- **Asta de la i:** de 93 (arriba, a 450) a 117 (abajo), con los dos extremos redondos y sin pie.
+- **Punto de la i:** Ø ≈ 125 × 121 (Montserrat: 104), con el borde inferior a 669.
+  El hueco visible con el asta es de 41 UPM; con el punto de Montserrat quedaría en ≈ 20.
+- **Asta de la a (pad):** como la de la d, pero cortada a 532 y con la cabeza ≈ 9 UPM
+  desplazada hacia fuera. La contraforma es ≈ 11 UPM más estrecha por la derecha.
+- **Contraformas:** las de 2024 son ≈ 4 % más altas que las del logo (o: 393 frente a 410;
+  d: 391 frente a 410).

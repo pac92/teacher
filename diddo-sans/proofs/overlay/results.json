@@ -1,0 +1,38 @@
+[
+  {
+    "logo": "diddo",
+    "letter": "i",
+    "iou": 0.9794,
+    "iou_same_weight": null
+  },
+  {
+    "logo": "diddo",
+    "letter": "d",
+    "iou": 0.9805,
+    "iou_same_weight": null
+  },
+  {
+    "logo": "diddo",
+    "letter": "o",
+    "iou": 0.9913,
+    "iou_same_weight": null
+  },
+  {
+    "logo": "pad",
+    "letter": "p",
+    "iou": 0.9493,
+    "iou_same_weight": 0.9782
+  },
+  {
+    "logo": "pad",
+    "letter": "a",
+    "iou": 0.9491,
+    "iou_same_weight": 0.9794
+  },
+  {
+    "logo": "pad",
+    "letter": "d",
+    "iou": 0.9483,
+    "iou_same_weight": 0.9809
+  }
+]

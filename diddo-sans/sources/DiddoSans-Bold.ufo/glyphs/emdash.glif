@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<glyph name="emdash" format="2">
+  <advance width="964"/>
+  <unicode hex="2014"/>
+  <outline>
+    <contour>
+      <point x="0" y="303" type="qcurve" smooth="yes"/>
+      <point x="0" y="258" type="line" smooth="yes"/>
+      <point x="0" y="250"/>
+      <point x="6" y="235"/>
+      <point x="18" y="223"/>
+      <point x="34" y="217"/>
+      <point x="42" y="217" type="qcurve" smooth="yes"/>
+      <point x="922" y="217" type="line" smooth="yes"/>
+      <point x="931" y="217"/>
+      <point x="946" y="223"/>
+      <point x="958" y="235"/>
+      <point x="964" y="250"/>
+      <point x="964" y="258" type="qcurve" smooth="yes"/>
+      <point x="964" y="303" type="line" smooth="yes"/>
+      <point x="964" y="311"/>
+      <point x="958" y="327"/>
+      <point x="946" y="338"/>
+      <point x="931" y="345"/>
+      <point x="922" y="345" type="qcurve" smooth="yes"/>
+      <point x="42" y="345" type="line"/>
+      <point x="34" y="345"/>
+      <point x="18" y="338"/>
+      <point x="6" y="327"/>
+      <point x="0" y="311"/>
+    </contour>
+  </outline>
+</glyph>
