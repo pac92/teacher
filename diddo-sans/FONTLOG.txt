@@ -1,48 +1,57 @@
-FONTLOG de Diddo Sans
-=====================
+FONTLOG for Diddo Sans
+======================
 
-Este archivo registra la derivación y los cambios de Diddo Sans, como recomienda
-la SIL Open Font License 1.1.
-
-
-Información básica
-------------------
-
-Diddo Sans es una tipografía para logotipos de subproductos de Diddo y material
-promocional. Se publica bajo la SIL Open Font License 1.1 (ver OFL.txt), sin
-Reserved Font Name.
-
-Es una versión modificada ("Modified Version", según la OFL) de Montserrat, de
-Julieta Ulanovsky y The Montserrat Project Authors, también bajo la OFL 1.1:
-https://github.com/JulietaUla/Montserrat, commit
-555facfb2a18c72c3c0380f0d9c0f060453a9058 (fuentes Montserrat.glyphs y
-Montserrat[wght].ttf).
-
-Diddo Sans no está respaldada por los autores de Montserrat ni afiliada a ellos.
+This file provides detailed information on the Diddo Sans font software.
+This information should be distributed along with the Diddo Sans fonts and
+any derivative works.
 
 
-Cambios respecto a Montserrat
------------------------------
+Basic Font Information
+----------------------
 
-(Se completará a medida que avancen las fases de PLAN.md.)
+Diddo Sans is a single-style (Bold) display typeface for the logotypes and
+promotional material of Diddo products. It reproduces the lettering of the
+"diddo" and "pad" logos, which were made by converting Montserrat Regular
+text to outlines and adding a thick round-joined stroke.
 
-- Base: instancia Regular (wght 400). Solo minúsculas, números y signos.
-- Engrosado con un trazo redondo de 105 UPM, igual que en el logo de pad.
-- Asta propia ("asta Diddo"): ahusada y con extremos redondos. En n, m y h solo
-  la lleva la primera asta.
-- Todos los extremos libres terminan en semicírculo.
-- Ascendentes y descendentes alargadas y punto de la i del logo de diddo.
-- a de un piso, derivada de la d.
-- Nombre de familia nuevo: "Diddo Sans".
+Diddo Sans is a Modified Version of Montserrat, released under the SIL Open
+Font License 1.1 (see OFL.txt). It is NOT the original Montserrat and is not
+endorsed by its authors.
 
 
-Historial
+Derivation
+----------
+
+Upstream: Montserrat, https://github.com/JulietaUla/Montserrat
+          commit 555facfb2a18c72c3c0380f0d9c0f060453a9058, sources/Montserrat.glyphs
+          (Regular instance, weight 400).
+
+All changes are made by scripts/diddoize.py and scripts/fixes.py:
+
+- Subset to the v1 character set (Basic Latin, Spanish, basic typographic
+  punctuation).
+- Skeleton changes: tapered "Diddo" stems with round ends on b d i l k a p q,
+  a foot on the bowl letters, taller ascenders (857) and longer descenders
+  (-331.5), single-storey a (from Montserrat's a.ss01), p and q derived from
+  the d by rotation/reflection, larger and higher i/j dot, counters of o d b a g
+  reduced to match the 2021 logo outlines.
+- Emboldening: union of the filled outline and a 95-unit round stroke.
+- Rescaling (x 0.8805) so that the visible cap height is 700 units; side
+  bearings enlarged by the stroke offset.
+- Glyph fixes: dieresis, percent, at, copyright, registered, ordinals,
+  raised top marks.
+- New vertical metrics, names and version.
+
+
+ChangeLog
 ---------
 
-2026-10-16  Proyecto en fase de diseño. Todavía no se ha publicado ninguna fuente.
+2026-10-16 (Diddo Sans Project Authors) Diddo Sans 0.100
+- Initial prototype.
 
 
-Agradecimientos
----------------
+Acknowledgements
+----------------
 
-A Julieta Ulanovsky y a todas las personas que contribuyen a Montserrat.
+Montserrat: Julieta Ulanovsky, Sol Matas, Juan Pablo del Peral, Jacques Le
+Bailly and the Montserrat Project Authors.

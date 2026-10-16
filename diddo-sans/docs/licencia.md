@@ -1,7 +1,8 @@
 # Licencia de Diddo Sans: verificación
 
-Fecha: 2026-10-16. Comprobado sobre los archivos de Montserrat fijados en el commit
-`555facf` (`make upstream`).
+Fecha: 2026-10-16. Comprobado sobre los archivos de Montserrat del commit fijado
+`555facf` (`Montserrat.glyphs`, que descarga `make sources`; `fonts/variable/Montserrat[wght].ttf`
+y `OFL.txt` del mismo commit), y sobre el prototipo compilado v0.100.
 
 ## Conclusión
 
@@ -58,9 +59,9 @@ Las herramientas no afectan a la licencia de la fuente que generan:
 | Herramienta | Licencia |
 |---|---|
 | fontmake, glyphsLib, ufo2ft, fontbakery | Apache 2.0 |
-| fontTools, Pillow | MIT, o equivalente |
-| skia-pathops, freetype-py | BSD |
-| ttfautohint (fase 8) | Su licencia excluye expresamente el resultado generado |
+| fontTools, Pillow, brotli | MIT, o equivalente |
+| skia-pathops | BSD |
+| ttfautohint (vía ttfautohint-py) | Su licencia excluye expresamente el resultado generado |
 
 ## Archivos que no son la fuente
 
@@ -73,10 +74,12 @@ de `reference/normalized/`.
 - [x] `OFL.txt` con los tres avisos de copyright (2011 y 2024 de Montserrat, 2026 de Diddo Sans)
       y el texto íntegro de la licencia, sin cambios.
 - [x] `FONTLOG.txt` con el origen y los cambios.
-- [ ] Fase 4: copiar el copyright, la licencia y la URL de la licencia (`openfontlicense.org`)
-      en la información de la fuente (UFO).
-- [ ] Fase 8: comprobar en la tabla `name` los IDs 0 (copyright con las tres líneas),
-      13 (descripción de la licencia) y 14 (URL), sin "Montserrat" en los IDs 1, 4 y 6
-      (nombres); `fsType` 0. fontbakery revisa casi todo esto.
+- [x] Fase 4: el copyright (con las tres líneas), la licencia y su URL están en la
+      información de la fuente (`scripts/diddoize.py` → `sources/DiddoSans-Bold.ufo`).
+      La primera versión del prototipo omitía el aviso de 2011; corregido y recompilado.
+- [x] Prototipo v0.100: en la tabla `name`, el ID 0 lleva los tres avisos y los IDs 13 y 14
+      la licencia y su URL. Los IDs 1, 4 y 6 son "Diddo Sans", "Diddo Sans Bold" y
+      "DiddoSans-Bold", sin "Montserrat". `fsType` es 0.
+- [ ] Fase 8: repetir esta comprobación en la versión 1.000.
 - [ ] Fase 8: incluir `OFL.txt` y `FONTLOG.txt` junto a las fuentes compiladas en cada
       distribución.

@@ -1,11 +1,11 @@
-# Diddo Sans · dependencias de Python (versiones fijadas). Python ≥ 3.11.
-# Instalar con: make setup
-fontmake==3.12.2        # incluye glyphsLib, ufo2ft y fontTools
+# Entorno de Diddo Sans (Python ≥ 3.10). Instalar con `make setup`.
+fontmake==3.12.2
 fonttools==4.67.0
 glyphsLib==6.16.1
 ufo2ft==3.9.1
 ufoLib2==0.19.1
-skia-pathops==0.9.2     # engrosado y operaciones booleanas
-freetype-py==2.3.0      # renderizado de pruebas (FreeTypePen)
-Pillow==12.3.0          # imágenes de prueba y comparaciones
-fontbakery==1.1.0       # control de calidad (fase 8)
+skia-pathops==0.9.2
+fontbakery==1.1.0
+pillow==12.3.0
+brotli==1.2.0
+ttfautohint-py==0.6.1

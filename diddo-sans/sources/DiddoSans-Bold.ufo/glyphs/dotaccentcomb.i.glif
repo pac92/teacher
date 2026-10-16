@@ -1,0 +1,40 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<glyph name="dotaccentcomb.i" format="2">
+  <anchor x="306" y="505" name="_top"/>
+  <anchor x="306" y="649" name="top"/>
+  <outline>
+    <contour>
+      <point x="403" y="686" type="qcurve" smooth="yes"/>
+      <point x="403" y="706"/>
+      <point x="395" y="724" type="qcurve" smooth="yes"/>
+      <point x="388" y="741"/>
+      <point x="361" y="768"/>
+      <point x="344" y="775" type="qcurve" smooth="yes"/>
+      <point x="326" y="783"/>
+      <point x="286" y="783"/>
+      <point x="268" y="775" type="qcurve" smooth="yes"/>
+      <point x="251" y="768"/>
+      <point x="224" y="741"/>
+      <point x="217" y="724" type="qcurve" smooth="yes"/>
+      <point x="209" y="706"/>
+      <point x="209" y="666"/>
+      <point x="217" y="648" type="qcurve" smooth="yes"/>
+      <point x="224" y="631"/>
+      <point x="251" y="604"/>
+      <point x="268" y="597" type="qcurve" smooth="yes"/>
+      <point x="286" y="589"/>
+      <point x="326" y="589"/>
+      <point x="344" y="597" type="qcurve" smooth="yes"/>
+      <point x="361" y="604"/>
+      <point x="388" y="631"/>
+      <point x="395" y="648" type="qcurve" smooth="yes"/>
+      <point x="403" y="666"/>
+    </contour>
+  </outline>
+  <lib>
+    <dict>
+      <key>com.schriftgestaltung.Glyphs.originalWidth</key>
+      <integer>600</integer>
+    </dict>
+  </lib>
+</glyph>

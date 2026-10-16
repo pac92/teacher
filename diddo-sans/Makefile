@@ -1,37 +1,48 @@
-# Diddo Sans · tareas habituales. Ejecutar desde diddo-sans/.
-#
-#   make setup     crea .venv e instala requirements.txt
-#   make upstream  descarga Montserrat fijada (con verificación SHA-256)
-#   make analyze   fase 1: medidas y letras normalizadas en reference/normalized/
-#   make proof     fase 2: pruebas del brief en proofs/brief/
-#   make clean     borra las salidas generadas (no toca reference/original/)
-#
-# Pendientes (fases 4–8): sources, build, test.
+# Diddo Sans: flujo completo. `make all` = sources + build + test + proof.
+PY      ?= .venv/bin/python
+MONTSERRAT_COMMIT = 555facfb2a18c72c3c0380f0d9c0f060453a9058
+MONTSERRAT_URL    = https://raw.githubusercontent.com/JulietaUla/Montserrat/$(MONTSERRAT_COMMIT)/sources/Montserrat.glyphs
+UPSTREAM  = sources/upstream/Montserrat.glyphs
+INSTANCE  = build/instance_ufo/Montserrat-Regular.ufo
+UFO       = sources/DiddoSans-Bold.ufo
 
-VENV   := .venv
-PY     := $(VENV)/bin/python
-export PYTHONPATH := scripts
+.PHONY: all setup sources build test proof analyze clean
 
-.PHONY: all setup upstream analyze proof clean
+all: sources build test proof
 
-all: analyze proof
+setup:
+	python3 -m venv .venv
+	$(PY) -m pip install -r requirements.txt
 
-$(VENV)/.ok: requirements.txt
-	python3 -m venv $(VENV)
-	$(VENV)/bin/pip install --upgrade pip
-	$(VENV)/bin/pip install -r requirements.txt
-	touch $@
+$(UPSTREAM):
+	mkdir -p sources/upstream
+	curl -fsSL -o $@ $(MONTSERRAT_URL)
+	sha256sum -c sources/upstream.sha256
 
-setup: $(VENV)/.ok
+$(INSTANCE): $(UPSTREAM)
+	$(PY) -m fontmake -g $(UPSTREAM) -o ufo -i "Montserrat Regular" \
+	  --master-dir build/master_ufo --instance-dir build/instance_ufo
 
-upstream: setup
-	$(PY) scripts/fetch_upstream.py
+analyze:
+	$(PY) scripts/analyze_reference.py > /dev/null
 
-analyze: upstream
-	$(PY) scripts/analyze_reference.py
+sources: $(INSTANCE)
+	$(PY) scripts/diddoize.py --out $(UFO)
 
-proof: analyze
-	$(PY) scripts/proof_brief.py
+build:
+	$(PY) scripts/build.py
+
+test:
+	$(PY) scripts/overlay_test.py $(UFO) --min 0.975
+	mkdir -p qa
+	-$(PY) -m fontbakery check-universal fonts/ttf/DiddoSans-Bold.ttf \
+	  --skip-network --no-progress -l WARN --json qa/fontbakery-ttf.json > /dev/null 2>&1
+	-$(PY) -m fontbakery check-universal fonts/otf/DiddoSans-Bold.otf \
+	  --skip-network --no-progress -l WARN --json qa/fontbakery-otf.json > /dev/null 2>&1
+	$(PY) scripts/qa_summary.py
+
+proof:
+	$(PY) scripts/specimen.py
 
 clean:
-	rm -rf reference/normalized proofs/brief
+	rm -rf build
