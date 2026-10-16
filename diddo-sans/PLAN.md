@@ -107,14 +107,17 @@ Minúsculas → mayúsculas → números → puntuación → diacríticos. Los c
 - `fontbakery check-universal` sin FAIL. Informe en `qa/`.
 - `proofs/specimen.html`: alfabeto, pares de kerning, textos en español y nombres de subproductos.
 
-## Licencia y créditos (OFL 1.1)
-- `OFL.txt` con las dos líneas de copyright:
-  - `Copyright 2024 The Montserrat.Git Project Authors (https://github.com/JulietaUla/Montserrat.git)`
+## Licencia y créditos (OFL 1.1) ✅ verificada
+Verificación completa en `docs/licencia.md`. En resumen: derivar de Montserrat está
+permitido, y la OFL **obliga** a que Diddo Sans también sea OFL 1.1, que es una licencia libre.
+- `OFL.txt` (ya creado) con los tres avisos de copyright, porque Montserrat usa dos distintos:
+  - `Copyright 2011 The Montserrat Project Authors (https://github.com/JulietaUla/Montserrat)` (fuente y .glyphs)
+  - `Copyright 2024 The Montserrat.Git Project Authors (https://github.com/JulietaUla/Montserrat.git)` (OFL.txt)
   - `Copyright 2026 The Diddo Sans Project Authors`
 - Montserrat no declara *Reserved Font Name*, así que "Diddo Sans" es un nombre válido.
 - Recomendación: **no** declarar "Diddo" como Reserved Font Name. La marca se protege por la
   vía del registro de marca, no con la licencia de la fuente.
-- `FONTLOG.txt` documenta la derivación y los cambios.
+- `FONTLOG.txt` (ya creado) documenta la derivación y los cambios.
 
 ## Estructura de carpetas
 ```
@@ -122,7 +125,7 @@ diddo-sans/
 ├── PLAN.md  README.md  CHANGELOG.md  FONTLOG.txt  OFL.txt
 ├── requirements.txt  Makefile
 ├── reference/   original/ (intocable) · normalized/
-├── docs/        analisis-logos.md · design-brief.md
+├── docs/        analisis-logos.md · design-brief.md · licencia.md
 ├── sources/     DiddoSans-Bold.ufo · features/ · upstream/ (Montserrat fijada, ignorada en git)
 ├── scripts/     diddolib.py · fetch_upstream.py · analyze_reference.py · proof_brief.py
 │                (pendientes: diddoize.py · overlay_test.py · build.py)

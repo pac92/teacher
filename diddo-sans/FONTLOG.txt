@@ -1,0 +1,45 @@
+FONTLOG de Diddo Sans
+=====================
+
+Este archivo registra la derivación y los cambios de Diddo Sans, como recomienda
+la SIL Open Font License 1.1.
+
+
+Información básica
+------------------
+
+Diddo Sans es una tipografía para logotipos de subproductos de Diddo y material
+promocional. Se publica bajo la SIL Open Font License 1.1 (ver OFL.txt), sin
+Reserved Font Name.
+
+Es una versión modificada ("Modified Version", según la OFL) de Montserrat, de
+Julieta Ulanovsky y The Montserrat Project Authors, también bajo la OFL 1.1:
+https://github.com/JulietaUla/Montserrat, commit
+555facfb2a18c72c3c0380f0d9c0f060453a9058 (fuentes Montserrat.glyphs y
+Montserrat[wght].ttf).
+
+Diddo Sans no está respaldada por los autores de Montserrat ni afiliada a ellos.
+
+
+Cambios respecto a Montserrat
+-----------------------------
+
+(Se completará a medida que avancen las fases de PLAN.md.)
+
+- Base: instancia Regular (wght 400).
+- Engrosado con un trazo redondo, igual que en los logos de diddo y pad.
+- Asta propia ("asta Diddo"): ahusada y con extremos redondos.
+- a de un piso, derivada de la d.
+- Nombre de familia nuevo: "Diddo Sans".
+
+
+Historial
+---------
+
+2026-10-16  Proyecto en fase de diseño. Todavía no se ha publicado ninguna fuente.
+
+
+Agradecimientos
+---------------
+
+A Julieta Ulanovsky y a todas las personas que contribuyen a Montserrat.

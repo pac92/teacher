@@ -1,8 +1,11 @@
 # Diddo Sans
 
 Tipografía para logotipos de subproductos de Diddo y material promocional. Deriva de
-Montserrat (SIL OFL 1.1) aplicando la misma transformación que se usó en los logos de
-diddo y pad. El plan completo está en [`PLAN.md`](PLAN.md).
+Montserrat aplicando la misma transformación que se usó en los logos de diddo y pad.
+
+**Licencia:** [SIL Open Font License 1.1](OFL.txt), la misma que Montserrat y obligatoria
+para una versión modificada. Los logos que se hagan con la fuente no quedan bajo la OFL.
+Detalles en [`docs/licencia.md`](docs/licencia.md) y créditos en [`FONTLOG.txt`](FONTLOG.txt). El plan completo está en [`PLAN.md`](PLAN.md).
 
 **Estado:** fase 2. El [brief de diseño](docs/design-brief.md) está pendiente de revisión
 y todavía no hay ninguna fuente compilada.
@@ -23,3 +26,4 @@ make clean     # borra las salidas generadas
 - [`docs/analisis-logos.md`](docs/analisis-logos.md): de dónde salen los logos y cómo se construyeron.
 - [`reference/normalized/medidas.md`](reference/normalized/medidas.md): medidas generadas por script.
 - [`docs/design-brief.md`](docs/design-brief.md): decisiones de diseño, con pruebas visuales.
+- [`docs/licencia.md`](docs/licencia.md): verificación de la licencia y obligaciones pendientes.
