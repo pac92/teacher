@@ -1,16 +1,18 @@
 # Diddo Sans: plan de trabajo
 
 Tipografía para logotipos de subproductos de Diddo y material promocional.
-Estado: **prototipo v0.100 compilado** (`fonts/`). Pendiente: tus decisiones del brief
-(`docs/design-brief.md`) y las fases 5–8.
+Estado: **prototipo v0.100 compilado** (`fonts/`) y **brief decidido**. Siguiente paso:
+aplicar las decisiones del brief (`docs/design-brief.md`) en `scripts/diddoize.py`; después,
+las fases 5–8.
 
 ## Decisiones tomadas
 
 | Tema | Decisión |
 |---|---|
-| Pesos | Solo **Bold** |
-| Juego de caracteres v1 | A–Z, a–z, 0–9, puntuación básica y español (á é í ó ú ü ñ ¿ ¡ « » € @ #); unos 120 glifos |
-| Licencia | **SIL Open Font License 1.1**. Además es obligatoria, porque la fuente deriva de Montserrat (OFL) |
+| Pesos | Solo **Bold**, con el trazo de pad (105 UPM) |
+| Juego de caracteres v1 | **Solo minúsculas**: a–z, 0–9, puntuación básica y español (á é í ó ú ü ñ ¿ ¡ « » € @ #). Sin mayúsculas (¿unicase?, ver brief) |
+| Diseño | Ver `docs/design-brief.md`: asta ahusada en todas (n y m solo la 1.ª), todos los extremos redondos, ascendentes del logo y punto de diddo |
+| Licencia | **SIL Open Font License 1.1**, obligatoria porque la fuente deriva de Montserrat (OFL). Verificada en `docs/licencia.md` |
 | Fuente base | **Montserrat Regular (400)**, confirmado por medición (ver `docs/analisis-logos.md`). No es Lato. |
 | Ubicación | Carpeta `diddo-sans/` dentro de este repositorio |
 
@@ -104,8 +106,10 @@ h m n r u j f t con el asta Diddo (si se elige la opción 2a del brief).
 - `proofs/specimen.html`: alfabeto, pares de kerning, textos en español y nombres de subproductos.
 
 ## Licencia y créditos (OFL 1.1)
-- `OFL.txt` con las dos líneas de copyright:
-  - `Copyright 2024 The Montserrat.Git Project Authors (https://github.com/JulietaUla/Montserrat.git)`
+Verificación y obligaciones pendientes en `docs/licencia.md`.
+- `OFL.txt` y la tabla `name` (ID 0) con los tres avisos de copyright, porque Montserrat usa dos distintos:
+  - `Copyright 2011 The Montserrat Project Authors (https://github.com/JulietaUla/Montserrat)` (en la fuente y en el .glyphs)
+  - `Copyright 2024 The Montserrat.Git Project Authors (https://github.com/JulietaUla/Montserrat.git)` (en su OFL.txt)
   - `Copyright 2026 The Diddo Sans Project Authors`
 - Montserrat no declara *Reserved Font Name*, así que "Diddo Sans" es un nombre válido.
 - Recomendación: **no** declarar "Diddo" como Reserved Font Name. La marca se protege por la
@@ -118,7 +122,7 @@ diddo-sans/
 ├── PLAN.md  README.md  CHANGELOG.md  FONTLOG.txt  OFL.txt
 ├── requirements.txt  Makefile
 ├── reference/   original/ (intocable) · normalized/
-├── docs/        analisis-logos.md · design-brief.md
+├── docs/        analisis-logos.md · design-brief.md · licencia.md
 ├── sources/     DiddoSans-Bold.ufo · features/ · upstream/ (Montserrat fijada, ignorada en git)
 ├── scripts/     diddolib.py · analyze_reference.py · diddoize.py · fixes.py · build.py
 │                overlay_test.py · proof.py · specimen.py · qa_summary.py

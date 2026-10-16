@@ -468,6 +468,8 @@ def set_info(font, cfg, r: float, s: float) -> None:
         versionMajor=0,
         versionMinor=100,
         copyright=(
+            "Copyright 2011 The Montserrat Project Authors "
+            "(https://github.com/JulietaUla/Montserrat); "
             "Copyright 2024 The Montserrat.Git Project Authors "
             "(https://github.com/JulietaUla/Montserrat.git); "
             "Copyright 2026 The Diddo Sans Project Authors"

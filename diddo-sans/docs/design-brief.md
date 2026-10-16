@@ -1,8 +1,36 @@
 # Brief de diseño de Diddo Sans Bold (fase 2)
 
-Estado: **propuesta, pendiente de tu revisión**. El prototipo v0.100 (`fonts/`) ya
-aplica las opciones marcadas como *propuesta*. Cambiar cualquiera de ellas es
-cambiar un parámetro de `scripts/diddoize.py` (`DEFAULTS`) y ejecutar `make all`.
+Estado: **decidido el 2026-10-16** (puntos 1–5; ver «Decisiones tomadas»). El prototipo
+v0.100 (`fonts/`) todavía aplica las *propuestas* originales; el siguiente paso es llevar
+las decisiones a `scripts/diddoize.py` (`DEFAULTS`) y ejecutar `make all`.
+
+## Decisiones tomadas (2026-10-16)
+
+| # | Tema | Decisión | Cambio respecto al prototipo v0.100 |
+|---|---|---|---|
+| 1 | Peso | **Trazo de 105 UPM (pad)** | `stroke = 105` (ahora 95) |
+| 2 | Asta ahusada | **Todas las letras** (opción a), pero **en la n y la m solo la primera asta**. La h, por ser una n con ascendente, igual (pendiente de confirmar) | Reconstruir h m n r u j f t como asta + arco |
+| 3 | Extremos | **Todos los extremos libres redondos (semicírculo), como en los originales**: astas, terminales (c e s r f t g j y), brazos de k v w x y z, barras de f t z, números y acentos. En las diagonales, el disco no pasa de la base ni de la altura x | Nuevo: redondeo general de terminales |
+| 4 | Mayúsculas | **No hay mayúsculas en la v1** (solo minúsculas, como los logos) | Quitar A–Z y acentuadas mayúsculas; el reescalado no puede usar la altura de mayúsculas (ver abajo) |
+| 5 | Ascendentes | **Las del logo** (857 / −326) | Ya aplicado |
+| — | Punto de la i y la j | **El de diddo** (Ø 125) | Ya aplicado |
+
+Consecuencias que quedan por cerrar:
+
+- **Mayúsculas tecleadas:** sin glifos, cada programa dibuja las mayúsculas con otra fuente
+  o con un recuadro vacío. Propuesta: **unicase**, es decir, que A–Z, Ñ y Á…Ú apunten a las
+  minúsculas (cero glifos más). La alternativa es dejarlas sin asignar.
+- **Reescalado:** la v0.100 reescala a mayúsculas de 700 (escala 0,8805). Sin mayúsculas,
+  la propuesta es reescalar para que la **altura x visible sea la de Montserrat (525,5)**.
+  Así, a igual cuerpo, el texto ocupa lo mismo que con Montserrat. Las métricas verticales se
+  recalculan al compilar.
+
+`proofs/brief/6-decision.png` es una vista previa de estas decisiones, hecha con el
+prototipo rápido de la rama `ccr-0c25cb1d-1l2f6f` (commit `9eeaef9`, `scripts/proof_brief.py`,
+que incluye el algoritmo de redondeo de terminales). No se regenera con `make`: es solo
+una referencia visual para la fase 4.
+
+![Vista previa de las decisiones](../proofs/brief/6-decision.png)
 
 Las imágenes de comparación están en `proofs/brief/` y se regeneran con `make proof`.
 
@@ -122,12 +150,17 @@ primer pase). Conviene revisarlos a ojo en `proofs/alfabeto.png`:
 - **Juego de caracteres:** v1 = 132 caracteres (ASCII + español + puntuación tipográfica).
   ¿Hace falta ç Ç (catalán), à è ò ï (catalán/francés) o ª/º con subrayado?
 
-## Decisiones que necesito de ti
+## Decisiones
 
-1. Peso: ¿95 (diddo) o 105 (pad)?
-2. Asta ahusada: ¿a, b o c?
-3. Pie de la d: ¿en d b a p q, o solo en la d?
-4. Ascendentes: ¿las del logo (857) o las de Montserrat (742)?
-5. Mayúsculas: ¿sin ahusar en la v1?
+1. Peso → ✅ 105 (pad).
+2. Asta ahusada → ✅ a), en todas; en la n y la m solo la primera asta.
+3. Pie de la d → ✅ todos los extremos redondos, como en los originales.
+4. Ascendentes → ✅ las del logo.
+5. Mayúsculas → ✅ no hay en la v1.
+
+Pendientes:
+
 6. ª y º: ¿sin subrayado (como ahora) o con él?
 7. ¿Algún carácter más para la v1?
+8. Mayúsculas tecleadas: ¿unicase (recomendado) o sin asignar?
+9. h: ¿solo la primera asta ahusada, como la n (propuesto)?

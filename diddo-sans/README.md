@@ -65,3 +65,4 @@ qa/         informes de fontbakery
 SIL Open Font License 1.1: ver [`OFL.txt`](OFL.txt). Diddo Sans es una versión
 modificada de Montserrat. No se declara ningún *Reserved Font Name*.
 Historial de la derivación en [`FONTLOG.txt`](FONTLOG.txt).
+Verificación de la licencia y obligaciones en [`docs/licencia.md`](docs/licencia.md).
