@@ -9,7 +9,7 @@ Solo tiene un estilo, **Bold**. Deriva de [Montserrat](https://github.com/Juliet
 2. **Engrosado:** relleno ∪ trazo redondo de 95 UPM.
 3. **Reescalado:** la altura de mayúsculas visible se lleva a 700 UPM.
 
-Estado: **prototipo v0.100**. Las decisiones de diseño pendientes están en
+Estado: **prototipo v0.101** (con los extremos redondos del brief). Las decisiones de diseño pendientes están en
 [`docs/design-brief.md`](docs/design-brief.md) y el plan completo, en [`PLAN.md`](PLAN.md).
 
 ## Archivos de fuente

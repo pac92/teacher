@@ -1,8 +1,9 @@
 # Brief de diseño de Diddo Sans Bold (fase 2)
 
 Estado: **decidido el 2026-10-16** (puntos 1–5; ver «Decisiones tomadas»). El prototipo
-v0.100 (`fonts/`) todavía aplica las *propuestas* originales; el siguiente paso es llevar
-las decisiones a `scripts/diddoize.py` (`DEFAULTS`) y ejecutar `make all`.
+v0.101 (`fonts/`) ya aplica la decisión 3 (extremos redondos); el resto sigue con las
+*propuestas* originales. El siguiente paso es llevar las demás decisiones a
+`scripts/diddoize.py` (`DEFAULTS`) y ejecutar `make all`.
 
 ## Decisiones tomadas (2026-10-16)
 
@@ -10,7 +11,7 @@ las decisiones a `scripts/diddoize.py` (`DEFAULTS`) y ejecutar `make all`.
 |---|---|---|---|
 | 1 | Peso | **Trazo de 105 UPM (pad)** | `stroke = 105` (ahora 95) |
 | 2 | Asta ahusada | **Todas las letras** (opción a), pero **en la n y la m solo la primera asta**. La h, por ser una n con ascendente, igual (pendiente de confirmar) | Reconstruir h m n r u j f t como asta + arco |
-| 3 | Extremos | **Todos los extremos libres redondos (semicírculo), como en los originales**: astas, terminales (c e s r f t g j y), brazos de k v w x y z, barras de f t z, números y acentos. En las diagonales, el disco no pasa de la base ni de la altura x | Nuevo: redondeo general de terminales |
+| 3 | Extremos | **Todos los extremos libres redondos (semicírculo), como en los originales**: astas, terminales (c e s r f t g j y), brazos de k v w x y z, barras de f t z, números y acentos. En las diagonales, el disco no pasa de la base ni de la altura x | ✅ Aplicado en la v0.101 (`round_terminals`, ver § 8) |
 | 4 | Mayúsculas | **No hay mayúsculas en la v1** (solo minúsculas, como los logos) | Quitar A–Z y acentuadas mayúsculas; el reescalado no puede usar la altura de mayúsculas (ver abajo) |
 | 5 | Ascendentes | **Las del logo** (857 / −326) | Ya aplicado |
 | — | Punto de la i y la j | **El de diddo** (Ø 125) | Ya aplicado |
@@ -139,6 +140,7 @@ primer pase). Conviene revisarlos a ojo en `proofs/alfabeto.png`:
 | % | Los círculos se pegan a la barra | Se apartan (164 UPM en total) y el glifo se ensancha |
 | @ | Hueco de un pelo entre el cuenco y la espiral | Cuenco interior al 86 % |
 | © ® | La letra toca el anillo | Anillo con trazo de 40 y la C/R Diddo al 55 % |
+| Extremos libres | Acaban en corte recto con esquinas de radio 47,5 (solo el trazo redondo); las astas de d p b q a i ya eran semicírculos | Antes de engrosar, cada extremo se sustituye por un disco del ancho del trazo, medido en perpendicular, con la punta donde estaba el corte y sin pasar de él (diagonales de v x k A…, ganchos oblicuos de g y). Se detecta como un segmento recto convexo con vecinos en sentidos opuestos y un ancho de trazo ≥ 0,65 del corte, lo que descarta lados largos como el banderín del 7 o el brazo del corchete. Las uniones entre trazos (Z, 2, 4, vértices de W y M) no son extremos y se quedan como están |
 | ª º | La ª de Montserrat es de dos pisos | Se construyen con la a y la o de Diddo al 58 %, **sin subrayado** como en Montserrat (`ordinal_underline` lo activa) |
 
 ## 9. Lo que queda abierto para fases siguientes

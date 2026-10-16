@@ -35,6 +35,9 @@ All changes are made by scripts/diddoize.py and scripts/fixes.py:
   (-331.5), single-storey a (from Montserrat's a.ss01), p and q derived from
   the d by rotation/reflection, larger and higher i/j dot, counters of o d b a g
   reduced to match the 2021 logo outlines.
+- Round terminals: every free stroke end of the skeleton (stems, terminals,
+  arms, bars, figures, accents) is replaced by a half-disc of the stroke
+  width, without growing the glyph.
 - Emboldening: union of the filled outline and a 95-unit round stroke.
 - Rescaling (x 0.8805) so that the visible cap height is 700 units; side
   bearings enlarged by the stroke offset.
@@ -45,6 +48,9 @@ All changes are made by scripts/diddoize.py and scripts/fixes.py:
 
 ChangeLog
 ---------
+
+2026-10-16 (Diddo Sans Project Authors) Diddo Sans 0.101
+- Round (half-disc) ends on all free stroke ends.
 
 2026-10-16 (Diddo Sans Project Authors) Diddo Sans 0.100
 - Initial prototype.
