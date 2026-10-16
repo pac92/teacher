@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diddo Sans Bold</title>
+<style>
+@font-face {
+  font-family: "Diddo Sans";
+  font-weight: 700;
+  src: url("../fonts/webfonts/DiddoSans-Bold.woff2") format("woff2"),
+       url("../fonts/ttf/DiddoSans-Bold.ttf") format("truetype");
+}
+:root { --ink: #1d2433; --paper: #ffffff; --accent: #4a67b5; --muted: #6b7385; }
+@media (prefers-color-scheme: dark) {
+  :root { --ink: #e9ecf3; --paper: #12151c; --accent: #8aa2e6; --muted: #9aa2b3; }
+}
+body { margin: 0; background: var(--paper); color: var(--ink);
+  font-family: system-ui, sans-serif; line-height: 1.4; }
+main { max-width: 1100px; margin: 0 auto; padding: 32px 16px 64px; }
+h1, h2 { font-family: "Diddo Sans"; font-weight: 700; }
+h1 { font-size: clamp(56px, 12vw, 140px); line-height: 1; margin: 0 0 8px; color: var(--accent); }
+h2 { font-size: 28px; margin: 48px 0 12px; }
+.note { color: var(--muted); font-size: 14px; }
+.d { font-family: "Diddo Sans"; font-weight: 700; overflow-wrap: anywhere; }
+.chars { font-size: clamp(28px, 5vw, 48px); letter-spacing: .02em; }
+.s0 { font-size: clamp(64px, 14vw, 160px); line-height: 1; margin: 0; }
+.s1 { font-size: clamp(40px, 8vw, 96px); margin: 0; }
+.s2 { font-size: clamp(32px, 6vw, 64px); margin: 0; }
+.s3, .s4 { font-size: clamp(20px, 3.4vw, 32px); margin: 8px 0; }
+.sizes p { margin: 4px 0; }
+.pairs { font-size: clamp(24px, 4vw, 40px); }
+</style>
+</head>
+<body>
+<main>
+<h1>Diddo Sans</h1>
+<p class="note">Bold · versión de prueba · derivada de Montserrat (SIL OFL 1.1) con la transformación Diddo.</p>
+
+<h2>Muestras</h2>
+<div class="d">
+<p class="s0">diddo pad</p>
+<p class="s1">Hamburgefonstiv</p>
+<p class="s2">¿Bailó el pingüino?</p>
+<p class="s3">El veloz murciélago hindú comía feliz cardillo y kiwi.</p>
+<p class="s4">La cigüeña tocaba el saxofón detrás del palenque de paja.</p>
+</div>
+
+<h2>Juego de caracteres</h2>
+<p class="d chars">!&quot;#$%&amp;&#x27;()*+,-./0123456789:;&lt;=&gt;?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~¡¿«»€ºª·…‘’“”•©®°§´¨–—áéíóúüñÁÉÍÓÚÜÑ</p>
+
+<h2>Tamaños</h2>
+<div class="d sizes">
+<p style="font-size:12px">12 px · diddo pad · Ñandú ágil</p><p style="font-size:16px">16 px · diddo pad · Ñandú ágil</p><p style="font-size:24px">24 px · diddo pad · Ñandú ágil</p><p style="font-size:36px">36 px · diddo pad · Ñandú ágil</p><p style="font-size:48px">48 px · diddo pad · Ñandú ágil</p>
+</div>
+
+<h2>Pares de espaciado</h2>
+<p class="d pairs">nnonnoonn HHOHHOOHH ddoddpaad Ta Te To Ya Yo AV AT LT P. F, r. y, «Hola» ¿Qué? ¡Sí!</p>
+</main>
+</body>
+</html>
