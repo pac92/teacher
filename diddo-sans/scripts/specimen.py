@@ -166,12 +166,22 @@ h2 {{ font-size: 28px; margin: 48px 0 12px; }}
     print(PROOFS / "specimen.html")
 
 
+def check_charset(font) -> None:
+    """Falla si algún carácter del juego v1 no tiene glifo: las pruebas no pueden quedarse
+    sin letras sin que se note (proof.py dibujaría .notdef en su lugar)."""
+    cmap = {u for g in font for u in g.unicodes}
+    missing = [c for c in CHARSET if ord(c) not in cmap]
+    if missing:
+        raise SystemExit(f"Faltan glifos en {UFO.name}: {''.join(missing)!r}")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--no-variants", action="store_true")
     args = ap.parse_args()
     PROOFS.mkdir(exist_ok=True)
     font = ufoLib2.Font.open(UFO)
+    check_charset(font)
     proof(font, charset_lines() + SAMPLE_LINES[:3], PROOFS / "alfabeto.png", px_per_em=110)
     print(PROOFS / "alfabeto.png")
     specimen_html()

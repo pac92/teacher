@@ -27,7 +27,7 @@ from fontTools.misc.transform import Transform
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import fixes  # noqa: E402
-from diddolib import ROOT, embolden, glyph_to_path, path_to_glyph, transformed, union  # noqa: E402
+from diddolib import ROOT, difference, embolden, glyph_to_path, path_to_glyph, transformed, union  # noqa: E402
 
 UPSTREAM_UFO = ROOT / "build" / "instance_ufo" / "Montserrat-Regular.ufo"
 
@@ -75,6 +75,10 @@ DEFAULTS = {
     # Punto de la i (logo): diámetro y posición de su borde inferior.
     "dot_diameter": 125,
     "dot_bottom": 669,
+    # Extremos libres de trazo en semicírculo (brief, decisión 3): segmento recto del
+    # esqueleto que se redondea si el trazo mide entre [mín, máx] UPM de ancho.
+    "round_terminals": True,
+    "terminal_width": [30, 170],
     # Separación extra de los diacríticos superiores (2 × desplazamiento = no pierden hueco).
     "mark_lift": 95,
     # Correcciones (scripts/fixes.py): huecos mínimos visibles y proporciones.
@@ -161,6 +165,180 @@ def diddo_stem(
     outer_pts.append((c1[0] + outer * r1, c1[1]))
     pts = inner + outer_pts
     return union([polygon(pts), circle(*c0, r0), circle(*c1, r1)])
+
+
+def _unit(x, y):
+    n = math.hypot(x, y)
+    return (x / n, y / n) if n else (0.0, 0.0)
+
+
+def _edges(contour: pathops.Path):
+    """Segmentos de un contorno como (verbo, inicio, puntos), con el cierre explícito."""
+    out, start, cur = [], None, None
+    for verb, pts in contour.segments:
+        if verb == "moveTo":
+            start = cur = pts[0]
+            continue
+        if verb in ("closePath", "endPath"):
+            if math.dist(cur, start) > 0.01:
+                out.append(("lineTo", cur, [start]))
+            break
+        out.append((verb, cur, list(pts)))
+        cur = pts[-1]
+    return out
+
+
+def _tangent_in(edge):
+    """Dirección con la que el segmento llega a su punto final."""
+    _, a, pts = edge
+    for q in reversed([a] + pts[:-1]):
+        if math.dist(q, pts[-1]) > 0.01:
+            return _unit(pts[-1][0] - q[0], pts[-1][1] - q[1])
+    return (0.0, 0.0)
+
+
+def _tangent_out(edge):
+    """Dirección con la que el segmento sale de su punto inicial."""
+    _, a, pts = edge
+    for q in pts:
+        if math.dist(q, a) > 0.01:
+            return _unit(q[0] - a[0], q[1] - a[1])
+    return (0.0, 0.0)
+
+
+def _extent(edge, d) -> float:
+    """Longitud del segmento medida en la dirección `d`."""
+    _, a, pts = edge
+    ps = [q[0] * d[0] + q[1] * d[1] for q in [a] + pts]
+    return max(ps) - min(ps)
+
+
+def _slice_width(path: pathops.Path, s, u, nrm, lat, span):
+    """Corta `path` en perpendicular a `u` a la distancia `s` y mide el trozo más cercano
+    a `lat`: devuelve (ancho, centro lateral) o None."""
+    proj = lambda p, d: p[0] * d[0] + p[1] * d[1]  # noqa: E731
+    pt = lambda al, la: (u[0] * al + nrm[0] * la, u[1] * al + nrm[1] * la)  # noqa: E731
+    band = polygon([pt(s - 0.25, lat - span), pt(s + 0.25, lat - span), pt(s + 0.25, lat + span), pt(s - 0.25, lat + span)])
+    cut = pathops.Path()
+    pathops.intersection([path], [band], cut.getPen())
+    best = None
+    for c in cut.contours:
+        ys = [proj(q, nrm) for q in c.points]
+        lo, hi = min(ys), max(ys)
+        d = 0 if lo <= lat <= hi else min(abs(lat - lo), abs(lat - hi))
+        if best is None or d < best[0]:
+            best = (d, lo, hi)
+    if best is None:
+        return None
+    return best[2] - best[1], (best[1] + best[2]) / 2
+
+
+def round_terminals(path: pathops.Path, min_w=30.0, max_w=170.0, parallel=-0.8) -> tuple[pathops.Path, int]:
+    """Redondea en semicírculo los extremos libres de trazo, como las astas del logo.
+
+    Un extremo es un segmento recto y convexo cuyos vecinos van en sentidos opuestos: el
+    contorno llega por un lado del trazo y vuelve por el otro. Se mide el ancho del trazo
+    cortándolo en perpendicular, se quita lo que queda por delante del centro del disco y
+    se pone un disco de ese ancho lo más adelante posible sin pasar del corte original
+    (así la letra no crece y, en los trazos diagonales cortados en la base o la altura x,
+    como v, x o k, el disco no se sale de esas líneas). Sirve igual para cortes oblicuos
+    (el gancho de la g o la y). Devuelve el trazado y el número de extremos redondeados.
+    """
+    path = union([path])
+    proj = lambda p, d: p[0] * d[0] + p[1] * d[1]  # noqa: E731
+    cuts, discs = [], []
+    for contour in path.contours:
+        edges = _edges(contour)
+        n = len(edges)
+        for i, (verb, a, pts) in enumerate(edges):
+            b = pts[-1]
+            if verb != "lineTo" or not (min_w <= math.dist(a, b) <= 2 * max_w):
+                continue
+            t_in = _tangent_in(edges[i - 1])
+            t_out = _tangent_out(edges[(i + 1) % n])
+            if proj(t_in, t_out) > parallel:
+                continue
+            u = _unit(t_in[0] - t_out[0], t_in[1] - t_out[1])  # hacia fuera del trazo
+            # Convexo: fuera del segmento no hay relleno y dentro sí (descarta, p. ej.,
+            # el hueco entre dos brazos de la E, que también tiene vecinos opuestos).
+            mid = ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)
+            if path.contains((mid[0] + 2 * u[0], mid[1] + 2 * u[1])) or not path.contains(
+                (mid[0] - 2 * u[0], mid[1] - 2 * u[1])
+            ):
+                continue
+            nrm = (-u[1], u[0])
+            # Normal del corte, hacia fuera: el disco no puede pasar de él.
+            m = _unit(-(b[1] - a[1]), b[0] - a[0])
+            if proj(m, u) < 0:
+                m = (-m[0], -m[1])
+            mu, mn, limit = proj(m, u), proj(m, nrm), proj(a, m)
+            if mu < 0.2:
+                continue
+            tip = max(proj(a, u), proj(b, u))
+            lat = (proj(a, nrm) + proj(b, nrm)) / 2
+            span = math.dist(a, b)
+            # Centro del disco: se mide el ancho donde el trazo aún está entero y se
+            # retrocede hasta que el disco cabe detrás del corte (se repite porque el
+            # ancho cambia si el trazo se abre o se curva).
+            rear = s = min(proj(a, u), proj(b, u))
+            w = None
+            for _ in range(4):
+                sw = _slice_width(path, s, u, nrm, lat, span)
+                if sw is None:
+                    break
+                w, lat_c = sw
+                s_new = (limit - w / 2 - lat_c * mn) / mu
+                if abs(s_new - s) < 0.25:
+                    break
+                s = min(s_new, rear)
+            if w is None or not (min_w <= w <= max_w):
+                continue
+            # El corte atraviesa el trazo: su anchura lateral se parece a la del trazo
+            # (≥ 0,73 en los extremos de verdad, incluidos los ganchos oblicuos de g e y;
+            # ≤ 0,51 en los lados largos que no lo son: banderín del 7 y del 1, J, [, acento).
+            if w < 0.65 * abs(proj((b[0] - a[0], b[1] - a[1]), nrm)):
+                continue
+            # Los dos lados del trazo siguen al menos medio ancho por detrás del extremo
+            # (descarta, p. ej., la parte de arriba del corchete, cuyo brazo es corto).
+            if min(_extent(edges[i - 1], u), _extent(edges[(i + 1) % n], u)) < w / 2:
+                continue
+            c = (u[0] * s + nrm[0] * lat_c, u[1] * s + nrm[1] * lat_c)
+            discs.append(circle(c[0], c[1], w / 2))
+            # Lo que queda por delante del centro del disco, a lo ancho del trazo.
+            lats = [lat_c - w / 2, lat_c + w / 2, proj(a, nrm), proj(b, nrm)]
+            lo, hi = min(lats) - 1, max(lats) + 1
+            cuts.append(polygon([
+                (u[0] * al + nrm[0] * la, u[1] * al + nrm[1] * la)
+                for al, la in ((s - 0.5, lo), (tip + 1, lo), (tip + 1, hi), (s - 0.5, hi))
+            ]))
+    if not cuts:
+        return path, 0
+    out = union([difference(path, union(cuts))] + discs)
+    return _tidy(out), len(discs)
+
+
+def _tidy(path: pathops.Path, eps: float = 1.0, min_area: float = 20.0) -> pathops.Path:
+    """Quita las astillas y los segmentos de menos de `eps` UPM que dejan los cortes donde
+    el disco toca el lado del trazo: el trazo redondo los convertiría en arcos espurios."""
+    out = pathops.Path()
+    pen = out.getPen()
+    for c in path.contours:
+        if abs(c.area) < min_area:
+            continue
+        cur = None
+        for verb, pts in c.segments:
+            if verb == "moveTo":
+                cur = pts[0]
+                pen.moveTo(cur)
+            elif verb in ("closePath", "endPath"):
+                pen.closePath()
+            else:
+                poly = [cur] + list(pts)
+                if sum(math.dist(poly[k], poly[k + 1]) for k in range(len(poly) - 1)) < eps:
+                    continue
+                getattr(pen, verb)(*pts)
+                cur = pts[-1]
+    return union([out])
 
 
 def stem_spec(cfg, name: str, y0: float, y1: float) -> dict:
@@ -396,6 +574,20 @@ def subset(font, keep: list[str]) -> None:
 # Engrosado y métricas
 # --------------------------------------------------------------------------
 
+def round_all_terminals(font, cfg) -> dict[str, int]:
+    """Redondea los extremos libres de los contornos (no de los componentes)."""
+    lo, hi = cfg["terminal_width"]
+    rounded = {}
+    for g in font:
+        if not g.contours:
+            continue
+        p, count = round_terminals(glyph_to_path(g, font, decompose=False), lo, hi)
+        if count:
+            path_to_glyph(p, g, round_coords=False)
+            rounded[g.name] = count
+    return rounded
+
+
 def embolden_all(font, width: float) -> dict[str, tuple[int, int]]:
     """Engrosa los contornos (no los componentes). Devuelve los cambios de nº de contornos."""
     changed = {}
@@ -466,7 +658,7 @@ def set_info(font, cfg, r: float, s: float) -> None:
         styleMapFamilyName="Diddo Sans",
         styleMapStyleName="bold",
         versionMajor=0,
-        versionMinor=100,
+        versionMinor=101,
         copyright=(
             "Copyright 2011 The Montserrat Project Authors "
             "(https://github.com/JulietaUla/Montserrat); "
@@ -531,6 +723,8 @@ def diddoize(cfg: dict, out: Path, upstream: Path = UPSTREAM_UFO, verbose: bool 
         font.groups[gname] = [m for m in font.groups[gname] if m != "a.ss01"]
 
     notes, skeletons = fixes.pre_embolden(font, cfg)
+    # Después de las correcciones previas, que localizan los contornos por su índice.
+    rounded = round_all_terminals(font, cfg) if cfg["round_terminals"] else {}
     width = cfg["stroke"]
     r = width / 2
     changed = embolden_all(font, width)
@@ -546,6 +740,8 @@ def diddoize(cfg: dict, out: Path, upstream: Path = UPSTREAM_UFO, verbose: bool 
     font.save(out, overwrite=True)
     if verbose:
         print(f"{out}: {len(font)} glifos, escala {s:.4f}")
+        if rounded:
+            print(f"Extremos redondeados: {sum(rounded.values())} en {len(rounded)} glifos")
         if changed:
             print("Cambian de nº de contornos al engrosar (revisar a mano):")
             for n, (a, b) in sorted(changed.items()):

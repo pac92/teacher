@@ -1,9 +1,9 @@
 # Diddo Sans: plan de trabajo
 
 Tipografía para logotipos de subproductos de Diddo y material promocional.
-Estado: **prototipo v0.100 compilado** (`fonts/`) y **brief decidido**. Siguiente paso:
-aplicar las decisiones del brief (`docs/design-brief.md`) en `scripts/diddoize.py`; después,
-las fases 5–8.
+Estado: **prototipo v0.101 compilado** (`fonts/`) y **brief decidido**. Aplicada la decisión 3
+(extremos redondos). Siguiente paso: aplicar el resto de decisiones del brief
+(`docs/design-brief.md`) en `scripts/diddoize.py`; después, las fases 5–8.
 
 ## Decisiones tomadas
 
